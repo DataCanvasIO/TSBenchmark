@@ -1,0 +1,14 @@
+launch_name: 'hyperts_release_0.1.0_dev'
+launch_desc: 'hyperts V0.1.0 release benchmark on 20220321'
+frameworks: [ 'hyperts_dl','hyperts_stat', 'navie' ]
+tasks: [ 'univariate-forecast'  ]
+data_sizes: [ 'small' ]
+#white_list: [ 'electricity_weekly' ]
+#random_state: 9527
+
+env: prod
+data_path: D:\workspace\DAT\benchmark\hyperts\data\benchmark
+report_path: D:\文档\0 DAT\3 Benchmark\benchmark-output\hyperts
+max_trials: 1
+time_limit: 3600
+rounds_per_framework: 1

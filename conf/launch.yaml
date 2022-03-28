@@ -1,0 +1,19 @@
+launch_name: 'hyperts_release_0.1.0_prod'
+launch_desc: 'hyperts V0.1.0 release benchmark on 20220321'
+frameworks: [ 'hyperts_dl','hyperts_stat', 'navie' ]
+tasks: [ 'univariate-forecast' ]
+data_sizes: [ 'small','medium','large' ]
+#white_list: [ 'electricity_weekly' ]
+#random_state: 9527
+
+env: prod
+data_path: /mnt/nfsroot/hegang/benchmark-data/hyperts/data/benchmark
+report_path: /mnt/nfsroot/hegang/report/hyperts2
+max_trials: 30
+time_limit: 3600
+rounds_per_framework: 5
+
+
+
+
+
