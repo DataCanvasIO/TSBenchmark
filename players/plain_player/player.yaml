@@ -1,0 +1,4 @@
+env:
+  kind: custom_python
+  custom_python:
+    executable: /usr/bin/python

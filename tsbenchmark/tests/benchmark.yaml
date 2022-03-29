@@ -1,0 +1,31 @@
+name: 'hyperts_release_0.1.0'
+desc: 'hyperts V0.1.0 release benchmark on 20220321'
+kind: remote
+players:
+  - hyperts_dl  # 内置players
+  - ./sourcecode/hyperts_stat/
+
+tasks:  # 与task_filter比优先级更高
+  - 1
+  - 2
+  - 3
+
+task_filter:
+  types:
+    - univariate-forecast
+    - multivariate-forecast
+  tags:
+    - tagA
+    - tagB
+  data_sizes:
+    - small
+
+constraint:  # 约束条件
+  time_limit: 2h
+  trials: 10
+
+report:
+  path:  D:\benchmark-output\hyperts
+
+datasets:
+  cache_path: ~/.tsbenchmark/datasets
