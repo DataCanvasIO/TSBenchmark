@@ -1,14 +1,14 @@
-launch_name: 'hyperts_release_0.1.0_dev'
+launch_name: 'data_dev'
 launch_desc: 'hyperts V0.1.0 release benchmark on 20220321'
-frameworks: [ 'hyperts_dl','hyperts_stat', 'navie' ]
-tasks: [ 'univariate-forecast'  ]
-data_sizes: [ 'small' ]
-#white_list: [ 'electricity_weekly' ]
-#random_state: 9527
+frameworks: [ 'hyperts_dl','hyperts_stat', 'navie' ] #  'hyperts_dl','hyperts_stat','autoTS', 'navie'
+tasks: [ 'univariate-forecast','multivariate-forecast' ] #  'univariate-forecast','multivariate-forecast'
+data_sizes: [ 'small','medium','large' ] # 'small','medium','large'
+white_list: [ 'Air_Passengers' ]
+#random_states: 9527
 
-env: prod
+env: dev
 data_path: D:\workspace\DAT\benchmark\hyperts\data\benchmark
 report_path: D:\文档\0 DAT\3 Benchmark\benchmark-output\hyperts
 max_trials: 1
 time_limit: 3600
-rounds_per_framework: 1
+rounds_per_framework: 3

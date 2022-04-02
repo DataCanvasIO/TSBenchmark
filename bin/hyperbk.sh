@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd ../hyperbk
-LAUNCH_CONF='../conf/launch/launch.yaml'
+cd ../tsbk
+LAUNCH_CONF='../conf/launch.yaml'
 
 while getopts 'd::f:t:' OPT; do
     echo ${OPT} "$OPTARG"
@@ -19,7 +19,6 @@ if [ ! -d "../log" ]; then
   mkdir ../log
 fi
 
-LAUNCH_CONF='../conf/launch.yaml'
-nohup python ../hypertsbk/benchmark.py -f $LAUNCH_CONF >> ../log/launch.log &
+nohup python ../tsbk/benchmark.py -f $LAUNCH_CONF >> ../log/launch.log &
 
 exit 0
