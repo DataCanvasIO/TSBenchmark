@@ -1,10 +1,10 @@
-from tsbenchmark.benchmark import load_players, PlayerSpec, LocalBenchmark
+from tsbenchmark.benchmark import load_players, Player, LocalBenchmark
 
 
 def test_load_players():
     players = load_players(['plain_player'])
     assert len(players) == 1
-    plain_player: PlayerSpec = players[0]
+    plain_player: Player = players[0]
     assert plain_player.name == 'plain_player'
     env = plain_player.env
     assert env.kind == 'custom_python'

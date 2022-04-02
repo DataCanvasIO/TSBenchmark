@@ -2,9 +2,12 @@ import abc
 import os
 from pathlib import Path
 import yaml, os
+from typing import List
 
-from hypernets.hyperctl.batch import ShellJob, Batch
-from hypernets.hyperctl.schedule import run_batch
+from hypernets.hyperctl.batch import ShellJob, Batch, BackendConf, ServerConf
+from hypernets.hyperctl.appliation import BatchApplication
+
+# from hypernets.hyperctl.scheduler import run_batch
 from hypernets.utils import logging
 logging.set_level('DEBUG')
 
@@ -13,7 +16,7 @@ logger = logging.getLogger(__name__)
 SRC_DIR = os.path.dirname(__file__)
 
 
-class EnvSpec:
+class PythonEnv:
 
     def __init__(self, kind, custom_python=None, pip=None, conda=None):
         self.kind = kind
@@ -21,23 +24,33 @@ class EnvSpec:
         self.pip = pip
         self.conda = conda
 
+    KIND_CUSTOM_PYTHON = 'custom_python'
 
-class PlayerSpec:
 
-    def __init__(self, name, env: EnvSpec):
+class Player:
+
+    def __init__(self, name, exec_file: str, env: PythonEnv):
         self.name = name
-        self.env = env
-        self.exec_file = 'exec.py'
+        self.env: PythonEnv = env
+        self.exec_file = exec_file
         # 1. check env file
         # 2. check config file
+
+    @property
+    def py_executable(self):
+        if self.env.kind == PythonEnv.KIND_CUSTOM_PYTHON:
+            return self.env.custom_python['executable']
+        else:
+            raise ValueError(f"unseen env kind {self.env.kind}")
 
 
 class Benchmark(metaclass=abc.ABCMeta):
 
-    def __init__(self, name, desc, players, constraints):
+    def __init__(self, name, desc, players, tasks, constraints):
         self.name = name
         self.desc = desc
-        self.players = players
+        self.players: List[Player] = players
+        self.tasks = tasks
         self.constraints = constraints
 
     @abc.abstractmethod
@@ -45,7 +58,7 @@ class Benchmark(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def setup_player(self, player: PlayerSpec):
+    def setup_player(self, player: Player):
         pass
 
     @abc.abstractmethod
@@ -59,30 +72,38 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
     def generate_hyperctl_jobs(self):
         pass
 
-    def add_job(self, player_name, task_id, batch: Batch):
-        name = f'{player_name}_{task_id}'
+    def add_job(self, player: Player, task_id, batch: Batch):
+        name = f'{player.name}_{task_id}'
         job_params = {
             "task_id": task_id,
         }
-        execution = {
-            'command': '/usr/bin/python /home/a.py'
-        }
-        batch.add_job(name=name, params=job_params, resource=None, execution=execution)
+
+        command = f"{player.py_executable} {player.exec_file}"
+
+        working_dir = (batch.data_dir_path() / name).absolute().as_posix()
+        batch.add_job(name=name,
+                      params=job_params,
+                      command=command,
+                      output_dir=working_dir,
+                      working_dir=working_dir)
 
     def run(self):
-        tasks = self.get_tasks()
-        players = self.get_players()
-        batch: Batch = None
+        tasks = self.tasks
+        players = self.players
+        # create batch app
+        batches_data_dir = Path("~/tsbenchmark-hyperctl").expanduser().absolute().as_posix()  # TODO move config file
+
+        # backend_conf = BackendConf(type = 'local', conf = {})
+        from hypernets.utils import common
+        batch_name = common.generate_short_id()  # TODO move to benchmark
+        batch: Batch = Batch(batch_name, batches_data_dir)
         for task in tasks:
             for player in players:
-                self.add_job(player.name, task.name, batch)
-        run_batch(batch)
+                self.add_job(player, task.id, batch)
 
-    def get_players(self):
-        return []
+        batch_app = BatchApplication(batch)
+        batch_app.start()
 
-    def get_tasks(self):
-        return []
 
 
 class LocalBenchmark(BenchmarkBaseOnHyperctl):
@@ -93,7 +114,7 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
     def generate_hyperctl_jobs(self):
         pass
 
-    def setup_player(self, player: PlayerSpec):
+    def setup_player(self, player: Player):
         # setup environment
         if player.env.kind == 'custom_python':
             pass
@@ -121,14 +142,18 @@ def load_player(folder):
     # name, exec_file, env: EnvSpec
     if 'name' not in play_dict:
         play_dict['name'] = os.path.basename(folder)
-    play_dict['env'] = EnvSpec(**play_dict['env'])
 
-    return PlayerSpec(**play_dict)
+    exec_file = (Path(folder) / "exec.py").absolute().as_posix()
+
+    play_dict['exec_file'] = exec_file
+    play_dict['env'] = PythonEnv(**play_dict['env'])
+
+    return Player(**play_dict)
 
 
 def load_players(player_specs):
 
-    def put_player(dict_obj, _: PlayerSpec):
+    def put_player(dict_obj, _: Player):
         if _.name not in dict_obj:
             dict_obj[_.name] = _
         else:
