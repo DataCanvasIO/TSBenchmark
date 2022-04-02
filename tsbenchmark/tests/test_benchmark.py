@@ -8,12 +8,12 @@ def test_load_players():
     assert plain_player.name == 'plain_player'
     env = plain_player.env
     assert env.kind == 'custom_python'
-    assert env.custom_python['executable'] == '/usr/bin/python'
+    assert env.custom_python['executable'] == 'python'
 
-
-def test_run_benchmark():
-    players = load_players(['plain_player'])
-    lb = LocalBenchmark(name='name', desc='desc', players=players, constraints={})
-
-    lb.run()
-
+#
+# def test_run_benchmark():
+#     players = load_players(['plain_player'])
+#     lb = LocalBenchmark(name='name', desc='desc', players=players, constraints={})
+#
+#     lb.run()
+#

@@ -1,4 +1,4 @@
 env:
   kind: custom_python
   custom_python:
-    executable: /home/wuhf/miniconda3/envs/hypergbm-dev/bin/python
+    executable: python
