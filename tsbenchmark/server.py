@@ -63,12 +63,9 @@ class TsBenchmarkWebApplication(Application):
 
 def create_tsbenchmark_webapp(server_host, server_port, batch, job_scheduler) -> TsBenchmarkWebApplication:
     handlers = [
-        (r'/hyperctl/api/job/(?P<job_name>.+)/(?P<operation>.+)',
-         JobOperationHandler, dict(batch=batch, job_scheduler=job_scheduler)),
-        (r'/hyperctl/api/job/(?P<job_name>.+)', JobHandler, dict(batch=batch)),
-        (r'/hyperctl/api/job', JobListHandler, dict(batch=batch)),
+        (r'/hyperctl/api/job/(?P<job_name>.+)', TSTaskHandler, dict(batch=batch)),
+        (r'/hyperctl/api/job', TSTaskListHandler, dict(batch=batch)),
         (r'/hyperctl', IndexHandler)
     ]
-    application = HyperctlWebApplication(host=server_host, port=server_port, handlers=handlers)
+    application = TsBenchmarkWebApplication(host=server_host, port=server_port, handlers=handlers)
     return application
-
