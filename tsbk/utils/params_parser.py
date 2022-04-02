@@ -1,14 +1,33 @@
+import os.path
 import sys, getopt
 import yaml
 from engine.factory import Params
-from utils.util import logging
+from utils.util import logging, bakup, gen_random_states
+import random
 
 logger = logging.getLogger(__name__)
 
 
-def load_params(argv):
+def load_and_backup_params(argv):
     opts, args = _parse(argv[1:])
-    return _construct_parms(opts, args)
+    params = _construct_parms(opts, args)
+    # params.validation  TODO
+    _get_random_states(params)
+    bakup(params)
+    return params
+
+
+def _get_random_states(params):
+    if os.path.exists(params.params_runtime_file()):
+        # todo
+        print('result')
+        f = open(params.params_runtime_file(), 'r', encoding='utf-8')
+        lines = f.readlines()
+        f.close()
+        params.random_states = [int(rs) for rs in lines[0].split(',')]
+
+    if params.random_states == None:
+        params.random_states = list(gen_random_states(params.rounds_per_framework))
 
 
 def _parse(argv):

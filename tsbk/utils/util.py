@@ -1,10 +1,12 @@
 from hyperts.utils import metrics
 import shutil
 import yaml
+import os
 
 import pandas as pd
 
 import logging
+import random
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -31,7 +33,7 @@ def save_metrics(metadata, metrics, time_cost, data_size,
                      'horizon', 'metric',
                      'metric_score',
                      'metrics_scores',
-                     'HyperTS_duration[s]',
+                     'duration',
                      'run_kwargs', 'random_state'])
 
     data = {'round_no': round_no, 'framework': framework, 'dataset': metadata['name'], 'shape': metadata['shape'],
@@ -43,7 +45,7 @@ def save_metrics(metadata, metrics, time_cost, data_size,
             'metric': metadata['metric'],
             'metric_score': round(metrics[metadata['metric']], 6),
             'metrics_scores': metrics,
-            'HyperTS_duration[s]': round(time_cost, 1),
+            'duration': round(time_cost, 1),
             'run_kwargs': run_kwargs,
             'random_state': random_state}
     print("metric: ", metadata['metric'], " merics: ", metrics)
@@ -76,27 +78,10 @@ def get_param(config, key):
     return config[key] if key in config else None
 
 
-# def initparams(path=None):
-#     try:
-#         params = hyperctl.get_job_params()
-#         data_base_path = params['data_path']
-#         report_base_path = params['report_path']
-#         mode = params['env']
-#         max_trials = params['max_trials']
-#     except:
-#         # traceback.print_exc()
-#         vers = hyperts.__version__
-#         if path is None:
-#             path = "../conf/hypertsbk.yaml"
-#         f = open(path, 'r', encoding='utf-8')
-#         config = yaml.load(f.read(), Loader=yaml.FullLoader)
-#         data_base_path = config['data_path']
-#         report_base_path = config['report_path']
-#         mode = config['env']
-#         max_trials = config['max_trials']
-#         f.close()
-#
-#     return data_base_path, report_base_path, max_trials, mode, vers
+def get_dir_path(dir_path):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+    return dir_path
 
 
 def cal_metric(y_pred, y_test, date_col_name, series_col_name, covariables, metrics_target, task_calc_score):
@@ -123,11 +108,10 @@ def convertdf(df_train, df_test, Date_Col_Name, Series_Col_name, covariables, fo
     if Series_Col_name != None:
         df_train[Series_Col_name] = df_train[Series_Col_name].astype(float)
         df_test[Series_Col_name] = df_test[Series_Col_name].astype(float)
-
-        Series_Col_name.append(Date_Col_Name)
+        cols = Series_Col_name + [Date_Col_Name]
         # split data
-        df_train = df_train[Series_Col_name]
-        df_test = df_test[Series_Col_name]
+        df_train = df_train[cols]
+        df_test = df_test[cols]
 
     else:
         for col in df_train.columns:
@@ -168,3 +152,17 @@ def convert_3d(df_train, df_test):
 
 def bakup(params):
     shutil.copy(params.conf_path, params.result_dir_path())
+    f = open(params.params_runtime_file(), 'w')  # 若是'wb'就表示写二进制文件
+    f.write(','.join( '%s' %rs for rs in params.random_states))
+    f.close()
+
+
+def gen_random_states(n):
+    random_states = set()
+    while (len(random_states) < n):
+        random_states.add(random.randint(1, 65536))
+    return random_states
+
+
+def sub_dict(somedict, somekeys, default=None):
+    return dict([(k, somedict.get(k, default)) for k in somekeys])
