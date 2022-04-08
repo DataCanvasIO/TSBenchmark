@@ -20,7 +20,7 @@ class NetworkTrafficDataset(TSDataset):
 
 task1 = TSTaskConfig(1, task='multivariate-forecast',
                      target='Var_1', time_series='TimeStamp',
-                     dataset=NetworkTrafficDataset(),
+                     dataset_id=NetworkTrafficDataset(),
                      covariables=['HourSin', 'WeekCos', 'CBWD'])
 
 lb = LocalBenchmark(name='name', desc='desc', players=players, tasks=[task1], constraints={})

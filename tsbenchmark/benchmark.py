@@ -8,7 +8,10 @@ from hypernets.hyperctl.batch import ShellJob, Batch, BackendConf, ServerConf
 from hypernets.hyperctl.appliation import BatchApplication
 
 # from hypernets.hyperctl.scheduler import run_batch
+from hypernets.hyperctl.server import create_hyperctl_handlers
 from hypernets.utils import logging
+from tsbenchmark.server import BenchmarkBatchApplication
+
 logging.set_level('DEBUG')
 
 logger = logging.getLogger(__name__)
@@ -66,6 +69,7 @@ class Benchmark(metaclass=abc.ABCMeta):
         pass
 
 
+
 class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
@@ -101,9 +105,8 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
             for player in players:
                 self.add_job(player, task.id, batch)
 
-        batch_app = BatchApplication(batch)
+        batch_app = BenchmarkBatchApplication(batch)
         batch_app.start()
-
 
 
 class LocalBenchmark(BenchmarkBaseOnHyperctl):
@@ -191,6 +194,7 @@ def load_players(player_specs):
 
 def get_benchmark(kind):
     players = load_players(['plain_player'])
-    lb = LocalBenchmark(name='name', desc='desc', players=players, constraints={})
+    #
+    lb = LocalBenchmark(name='name', desc='desc', players=players, tasks=[], constraints={})
 
     return lb

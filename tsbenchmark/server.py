@@ -6,11 +6,13 @@ from typing import Optional, Awaitable
 from tornado.log import app_log
 from tornado.web import RequestHandler, Finish, HTTPError, Application
 
+from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.batch import Batch
 from hypernets.hyperctl.batch import ShellJob
 from hypernets.hyperctl.executor import RemoteSSHExecutorManager
 from hypernets.hyperctl.scheduler import JobScheduler
-from hypernets.hyperctl.server import RestCode, RestResult, BaseHandler
+from hypernets.hyperctl.server import RestCode, RestResult, BaseHandler, create_hyperctl_handlers, \
+    HyperctlWebApplication
 from hypernets.hyperctl.utils import http_portal
 from hypernets.utils import logging as hyn_logging
 
@@ -25,16 +27,24 @@ class IndexHandler(BaseHandler):
 
 class TSTaskHandler(BaseHandler):
 
-    def get(self, job_name, **kwargs):
-        job = self.batch.get_job_by_name(job_name)
-        if job is None:
+    def get(self, task_id, **kwargs):
+        print(task_id)
+        task = self.mock_task()
+        if task is None:
             self.response({"msg": "resource not found"}, RestCode.Exception)
         else:
-            ret_dict = job.to_dict()
+            ret_dict = task.to_dict()
             return self.response(ret_dict)
 
-    def initialize(self, batch: Batch):
-        self.batch = batch
+    def mock_task(self):
+        from tsbenchmark.ttasks import TSTaskConfig
+        return TSTaskConfig(1, task='multivariate-forecast',
+                            target='Var_1', time_series='TimeStamp',
+                            dataset_id="NetworkTrafficDataset",
+                            covariables=['HourSin', 'WeekCos', 'CBWD'])
+    # def initialize(self, batch: Batch):
+    #     self.batch = batch
+    #
 
 
 class TSTaskListHandler(BaseHandler):
@@ -45,27 +55,19 @@ class TSTaskListHandler(BaseHandler):
             jobs_dict.append(job.to_dict())
         self.response({"jobs": jobs_dict})
 
-    def initialize(self, batch: Batch):
-        self.batch = batch
+    # def initialize(self, batch: Batch):
+    #     self.batch = batch
 
 
-class TsBenchmarkWebApplication(Application):
+class BenchmarkBatchApplication(BatchApplication):
 
-    def __init__(self, host="localhost", port=8060, **kwargs):
-        self.host = host
-        self.port = port
-        super().__init__(**kwargs)
-
-    @property
-    def portal(self):
-        return http_portal(self.host, self.port)
-
-
-def create_tsbenchmark_webapp(server_host, server_port, batch, job_scheduler) -> TsBenchmarkWebApplication:
-    handlers = [
-        (r'/hyperctl/api/job/(?P<job_name>.+)', TSTaskHandler, dict(batch=batch)),
-        (r'/hyperctl/api/job', TSTaskListHandler, dict(batch=batch)),
-        (r'/hyperctl', IndexHandler)
-    ]
-    application = TsBenchmarkWebApplication(host=server_host, port=server_port, handlers=handlers)
-    return application
+    def _create_web_app(self, server_host, server_port, batch):
+        hyperctl_handlers = create_hyperctl_handlers(batch, self.job_scheduler)
+        tsbenchmark_handlers = [
+            (r'/tsbenchmark/api/task/(?P<task_id>.+)', TSTaskHandler),
+            (r'/tsbenchmark/api/job', TSTaskListHandler),
+            (r'/tsbenchmark', IndexHandler)
+        ]
+        handlers = tsbenchmark_handlers + hyperctl_handlers
+        application = HyperctlWebApplication(host=server_host, port=server_port, handlers=handlers)
+        return application
