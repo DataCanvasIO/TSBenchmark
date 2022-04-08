@@ -90,11 +90,11 @@ class BenchmarkLocal(BenchmarkBase):
             logger.debug("metadata_path: " + metadata_path)
             metadata = get_metadata(metadata_path)
 
-            try:
-                df_train = pd.read_csv(train_file_path)
-                df_test = pd.read_csv(test_file_path)
+            df_train = pd.read_csv(train_file_path)
+            df_test = pd.read_csv(test_file_path)
 
-                for round_no in range(1, self.params.rounds_per_framework + 1):
+            for round_no in range(1, self.params.rounds_per_framework + 1):
+                try:
                     time2_start = time.time()
                     if str(round_no) + metadata['name'] in no_and_dataset:
                         logger.info(
@@ -110,7 +110,8 @@ class BenchmarkLocal(BenchmarkBase):
                                                metadata['dtformat'],
                                                metadata['task'],
                                                metadata['metric'],
-                                               metadata['covariables'], self.params.max_trials, random_state)
+                                               metadata['covariables'], self.params.max_trials, random_state,
+                                               self.params.reward_metric)
                     time2_end = time.time()
                     time_cost = time2_end - time2_start
                     logging.debug('========== {}_{}_{}=========='.format(str(round_no), metadata['name'], framework))
@@ -124,17 +125,23 @@ class BenchmarkLocal(BenchmarkBase):
 
                     save_metrics(metadata, metrics, time_cost, data_size,
                                  run_kwargs, data_results_file, framework, round_no, random_state)
-            except Exception:
-                traceback.print_exc()
-                logger.error('train error on {}'.format(train_file_path))
-                benchmark_report.error_count = benchmark_report.error_count + 1
-                benchmark_report.error_list.append((framework, data_size, metadata['name']))
+                except Exception:
+                    traceback.print_exc()
+                    logger.error('train error on {}'.format(train_file_path))
+                    benchmark_report.error_count = benchmark_report.error_count + 1
+                    benchmark_report.error_list.append((round_no, framework, data_size, metadata['name']))
 
-            benchmark_report.success_count = benchmark_report.success_count + 1
+        benchmark_report.success_count = benchmark_report.success_count + 1
+
 
     def gen_report(self):
         from analysis.report_analysis import generate_report
         generate_report(self.params)
+
+
+    def gen_comparison_report(self):
+        from analysis.report_analysis import gen_comparison_report
+        gen_comparison_report(self.params)
 
 
 class BenchmarkRemote(BenchmarkBase):

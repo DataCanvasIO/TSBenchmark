@@ -6,16 +6,16 @@ task_trail = 'forecast'
 
 
 def trail(df_train, df_test, Date_Col_Name, Series_Col_name, forecast_length, format, task, metric, covariables,
-          max_trials, random_state):
+          max_trials, random_state,reward_metric):
     y_test, run_kwargs, time_cost, y_pred = _trail(Date_Col_Name, Series_Col_name, covariables,
                                                    df_test, df_train, format, metric, task_trail,
-                                                   max_trials, random_state)
+                                                   max_trials, random_state,reward_metric)
 
     return y_pred, run_kwargs
 
 
 def _trail(Date_Col_Name, Series_Col_name, covariables, df_test, df_train, format, metric, task, max_trials,
-           random_state):
+           random_state,reward_metric):
     df_train, df_test = convertdf(df_train, df_test, Date_Col_Name, Series_Col_name, covariables, format)
     time2_start = time.time()
     from hyperts.experiment import make_experiment
@@ -26,7 +26,7 @@ def _trail(Date_Col_Name, Series_Col_name, covariables, df_test, df_train, forma
                           mode='dl',
                           timestamp=Date_Col_Name,
                           task=task,
-                          reward_metric=metric,
+                          reward_metric=reward_metric,
                           timestamp_format=format,
                           covariables=covariables,
                           max_trials=max_trials,

@@ -51,6 +51,9 @@ class Params:
         self.time_limit = None
         self.conf_path = None
         self.rounds_per_framework = None
+        self.reward_metric = None
+        self.type = 'benchmark'
+        self.reports = None
 
     # e.g. /mnt/result/hyperts_v0.1.0/
     def result_dir_path(self):
@@ -78,3 +81,12 @@ class Params:
 
     def params_runtime_file(self):
         return os.path.join(self.result_dir_path(), 'params_runtime')
+
+    def compare_reports_dirs(self, task):
+        return [os.path.join(self.report_path, report_name, task, 'report') for report_name in self.reports]
+
+    def compare_framework_dir(self, task, framework):
+        return get_dir_path(os.path.join(self.task_dir(task), framework))
+
+    def compare_imgs_dir(self, task, framework):
+        return get_dir_path(os.path.join(self.compare_framework_dir(task, framework), 'imgs'))

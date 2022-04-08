@@ -26,7 +26,7 @@ def _get_random_states(params):
         f.close()
         params.random_states = [int(rs) for rs in lines[0].split(',')]
 
-    if params.random_states == None:
+    if params.random_states == None and params.rounds_per_framework != None:
         params.random_states = list(gen_random_states(params.rounds_per_framework))
 
 

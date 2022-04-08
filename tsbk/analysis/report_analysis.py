@@ -24,6 +24,34 @@ def get_filelist(dir, Filelist):
     return Filelist
 
 
+def gen_comparison_report(params):
+    logger.info('gen_comparison_report=======')
+    for task in params.tasks:
+        columns = ['dataset', 'shape', 'horizon']
+        compare_reports_dirs = params.compare_reports_dirs(task)
+
+        report_files = [os.listdir(crd) for crd in compare_reports_dirs]
+        report_names = set(report_files[0] + report_files[1])
+        report_names.remove('imgs')
+
+        for framework in params.frameworks:
+            compare_framework_path = params.compare_framework_dir(task, framework)
+            for report_name in report_names:
+                try:
+                    dfs = [pd.read_csv(os.path.join(report_dir, report_name)) for report_dir in compare_reports_dirs]
+                    df = pd.concat([dfs[0][columns], dfs[0][[framework]], dfs[1][[framework]]], axis=1)
+                    df.columns = columns + params.reports
+                    df.to_csv(os.path.join(compare_framework_path, report_name), index=False)
+                    png_path = os.path.join(params.compare_imgs_dir(task, framework), report_name[:-3] + 'png')
+                    report_painter.paint_table(df, title_cols=columns,
+                                               title_text=framework + ' ' + report_name[7:-4].replace('_', ' '),
+                                               fontsize=6,
+                                               result_path=png_path)
+                except:
+                    traceback.print_exc()
+                    logger.error('{png_path} generate error')
+
+
 def generate_report(params):
     for task in params.tasks:
         datas_results_dir = params.datas_results_dir(task)
@@ -36,7 +64,6 @@ def generate_report(params):
         results_datas, frameworks = get_result_datas(data_results_file)
 
         report_calc(results_datas, columns, frameworks, report_dir, report_imgs_dir)
-    return 0
 
 
 def report_calc(results_datas, columns, frameworks, report_dir, report_imgs_dir):
@@ -52,11 +79,20 @@ def report_calc(results_datas, columns, frameworks, report_dir, report_imgs_dir)
     report_calc_metric(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir, 'mae', 'std')
 
     # Time cost report TODO
+    report_calc_metric(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir, 'duration', 'mean',
+                       title_text='MEAN duration')
+    report_calc_metric(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir, 'duration', 'std',
+                       title_text='STD duration')
+    report_calc_metric(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir, 'duration', 'max',
+                       title_text='MAX duration')
+    report_calc_metric(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir, 'duration', 'min',
+                       title_text='MIN duration')
 
     # Others report TODO
 
 
-def report_calc_metric(results_datas, columns, frameworks, report_dir, report_imgs_dir, metric, stat_type):
+def report_calc_metric(results_datas, columns, frameworks, report_dir, report_imgs_dir, metric, stat_type,
+                       title_text=None):
     columns_report = columns + frameworks
     report_datas = {}
     for row_key in list(results_datas.keys()):
@@ -73,6 +109,10 @@ def report_calc_metric(results_datas, columns, frameworks, report_dir, report_im
             row_report[framework] = np.mean(row_data[metric])
         elif stat_type == 'std':
             row_report[framework] = np.std(row_data[metric])
+        elif stat_type == 'max':
+            row_report[framework] = np.max(row_data[metric])
+        elif stat_type == 'min':
+            row_report[framework] = np.min(row_data[metric])
     logger.debug(report_datas)
 
     df_report = pd.DataFrame(columns=columns_report)
@@ -84,9 +124,9 @@ def report_calc_metric(results_datas, columns, frameworks, report_dir, report_im
     logger.info('report generated: {}'.format(report_path))
 
     png_path = '{}{}report_{}_{}.png'.format(report_imgs_dir, os.sep, metric, stat_type)
-    title_text = '{} {} {} '.format(metric.upper(), stat_type, 'scores')
+    if title_text == None:
+        title_text = '{} {} {} '.format(metric.upper(), stat_type, 'scores')
     report_painter.paint_table(df_report, title_cols=columns, title_text=title_text, fontsize=6, result_path=png_path)
-
 
 def get_result_datas(result_file_list):
     results_datas = {}
@@ -108,7 +148,10 @@ def result_data_from_file(result_file, results_datas, frameworks):
                     frameworks.append(row['framework'])
                 results_datas[key] = {'dataset': row['dataset'], 'framework': row['framework'], 'shape': row['shape'],
                                       'data_size': row['data_size'], 'task': row['task'],
-                                      'horizon': row['horizon']}
+                                      'horizon': row['horizon'], 'duration': [row['duration']]}
+            else:
+                results_datas[key]['duration'].append(row['duration'])
+
             data_row = results_datas[key]
             metrics = json.loads(row['metrics_scores'].replace('\'', '\"').replace('nan', 'NaN'))
             for metric in list(metrics.keys()):

@@ -5,9 +5,6 @@ from utils.util import get_param
 import pandas as pd
 
 
-
-
-
 # Converts the contents in a .tsf file into a dataframe and returns it along with other meta-data of the dataset: frequency, horizon, whether the dataset contains missing values and whether the series have equal lengths
 #
 # Parameters
@@ -160,8 +157,9 @@ def convert_tsf_to_dataframe(
 
 
 # Example of usage
-loaded_data, frequency, forecast_horizon, contain_missing_values, contain_equal_length = convert_tsf_to_dataframe(
-    r"D:\workspace\DAT\benchmark-datas-ts\forecastingdata-uni\small\m1_monthly\raw_data\m1_monthly_dataset.tsf")
+# loaded_data, frequency, forecast_horizon, contain_missing_values, contain_equal_length = convert_tsf_to_dataframe(
+#     r"D:\workspace\DAT\benchmark-datas-ts\forecastingdata-multi\small\nn5_weekly\train.tsf")
+# frequency_map = {'yearly': 'Y', 'monthly': 'M', 'daily': 'D', 'quarterly': 'Q', 'weekly': 'W', 'hourly': 'H'}  # todo
 
 # print(loaded_data)
 # print(frequency)

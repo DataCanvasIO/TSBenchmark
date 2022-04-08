@@ -152,9 +152,10 @@ def convert_3d(df_train, df_test):
 
 def bakup(params):
     shutil.copy(params.conf_path, params.result_dir_path())
-    f = open(params.params_runtime_file(), 'w')  # 若是'wb'就表示写二进制文件
-    f.write(','.join( '%s' %rs for rs in params.random_states))
-    f.close()
+    if params.random_states != None:
+        f = open(params.params_runtime_file(), 'w')  # 若是'wb'就表示写二进制文件
+        f.write(','.join( '%s' %rs for rs in params.random_states))
+        f.close()
 
 
 def gen_random_states(n):

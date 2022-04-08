@@ -11,6 +11,9 @@ def get_steps_colors(values):
 
 
 def paint_table(df, title_cols, title_text, result_path, fontsize=-1, fig_background_color='white', fig_border='white'):
+    df = df.copy()
+    df = df.applymap(lambda x: x[:15] + '...' if isinstance(x, str) and len(x) > 15 else x)
+
     # Get headers
     footer_text = ''
     cols_header = df.columns
@@ -55,6 +58,7 @@ def paint_table(df, title_cols, title_text, result_path, fontsize=-1, fig_backgr
     if fontsize > 0:
         the_table.auto_set_font_size(False)
         the_table.set_fontsize(fontsize)
+
     the_table.scale(1, 1.5)
     # Hide axes
     ax = plt.gca()
@@ -63,7 +67,11 @@ def paint_table(df, title_cols, title_text, result_path, fontsize=-1, fig_backgr
     # Hide axes border
     plt.box(on=None)
     # Add title
-    plt.suptitle(title_text)
+    cell_height = the_table[0, 0].get_height()
+    center = 0.5
+    distance_cell_title = 0.02
+    y = center + cell_height * (df.shape[0] + 1) / 2 + distance_cell_title
+    plt.suptitle(title_text, y=y)
     # Add footer
     plt.figtext(0.95, 0.05, footer_text, horizontalalignment='right', size=6, weight='light')
     # Force the figure to update, so backends center objects correctly within the figure.

@@ -1,0 +1,9 @@
+launch_name: 'vs_data_dev_data_dev'
+launch_desc: 'compare test_v2 and test_v1'
+type: 'comparison' # benchmark
+tasks: [ 'univariate-forecast','multivariate-forecast' ] #  'univariate-forecast','multivariate-forecast'
+reports: [ 'test_v2','test_v1']
+frameworks: [ 'hyperts_dl','hyperts_stat' ] #  'hyperts_dl','hyperts_stat','autoTS', 'navie'
+
+data_path: D:\workspace\DAT\benchmark\hyperts\data\benchmark
+report_path: D:\文档\0 DAT\3 Benchmark\benchmark-output\hyperts
