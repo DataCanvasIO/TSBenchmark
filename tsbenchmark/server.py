@@ -68,6 +68,7 @@ class BenchmarkBatchApplication(BatchApplication):
             (r'/tsbenchmark/api/job', TSTaskListHandler),
             (r'/tsbenchmark', IndexHandler)
         ]
+
         handlers = tsbenchmark_handlers + hyperctl_handlers
         application = HyperctlWebApplication(host=server_host, port=server_port, handlers=handlers)
         return application

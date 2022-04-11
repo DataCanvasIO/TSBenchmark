@@ -17,3 +17,11 @@ class TSTaskConfig:
             "dataset": self.dataset_id,
             "covariables": self.covariables ,
         }
+
+
+def get_task(task_id):
+
+    return TSTaskConfig(1, task='multivariate-forecast',
+                        target='Var_1', time_series='TimeStamp',
+                        dataset_id="NetworkTrafficDataset",
+                        covariables=['HourSin', 'WeekCos', 'CBWD'])

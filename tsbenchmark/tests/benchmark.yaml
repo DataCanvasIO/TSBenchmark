@@ -29,3 +29,11 @@ report:
 
 datasets:
   cache_path: ~/.tsbenchmark/datasets
+
+backend:
+  type: local
+  conf:
+    machines:
+      - hostname: host1
+        username: hyperctl
+        password: hyperctl
