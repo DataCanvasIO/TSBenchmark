@@ -20,8 +20,7 @@ class TSTaskConfig:
 
 
 def get_task(task_id):
-
-    return TSTaskConfig(1, task='multivariate-forecast',
+    return TSTaskConfig(0, task='multivariate-forecast',
                         target='Var_1', time_series='TimeStamp',
-                        dataset_id="NetworkTrafficDataset",
+                        dataset_id=0,
                         covariables=['HourSin', 'WeekCos', 'CBWD'])
