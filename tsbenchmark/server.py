@@ -15,6 +15,7 @@ from hypernets.hyperctl.server import RestCode, RestResult, BaseHandler, create_
     HyperctlWebApplication
 from hypernets.hyperctl.utils import http_portal
 from hypernets.utils import logging as hyn_logging
+import tsbenchmark.ttasks
 
 logger = hyn_logging.getLogger(__name__)
 
@@ -37,14 +38,37 @@ class TSTaskHandler(BaseHandler):
             return self.response(ret_dict)
 
     def mock_task(self):
-        from tsbenchmark.ttasks import TSTaskConfig
-        return TSTaskConfig(1, task='multivariate-forecast',
-                            target='Var_1', time_series='TimeStamp',
-                            dataset_id="NetworkTrafficDataset",
-                            covariables=['HourSin', 'WeekCos', 'CBWD'])
+        from tsbenchmark.ttasks import TSTask
+        return TSTask(1, task='multivariate-forecast',
+                      target='Var_1', time_series='TimeStamp',
+                      dataset_id="NetworkTrafficDataset",
+                      covariables=['HourSin', 'WeekCos', 'CBWD'])
     # def initialize(self, batch: Batch):
     #     self.batch = batch
     #
+
+
+class BenchmarkTaskOperationHandler(BaseHandler):
+
+    def post(self, task_name, operation,  **kwargs):
+        request_body = self.get_request_as_dict()
+        print(task_name)
+        # 修改job的状态, 再调用callback事件
+        #
+        benchmark = self.benchmark
+        for task in benchmark.tasks:
+            if task.name == task_name:
+                task._status = 'finished'
+                # check
+
+        if task is None:
+            self.response({"msg": "resource not found"}, RestCode.Exception)
+        else:
+            ret_dict = task.to_dict()
+            return self.response(ret_dict)
+
+    def initialize(self, benchmark):
+        self.benchmark = benchmark
 
 
 class TSTaskListHandler(BaseHandler):
@@ -61,10 +85,15 @@ class TSTaskListHandler(BaseHandler):
 
 class BenchmarkBatchApplication(BatchApplication):
 
+    def __init__(self, benchmark, **kwargs):
+        super(BenchmarkBatchApplication, self).__init__(**kwargs)
+        self.benchmark = benchmark
+
     def _create_web_app(self, server_host, server_port, batch):
         hyperctl_handlers = create_hyperctl_handlers(batch, self.job_scheduler)
         tsbenchmark_handlers = [
             (r'/tsbenchmark/api/task/(?P<task_id>.+)', TSTaskHandler),
+            (r'/tsbenchmark/api/benchmark-task/(?P<task_id>.+)/(?P<operation>.+)', BenchmarkTaskOperationHandler),
             (r'/tsbenchmark/api/job', TSTaskListHandler),
             (r'/tsbenchmark', IndexHandler)
         ]

@@ -22,7 +22,7 @@ task_filter:
   data_sizes:
     - small
 
-constraint:  # 约束条件
+constraints:  # 约束条件
   time_limit: 2h
   trials: 10
 

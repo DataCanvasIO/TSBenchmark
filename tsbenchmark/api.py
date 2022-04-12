@@ -9,10 +9,6 @@ def get_task():
     return ttasks.get_task(task_id)
 
 
-def report_result():
-    pass
-
-
 import json
 import os
 
@@ -78,3 +74,6 @@ def kill_job(api_server_portal, job_name):
     data = _fetch_url(url_kill_job, method='post')
     return data
 
+
+def report_result(api_server_portal):  # TODO
+    pass

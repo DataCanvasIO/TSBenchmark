@@ -1,6 +1,6 @@
 from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
 from tsbenchmark.tdatasets import TSDataset
-from tsbenchmark.ttasks import TSTaskConfig
+from tsbenchmark.ttasks import TSTask
 import tsbenchmark.ttasks
 
 
@@ -16,9 +16,6 @@ def atest_remote_benchmark():
     # define players
     players = load_players(['plain_player'])
     task0 = tsbenchmark.ttasks.get_task(0)
-    machines = [
-
-    ]
+    machines = []
     lb = RemoteSSHBenchmark(name='name', desc='desc', players=players, tasks=[task0], constraints={}, machines=machines)
     lb.run()
-

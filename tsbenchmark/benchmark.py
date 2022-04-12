@@ -9,9 +9,11 @@ from hypernets.hyperctl.appliation import BatchApplication
 
 # from hypernets.hyperctl.scheduler import run_batch
 from hypernets.hyperctl.server import create_hyperctl_handlers
+from hypernets.hyperctl.utils import load_yaml
 from hypernets.utils import logging
 from tsbenchmark.players import Player, load_players
 from tsbenchmark.server import BenchmarkBatchApplication
+import tsbenchmark.ttasks
 
 logging.set_level('DEBUG')
 
@@ -20,9 +22,18 @@ logger = logging.getLogger(__name__)
 SRC_DIR = os.path.dirname(__file__)
 
 
+class BenchmarkTask:
+
+    def __init__(self, name, ts_task: tsbenchmark.ttasks.TSTask, player):
+        self.name = name
+        self.ts_task = ts_task
+
+        self._status = None
+
+
 class Benchmark(metaclass=abc.ABCMeta):
 
-    def __init__(self, name, desc, players, tasks, constraints):
+    def __init__(self, name, desc, players, tasks: List[BenchmarkTask], constraints):
         self.name = name
         self.desc = desc
         self.players: List[Player] = players
@@ -88,7 +99,8 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
     def create_batch_app(self, batch):
-        batch_app = BenchmarkBatchApplication(batch, scheduler_exit_on_finish=True)
+
+        batch_app = BenchmarkBatchApplication(benchmark=self, batch=batch, scheduler_exit_on_finish=True)
         return batch_app
 
     def setup_player(self, player: Player):
@@ -114,7 +126,8 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
         backend_conf = {
             'machines': self.machines
         }
-        batch_app = BenchmarkBatchApplication(batch, backend_type='remote', backend_conf=backend_conf, scheduler_exit_on_finish=True)
+        batch_app = BenchmarkBatchApplication(batch, backend_type='remote', backend_conf=backend_conf,
+                                              scheduler_exit_on_finish=True)
         return batch_app
 
     def setup_player(self, player: Player):
@@ -129,3 +142,41 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
 
     def prepare_by_conda(self):
         pass
+
+
+def load(config_file):
+    config_dict = load_yaml(config_file)
+    name = config_dict['name']
+    desc = config_dict['desc']
+    kind = config_dict.get('kind', 'local')  # benchmark kind
+
+    # load players
+    players_name_or_path = config_dict.get('players')
+    players = load_players(players_name_or_path)
+
+    # select tasks
+    tasks_ids = config_dict.get('tasks')  # Optional
+    task_filter = config_dict.get('task_filter')
+    if tasks_ids is None:
+        if task_filter is None:
+            # select all tasks
+            tasks = tsbenchmark.ttasks.list_tasks()  # TODO to ids
+        else:
+            # filter task
+            tasks = tsbenchmark.ttasks.list_tasks(**task_filter)
+    else:
+        tasks = tasks_ids
+
+    constraints = config_dict.get('constraints')
+    report = config_dict['report']  # TODO add a callback
+
+    if kind == 'local':
+        benchmark = LocalBenchmark(name=name, desc=desc, players=players, tasks=tasks, constraints=constraints)
+        return benchmark
+    elif kind == 'remote':
+        machines = config_dict['machines']
+        benchmark = RemoteSSHBenchmark(name=name, desc=desc, players=players,
+                                       tasks=tasks, constraints=constraints, machines=machines)
+        return benchmark
+    else:
+        raise RuntimeError(f"Unseen kind {kind}")
