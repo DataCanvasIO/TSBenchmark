@@ -1,4 +1,4 @@
-class TSTaskConfig:
+class TSTask:
 
     def __init__(self, id, task, target, time_series, dataset_id, covariables=None):
         self.id = id
@@ -17,3 +17,14 @@ class TSTaskConfig:
             "dataset": self.dataset_id,
             "covariables": self.covariables ,
         }
+
+
+def get_task(task_id):
+    return TSTask(0, task='multivariate-forecast',
+                  target='Var_1', time_series='TimeStamp',
+                  dataset_id=0,
+                  covariables=['HourSin', 'WeekCos', 'CBWD'])
+
+
+def list_tasks(tags=None, data_sizes=None, ):
+    return [get_task(0)]  # TODO

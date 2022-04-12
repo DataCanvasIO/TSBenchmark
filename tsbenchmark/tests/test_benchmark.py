@@ -1,19 +1,21 @@
-from tsbenchmark.benchmark import load_players, Player, LocalBenchmark
+from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
+from tsbenchmark.tdatasets import TSDataset
+from tsbenchmark.ttasks import TSTask
+import tsbenchmark.ttasks
 
 
-def test_load_players():
+def test_local_benchmark():
+    # define players
     players = load_players(['plain_player'])
-    assert len(players) == 1
-    plain_player: Player = players[0]
-    assert plain_player.name == 'plain_player'
-    env = plain_player.env
-    assert env.kind == 'custom_python'
-    assert env.custom_python['executable'] == 'python'
+    task0 = tsbenchmark.ttasks.get_task(0)
+    lb = LocalBenchmark(name='name', desc='desc', players=players, tasks=[task0], constraints={})
+    lb.run()
 
-#
-# def test_run_benchmark():
-#     players = load_players(['plain_player'])
-#     lb = LocalBenchmark(name='name', desc='desc', players=players, constraints={})
-#
-#     lb.run()
-#
+
+def atest_remote_benchmark():
+    # define players
+    players = load_players(['plain_player'])
+    task0 = tsbenchmark.ttasks.get_task(0)
+    machines = []
+    lb = RemoteSSHBenchmark(name='name', desc='desc', players=players, tasks=[task0], constraints={}, machines=machines)
+    lb.run()

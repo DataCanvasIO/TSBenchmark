@@ -1,6 +1,8 @@
 name: 'hyperts_release_0.1.0'
 desc: 'hyperts V0.1.0 release benchmark on 20220321'
+
 kind: remote
+
 players:
   - hyperts_dl  # 内置players
   - ./sourcecode/hyperts_stat/
@@ -20,12 +22,17 @@ task_filter:
   data_sizes:
     - small
 
-constraint:  # 约束条件
+constraints:  # 约束条件
   time_limit: 2h
   trials: 10
 
 report:
-  path:  D:\benchmark-output\hyperts
+  path:  ~/benchmark-output/hyperts
 
 datasets:
   cache_path: ~/.tsbenchmark/datasets
+
+machines:
+  - hostname: host1
+    username: hyperctl
+    password: hyperctl
