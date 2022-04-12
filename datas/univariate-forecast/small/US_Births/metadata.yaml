@@ -1,0 +1,17 @@
+name: US Births Dataset
+metric: rmse
+date_col_name: date
+series_col_name: value
+#covariables_col_name: wd,dofw_1,dofw_2,dofw_3,dofw_4,dofw_5,dofw_6,type_Additional,type_Bridge,type_Event,type_Holiday,type_Transfer,type_Work Day
+#target_col_name: others
+forecast_len: 365
+dtformat: '%Y-%m-%d'
+task: univariate-forecast
+shape:  (6940, 2)
+label:  Regular time series,
+frequency: Day
+industry: sociology
+source: https://zenodo.org/record/4656049#.YhGchOhBw2w
+is_competion: false
+describe: This dataset contains a single very long daily time series representing the number of births in US from 01/01/1969 to 31/12/1988. It was extracted from R mosaicData package. The length of this time series is 7305.
+

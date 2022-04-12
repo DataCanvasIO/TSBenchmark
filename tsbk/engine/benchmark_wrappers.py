@@ -103,10 +103,21 @@ class BenchmarkLocal(BenchmarkBase):
                         benchmark_report.success_count = benchmark_report.success_count + 1
                         continue
                     random_state = self.params.random_states[round_no - 1]
+
+                    covariables = metadata['covariables']
+                    forecast_len = df_test.shape[0]
+                    series_col_name = metadata['series_col_name']
+                    if series_col_name == None:
+                        series_col_name = df_train.columns
+                        series_col_name.remove(metadata['date_col_name'])
+                        if covariables != None:
+                            for col in covariables:
+                                if col not in series_col_name:
+                                    series_col_name.remove(col)
                     y_pred, run_kwargs = trail(df_train.copy(), df_test.copy(),
                                                metadata['date_col_name'],
-                                               metadata['series_col_name'],
-                                               metadata['forecast_len'],
+                                               series_col_name,
+                                               forecast_len,
                                                metadata['dtformat'],
                                                metadata['task'],
                                                metadata['metric'],
@@ -133,11 +144,9 @@ class BenchmarkLocal(BenchmarkBase):
 
         benchmark_report.success_count = benchmark_report.success_count + 1
 
-
     def gen_report(self):
         from analysis.report_analysis import generate_report
         generate_report(self.params)
-
 
     def gen_comparison_report(self):
         from analysis.report_analysis import gen_comparison_report
