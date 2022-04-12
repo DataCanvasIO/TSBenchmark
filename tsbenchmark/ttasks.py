@@ -1,6 +1,6 @@
 class TSTask:
 
-    def __init__(self, id, task, target, time_series, dataset_id, covariables=None):
+    def __init__(self, id, task, target, time_series, dataset_id, covariables=None, **kwargs):
         self.id = id
         self.task = task
         self.target = target
@@ -11,11 +11,11 @@ class TSTask:
     def to_dict(self):
         return {
             "id": self.id,
-            "task": self.task ,
+            "task": self.task,
             "target": self.target,
-            "time_series": self.time_series ,
+            "time_series": self.time_series,
             "dataset": self.dataset_id,
-            "covariables": self.covariables ,
+            "covariables": self.covariables,
         }
 
     def get_data(self):

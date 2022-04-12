@@ -1,8 +1,9 @@
-from tsbenchmark.core.datasetloader import DataSetLoader
+from tsbenchmark.core.loader import DataSetLoader, TaskLoader
 import os
 from hypernets.utils import logging
 import pandas as pd
 import yaml
+from tsbenchmark.ttasks import TSTask
 
 logging.set_level('DEBUG')  # TODO
 logger = logging.getLogger(__name__)
@@ -31,6 +32,12 @@ class TSDataSetDesc:
         df = pd.read_csv(self._desc_file())
         df[df['id'] == dataset_id].to_csv(self._desc_local_file(), index=False, mode='a')
 
+    def _desc_file(self):
+        return os.path.join(self.data_path, 'dataset_desc.csv')
+
+    def _desc_local_file(self):
+        return os.path.join(self.data_path, 'dataset_desc_local.csv')
+
     def train_file_path(self, dataset_id):
         return os.path.join(self._dataset_path_local(dataset_id), 'train.csv')
 
@@ -39,12 +46,6 @@ class TSDataSetDesc:
 
     def meta_file_path(self, dataset_id):
         return os.path.join(self._dataset_path_local(dataset_id), 'metadata.yaml')
-
-    def _desc_file(self):
-        return os.path.join(self.data_path, 'dataset_desc.csv')
-
-    def _desc_local_file(self):
-        return os.path.join(self.data_path, 'dataset_desc_local.csv')
 
     def _dataset_path_local(self, dataset_id):
         dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
@@ -99,3 +100,32 @@ class TSDataSetLoader(DataSetLoader):
         df_test = pd.read_csv(self.dataset_desc.test_file_path(dataset_id))
         metadata = _get_metadata(self.dataset_desc.meta_file_path(dataset_id))
         return df_train, df_test, metadata
+
+
+class TSTaskLoader(TaskLoader):
+    def __init__(self, data_path):
+        self.data_path = data_path
+        self.data_loader = TSDataSetLoader(data_path)
+
+    def list(self, type=None, data_size=None):
+        return self.data_loader.list(type, data_size)
+
+    def exists(self, dataset_id):
+        return self.data_loader.exists(dataset_id)
+
+    def load(self, dataset_id):
+        df_train, df_test, metadata = self.data_loader.load(dataset_id)
+
+        task = TSTask(id=None,  # TODO
+                      target=None,  # TODO
+                      task=metadata['task'],
+                      dataset_id=dataset_id,
+                      date_col_name=metadata['date_col_name'],
+                      time_series=metadata['series_col_name'],
+                      covariables=metadata['covariables'],
+
+                      forecast_len=metadata['forecast_len'], # todo
+                      df_train=df_train, # todo
+                      df_test=df_test # todo
+                      )
+        return task
