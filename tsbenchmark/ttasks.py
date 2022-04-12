@@ -18,6 +18,9 @@ class TSTask:
             "covariables": self.covariables ,
         }
 
+    def get_data(self):
+        pass
+
 
 def get_task(task_id):
     return TSTask(0, task='multivariate-forecast',
@@ -26,5 +29,6 @@ def get_task(task_id):
                   covariables=['HourSin', 'WeekCos', 'CBWD'])
 
 
-def list_tasks(tags=None, data_sizes=None, ):
+def list_tasks(tags=None, data_sizes=None, tasks=()):
     return [get_task(0)]  # TODO
+

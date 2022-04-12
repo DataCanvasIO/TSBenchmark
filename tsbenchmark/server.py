@@ -9,6 +9,7 @@ from tornado.web import RequestHandler, Finish, HTTPError, Application
 from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.batch import Batch
 from hypernets.hyperctl.batch import ShellJob
+from hypernets.hyperctl.callbacks import BatchCallback
 from hypernets.hyperctl.executor import RemoteSSHExecutorManager
 from hypernets.hyperctl.scheduler import JobScheduler
 from hypernets.hyperctl.server import RestCode, RestResult, BaseHandler, create_hyperctl_handlers, \

@@ -13,14 +13,14 @@ tasks:  # 与task_filter比优先级更高
   - 3
 
 task_filter:
-  types:
+  tasks:
     - univariate-forecast
     - multivariate-forecast
-  tags:
-    - tagA
-    - tagB
   data_sizes:
     - small
+
+rounds_per_framework: 5
+random_states: [ 23163,4,5318,9527,33179 ]
 
 constraints:  # 约束条件
   time_limit: 2h
@@ -30,7 +30,7 @@ report:
   path:  ~/benchmark-output/hyperts
 
 datasets:
-  cache_path: ~/.tsbenchmark/datasets
+  cache_path: ~/.cache/tsbenchmark/datasets
 
 machines:
   - hostname: host1

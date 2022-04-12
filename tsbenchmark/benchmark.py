@@ -8,9 +8,11 @@ from hypernets.hyperctl.batch import ShellJob, Batch, BackendConf, ServerConf
 from hypernets.hyperctl.appliation import BatchApplication
 
 # from hypernets.hyperctl.scheduler import run_batch
+from hypernets.hyperctl.callbacks import BatchCallback
 from hypernets.hyperctl.server import create_hyperctl_handlers
 from hypernets.hyperctl.utils import load_yaml
 from hypernets.utils import logging
+from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.players import Player, load_players
 from tsbenchmark.server import BenchmarkBatchApplication
 import tsbenchmark.ttasks
@@ -24,21 +26,31 @@ SRC_DIR = os.path.dirname(__file__)
 
 class BenchmarkTask:
 
-    def __init__(self, name, ts_task: tsbenchmark.ttasks.TSTask, player):
+    def __init__(self, name, ts_task: tsbenchmark.ttasks.TSTask, player, round):
         self.name = name
         self.ts_task = ts_task
-
+        # TODO add round no
         self._status = None
+
+    def random_state(self):
+        pass
+
+    def ts_task_id(self):
+        pass
+
+
 
 
 class Benchmark(metaclass=abc.ABCMeta):
 
-    def __init__(self, name, desc, players, tasks: List[BenchmarkTask], constraints):
+    def __init__(self, name, desc, players, tasks: List[BenchmarkTask],
+                 constraints, callbacks: List[BenchmarkCallback] = None):
         self.name = name
         self.desc = desc
         self.players: List[Player] = players
         self.tasks = tasks
         self.constraints = constraints
+        self.callbacks = callbacks if callbacks is not None else []
 
     @abc.abstractmethod
     def setup(self):
@@ -78,7 +90,13 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
     def create_batch_app(self, batch) -> BatchApplication:
         raise NotImplemented
 
+    def _handle_on_start(self):
+        for callback in self.callbacks:
+            callback.on_start(self)
+
     def run(self):
+        self._handle_on_start()  # callback start
+
         tasks = self.tasks
         players = self.players
         # create batch app
@@ -96,11 +114,34 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         batch_app.start()
 
 
+class HyperctlBatchCallback(BatchCallback):
+
+    def __init__(self, bm_callbacks: List[BenchmarkCallback]):
+        self.bm_callbacks = bm_callbacks
+
+    def on_start(self, batch):
+        pass
+
+    def on_job_start(self, batch, job, executor):
+        for bm_callback in self.bm_callbacks:
+            bm_callback.on_task_start(job)
+
+    def on_job_finish(self, batch, job, executor, elapsed: float):
+        pass
+
+    def on_job_break(self, batch, job, executor, elapsed: float):  # TODO
+        pass
+
+    def on_finish(self, batch, elapsed: float):
+        pass
+
+
 class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
     def create_batch_app(self, batch):
-
-        batch_app = BenchmarkBatchApplication(benchmark=self, batch=batch, scheduler_exit_on_finish=True)
+        batch_app = BenchmarkBatchApplication(benchmark=self, batch=batch,
+                                              scheduler_exit_on_finish=True,
+                                              scheduler_callbacks=[HyperctlBatchCallback()])
         return batch_app
 
     def setup_player(self, player: Player):
@@ -127,7 +168,8 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
             'machines': self.machines
         }
         batch_app = BenchmarkBatchApplication(batch, backend_type='remote', backend_conf=backend_conf,
-                                              scheduler_exit_on_finish=True)
+                                              scheduler_exit_on_finish=True,
+                                              scheduler_callbacks=[HyperctlBatchCallback()])
         return batch_app
 
     def setup_player(self, player: Player):

@@ -1,20 +1,26 @@
-from amlb.benchmark import TaskConfig
-from tsbenchmark.benchmark import Benchmark
+from typing import Dict
+
+from tsbenchmark.benchmark import Benchmark, BenchmarkTask
 
 
-class TSBenchmarkCallback:
+class BenchmarkCallback:
 
     def on_start(self, bm: Benchmark):
         pass
 
-    def on_task_start(self, task_config: TaskConfig):
+    def on_task_start(self, bm: Benchmark, bm_task: BenchmarkTask):
         pass
 
-    def on_task_finish(self, task_config: TaskConfig, player, elapsed: int, reward, player_hyperparams):
+    def on_task_finish(self, bm: Benchmark, bm_task: BenchmarkTask, elapsed: float):
         pass
 
-    def on_task_break(self):
+    def on_task_message(self, bm: Benchmark, bm_task: BenchmarkTask, message: Dict):
+        # reward, reward_metric, hyperparams, elapsed
         pass
 
-    def on_finish(self):
+    def on_task_break(self, bm: Benchmark, bm_task: BenchmarkTask, elapsed: float):
         pass
+
+    def on_finish(self, bm: Benchmark):
+        pass
+
