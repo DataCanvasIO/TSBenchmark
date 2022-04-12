@@ -47,7 +47,12 @@ class TSDataSetDesc:
         return os.path.join(self.data_path, 'dataset_desc_local.csv')
 
     def _dataset_path_local(self, dataset_id):
-        return self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id].absolute_path.values[0]
+        dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
+        return os.path.join(self.data_path,
+                            dataset.type.values[0],
+                            dataset.data_size.values[0],
+                            dataset.name.values[0]
+                            )
 
 
 def _get_metadata(meta_file_path):
