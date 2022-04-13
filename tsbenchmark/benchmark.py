@@ -16,7 +16,7 @@ from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.players import Player, load_players
 from tsbenchmark.server import BenchmarkBatchApplication
 import tsbenchmark.tasks
-from tsbenchmark.tasks import TSTask
+from tsbenchmark.tasks import TSTask, TSTaskConfig
 from collections import Iterable
 logging.set_level('DEBUG')
 
@@ -27,29 +27,32 @@ SRC_DIR = os.path.dirname(__file__)
 
 class BenchmarkTask:
 
-    def __init__(self, name, ts_task: tsbenchmark.tasks.TSTask, player, round):
-        self.name = name
+    def __init__(self, ts_task: TSTask, player):
+        self.player = player
         self.ts_task = ts_task
-        # TODO add round no
+
         self._status = None
 
-    def random_state(self):
-        pass
-
-    def ts_task_id(self):
-        pass
+    def status(self):
+        return self._status
 
 
 class Benchmark(metaclass=abc.ABCMeta):
 
-    def __init__(self, name, desc, players, tasks: List[TSTask],
+    def __init__(self, name, desc, players, ts_tasks_config: List[TSTaskConfig], random_states: List[int],
                  constraints, callbacks: List[BenchmarkCallback] = None):
         self.name = name
         self.desc = desc
         self.players: List[Player] = players
-        self.tasks = tasks
+        self.ts_tasks_config = ts_tasks_config
+        self.random_states = random_states
         self.constraints = constraints
         self.callbacks = callbacks if callbacks is not None else []
+
+        self._tasks = None
+
+    def tasks(self):
+        return self._tasks
 
     @abc.abstractmethod
     def setup(self):
@@ -70,10 +73,15 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         for player in self.players:
             self.setup_player(player)
 
-    def add_job(self, player: Player, task_id, batch: Batch):
-        name = f'{player.name}_{task_id}'
-        job_params = {
+    def add_job(self, bm_task: BenchmarkTask, batch: Batch):
+        task_id = bm_task.ts_task.id
+        player = bm_task.player
+        random_state = bm_task.ts_task.random_state
+        name = f'{player.name}_{task_id}_{random_state}'
+
+        job_params = {  #
             "task_id": task_id,
+            'random_state': random_state
         }
 
         command = f"{player.py_executable} {player.exec_file}"
@@ -93,10 +101,13 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         for callback in self.callbacks:
             callback.on_start(self)
 
+    def _handle_on_finish(self):
+        for callback in self.callbacks:
+            callback.on_finish(self)
+
     def run(self):
         self._handle_on_start()  # callback start
-
-        tasks = self.tasks
+        self._tasks = []
         players = self.players
         # create batch app
         batches_data_dir = Path("~/tsbenchmark-hyperctl").expanduser().absolute().as_posix()  # TODO move config file
@@ -105,12 +116,20 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         from hypernets.utils import common
         batch_name = common.generate_short_id()  # TODO move to benchmark
         batch: Batch = Batch(batch_name, batches_data_dir)
-        for task in tasks:
+        for ts_task_config in self.ts_tasks_config:
             for player in players:
-                self.add_job(player, task.id, batch)
+                for random_state in self.random_states:
+                    ts_task = TSTask(ts_task_config, random_state, 3, 'rmse')   # TODO replace max_trials and reward metric
+                    self._tasks.append(BenchmarkTask(ts_task, player))
+
+        # generate Hyperctl Jobs
+        for bm_task in self._tasks:
+            self.add_job(bm_task, batch)
 
         batch_app = self.create_batch_app(batch)
         batch_app.start()
+
+        self._handle_on_finish()
 
 
 class HyperctlBatchCallback(BatchCallback):
@@ -124,10 +143,26 @@ class HyperctlBatchCallback(BatchCallback):
     def on_job_start(self, batch, job, executor):
         for bm_callback in self.bm.callbacks:
             # bm, bm_task
-            bm_callback.on_task_start(job)
+            bm_task = self.find_ts_task(job)  # TODO check None
+            bm_callback.on_task_start(self.bm, bm_task)
+
+    def find_ts_task(self, job):
+        job: ShellJob = job
+        job_params = job.params
+        ts_task_id = job_params['task_id']
+        random_state = job_params['random_state']
+        print(random_state)
+        for bm_task in self.bm.tasks():
+            bm_task: BenchmarkTask = bm_task
+            if bm_task.ts_task.id == ts_task_id and bm_task.ts_task.random_state == random_state:
+                return bm_task
+        return None
 
     def on_job_finish(self, batch, job, executor, elapsed: float):
-        pass
+        for bm_callback in self.bm.callbacks:
+            # bm, bm_task
+            bm_task = self.find_ts_task(job)  # TODO check None
+            bm_callback.on_task_finish(self.bm, bm_task, elapsed)
 
     def on_job_break(self, batch, job, executor, elapsed: float):  # TODO
         pass
@@ -140,7 +175,7 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
     def create_batch_app(self, batch):
         if self.callbacks is not None and len(self.callbacks) > 0:
-            scheduler_callbacks = [HyperctlBatchCallback(self.callbacks)]
+            scheduler_callbacks = [HyperctlBatchCallback(self)]
         else:
             scheduler_callbacks = None
         batch_app = BenchmarkBatchApplication(benchmark=self, batch=batch,
@@ -163,8 +198,8 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
 
 class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
-    def __init__(self, name, desc, players, tasks, constraints, machines):
-        super(RemoteSSHBenchmark, self).__init__(name, desc, players, tasks, constraints)
+    def __init__(self, name, desc, players, ts_tasks, constraints, machines):
+        super(RemoteSSHBenchmark, self).__init__(name, desc, players, ts_tasks, constraints)
         self.machines = machines
 
     def create_batch_app(self, batch):
@@ -222,7 +257,7 @@ def load(config_file):
     elif kind == 'remote':
         machines = config_dict['machines']
         benchmark = RemoteSSHBenchmark(name=name, desc=desc, players=players,
-                                       tasks=tasks, constraints=constraints, machines=machines)
+                                       ts_tasks=tasks, constraints=constraints, machines=machines)
         return benchmark
     else:
         raise RuntimeError(f"Unseen kind {kind}")

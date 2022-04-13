@@ -57,7 +57,7 @@ class BenchmarkTaskOperationHandler(BaseHandler):
         # 修改job的状态, 再调用callback事件
         #
         benchmark = self.benchmark
-        for task in benchmark.tasks:
+        for task in benchmark.ts_tasks_config:
             if task.name == task_name:
                 task._status = 'finished'
                 # check

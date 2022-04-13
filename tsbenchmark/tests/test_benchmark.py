@@ -31,9 +31,10 @@ def create_task():
     config = TSTaskConfig(dataset_id=0, dataset=dataset, date_name='TimeStamp', task='multivariate-forecast',
                           horizon=7, series_name='Var_1',
                           covariables_name=['HourSin', 'WeekCos', 'CBWD'], dtformat='%Y-%m-%d')
-    t = TSTask(task_config=config, random_state=8086, max_trails=3, reward_metric='rmse')
-    setattr(t, 'id', 0)  # TODO remove
-    return t
+    # t = TSTask(task_config=config, random_state=8086, max_trails=3, reward_metric='rmse')
+    # setattr(t, 'id', 0)  # TODO remove
+    # return t
+    return config
 
 
 class ConsoleCallback(BenchmarkCallback):
@@ -65,8 +66,9 @@ def test_local_benchmark():
 
     callbacks = [ConsoleCallback()]
 
-    # lb = LocalBenchmark(name='name', desc='desc', players=players, tasks=[task0], constraints={}, callbacks=callbacks)
-    # lb.run()
+    lb = LocalBenchmark(name='name', desc='desc', players=players,
+                        random_states=[8060], ts_tasks_config=[task0], constraints={}, callbacks=callbacks)
+    lb.run()
 
 
 def atest_remote_benchmark():
@@ -74,5 +76,5 @@ def atest_remote_benchmark():
     players = load_players(['plain_player'])
     task0 = tsbenchmark.tasks.get_task(0)
     machines = []
-    lb = RemoteSSHBenchmark(name='name', desc='desc', players=players, tasks=[task0], constraints={}, machines=machines)
+    lb = RemoteSSHBenchmark(name='name', desc='desc', players=players, ts_tasks=[task0], constraints={}, machines=machines)
     lb.run()

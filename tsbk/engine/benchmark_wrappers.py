@@ -40,8 +40,8 @@ class BenchmarkLocal(BenchmarkBase):
 
     def _run(self, trail_moudle, framework):
         params = self.params
-        logger.info("start run framework: {} {}".format(framework, params.tasks))
-        tasks = params.tasks
+        logger.info("start run framework: {} {}".format(framework, params.ts_tasks_config))
+        tasks = params.ts_tasks_config
         data_sizes = params.data_sizes
         white_list = params.white_list
         data_base_path = params.data_path
