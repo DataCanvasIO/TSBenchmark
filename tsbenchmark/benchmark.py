@@ -16,6 +16,7 @@ from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.players import Player, load_players
 from tsbenchmark.server import BenchmarkBatchApplication
 import tsbenchmark.ttasks
+from tsbenchmark.ttasks import TSTask
 
 logging.set_level('DEBUG')
 
@@ -39,11 +40,9 @@ class BenchmarkTask:
         pass
 
 
-
-
 class Benchmark(metaclass=abc.ABCMeta):
 
-    def __init__(self, name, desc, players, tasks: List[BenchmarkTask],
+    def __init__(self, name, desc, players, tasks: List[TSTask],
                  constraints, callbacks: List[BenchmarkCallback] = None):
         self.name = name
         self.desc = desc
@@ -139,9 +138,13 @@ class HyperctlBatchCallback(BatchCallback):
 class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
     def create_batch_app(self, batch):
+        if self.callbacks is not None and len(self.callbacks) > 0:
+            scheduler_callbacks = [HyperctlBatchCallback(self.callbacks)]
+        else:
+            scheduler_callbacks = None
         batch_app = BenchmarkBatchApplication(benchmark=self, batch=batch,
                                               scheduler_exit_on_finish=True,
-                                              scheduler_callbacks=[HyperctlBatchCallback()])
+                                              scheduler_callbacks=scheduler_callbacks)
         return batch_app
 
     def setup_player(self, player: Player):
