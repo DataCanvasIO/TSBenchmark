@@ -1,4 +1,4 @@
-id,type,data_size,shape,name,ok,label,frequency,industry,covariables,category,source_type,absolute_path
-890686,multivariate-forecast,small,"(105, 112)",nn5_weekly,Y,Regular time series,Week,finance,,benchmark,monash,D:\workspace\DAT\TSBenchmark\datas\multivariate-forecast\small\nn5_weekly
-694826,univariate-forecast,medium,"(124, 2)",Air_Passengers,Y,"Regular time series,",Month,aviation,,benchmark,,D:\workspace\DAT\TSBenchmark\datas\univariate-forecast\small\Air_Passengers
-309496,univariate-forecast,small,"(6940, 2)",US_Births,Y,"Regular time series,",Day,sociology,,benchmark,,D:\workspace\DAT\TSBenchmark\datas\univariate-forecast\small\US_Births
+id,type,data_size,shape,name,ok,label,frequency,industry,covariables,category,source_type
+890686,multivariate-forecast,medium,"(105, 112)",nn5_weekly,Y,Regular time series,Week,finance,,benchmark,monash
+694826,univariate-forecast,small,"(124, 2)",Air_Passengers,Y,"Regular time series,",Month,aviation,,benchmark,
+309496,univariate-forecast,small,"(6940, 2)",US_Births,Y,"Regular time series,",Day,sociology,,benchmark,
