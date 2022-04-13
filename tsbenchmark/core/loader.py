@@ -8,8 +8,12 @@ class DataSetLoader:
     def exists(self, dataset_id):
         pass
 
+    def load_meta(self, dataset_id):
+        pass
+
     def load(self, dataset_id):
         pass
+
 
 class TaskLoader:
     def __init__(self):

@@ -1,9 +1,10 @@
 from tsbenchmark.core.loader import DataSetLoader, TaskLoader
+from tsbenchmark.tdatasets import TSDataset
 import os
 from hypernets.utils import logging
 import pandas as pd
 import yaml
-from tsbenchmark.ttasks import TSTask
+from tsbenchmark.ttasks import TSTaskConfig
 
 logging.set_level('DEBUG')  # TODO
 logger = logging.getLogger(__name__)
@@ -39,15 +40,15 @@ class TSDataSetDesc:
         return os.path.join(self.data_path, 'dataset_desc_local.csv')
 
     def train_file_path(self, dataset_id):
-        return os.path.join(self._dataset_path_local(dataset_id), 'train.csv')
+        return os.path.join(self.dataset_path_local(dataset_id), 'train.csv')
 
     def test_file_path(self, dataset_id):
-        return os.path.join(self._dataset_path_local(dataset_id), 'test.csv')
+        return os.path.join(self.dataset_path_local(dataset_id), 'test.csv')
 
     def meta_file_path(self, dataset_id):
-        return os.path.join(self._dataset_path_local(dataset_id), 'metadata.yaml')
+        return os.path.join(self.dataset_path_local(dataset_id), 'metadata.yaml')
 
-    def _dataset_path_local(self, dataset_id):
+    def dataset_path_local(self, dataset_id):
         dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
         return os.path.join(self.data_path,
                             dataset.type.values[0],
@@ -59,10 +60,10 @@ class TSDataSetDesc:
 def _get_metadata(meta_file_path):
     f = open(meta_file_path, 'r', encoding='utf-8')
     metadata = yaml.load(f.read(), Loader=yaml.FullLoader)
-    metadata['series_col_name'] = metadata['series_col_name'].split(
-        ",") if 'series_col_name' in metadata else None
-    metadata['covariables'] = metadata['covariables_col_name'].split(
-        ",") if 'covariables_col_name' in metadata else None
+    metadata['series_name'] = metadata['series_name'].split(
+        ",") if 'series_name' in metadata else None
+    metadata['covariables_name'] = metadata['covariables_name'].split(
+        ",") if 'covariables_name' in metadata else None
     f.close()
     return metadata
 
@@ -88,6 +89,24 @@ class TSDataSetLoader(DataSetLoader):
         return self.dataset_desc.exists(dataset_id)
 
     def load(self, dataset_id):
+        return self.load_train(dataset_id), self.load_test(dataset_id)
+
+    def load_train(self, dataset_id):
+        self._download_if_not_cached(dataset_id)
+        df_train = pd.read_csv(self.dataset_desc.train_file_path(dataset_id))
+        return df_train
+
+    def load_test(self, dataset_id):
+        self._download_if_not_cached(dataset_id)
+        df_test = pd.read_csv(self.dataset_desc.test_file_path(dataset_id))
+        return df_test
+
+    def load_meta(self, dataset_id):
+        self._download_if_not_cached(dataset_id)
+        metadata = _get_metadata(self.dataset_desc.meta_file_path(dataset_id))
+        return metadata
+
+    def _download_if_not_cached(self, dataset_id):
         if not self.exists(dataset_id):
             raise ValueError(f"Dataset {dataset_id} does not exists!")
         if not self.dataset_desc.cached(dataset_id):
@@ -96,36 +115,27 @@ class TSDataSetLoader(DataSetLoader):
             self.local_update(dataset_id)
             logger.info(f"Finish download dattaset {dataset_id} from remote.")
 
-        df_train = pd.read_csv(self.dataset_desc.train_file_path(dataset_id))
-        df_test = pd.read_csv(self.dataset_desc.test_file_path(dataset_id))
-        metadata = _get_metadata(self.dataset_desc.meta_file_path(dataset_id))
-        return df_train, df_test, metadata
-
 
 class TSTaskLoader(TaskLoader):
     def __init__(self, data_path):
         self.data_path = data_path
-        self.data_loader = TSDataSetLoader(data_path)
+        self.dataset_loader = TSDataSetLoader(data_path)
 
     def list(self, type=None, data_size=None):
-        return self.data_loader.list(type, data_size)
+        return self.dataset_loader.list(type, data_size)
 
     def exists(self, dataset_id):
-        return self.data_loader.exists(dataset_id)
+        return self.dataset_loader.exists(dataset_id)
 
     def load(self, dataset_id):
-        df_train, df_test, metadata = self.data_loader.load(dataset_id)
+        metadata = self.dataset_loader.load_meta(dataset_id)
 
-        task = TSTask(id=None,  # TODO
-                      target=None,  # TODO
-                      task=metadata['task'],
-                      dataset_id=dataset_id,
-                      date_col_name=metadata['date_col_name'],
-                      time_series=metadata['series_col_name'],
-                      covariables=metadata['covariables'],
-
-                      forecast_len=metadata['forecast_len'], # todo
-                      df_train=df_train, # todo
-                      df_test=df_test # todo
-                      )
+        task = TSTaskConfig(dataset_id=dataset_id,
+                            dataset=TSDataset(id=dataset_id, name=metadata['name'], dataset_loader=self.dataset_loader),
+                            date_name=metadata['date_name'],
+                            task=metadata['task'],
+                            horizon=metadata['horizon'],
+                            series_name=metadata['series_name'],
+                            covariables_name=metadata['covariables_name'],
+                            dtformat=metadata['dtformat'])
         return task
