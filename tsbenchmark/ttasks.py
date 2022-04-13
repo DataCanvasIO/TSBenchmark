@@ -38,7 +38,7 @@ class TSTask(TSTaskConfig):
     def get_train(self):
         return self.dataset.get_train()
 
-    def get_data(self):
+    def get_test(self):
         return self.dataset.get_test()
 
 
