@@ -17,7 +17,7 @@ from tsbenchmark.players import Player, load_players
 from tsbenchmark.server import BenchmarkBatchApplication
 import tsbenchmark.ttasks
 from tsbenchmark.ttasks import TSTask
-
+from collections import Iterable
 logging.set_level('DEBUG')
 
 logger = logging.getLogger(__name__)
@@ -115,14 +115,15 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 
 class HyperctlBatchCallback(BatchCallback):
 
-    def __init__(self, bm_callbacks: List[BenchmarkCallback]):
-        self.bm_callbacks = bm_callbacks
+    def __init__(self, bm: Benchmark):
+        self.bm: Benchmark = bm
 
     def on_start(self, batch):
         pass
 
     def on_job_start(self, batch, job, executor):
-        for bm_callback in self.bm_callbacks:
+        for bm_callback in self.bm.callbacks:
+            # bm, bm_task
             bm_callback.on_task_start(job)
 
     def on_job_finish(self, batch, job, executor, elapsed: float):

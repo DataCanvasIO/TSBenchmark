@@ -1,7 +1,6 @@
 from typing import Dict
 
 
-
 class BenchmarkCallback:
 
     def on_start(self, bm):
@@ -22,4 +21,3 @@ class BenchmarkCallback:
 
     def on_finish(self, bm):
         pass
-

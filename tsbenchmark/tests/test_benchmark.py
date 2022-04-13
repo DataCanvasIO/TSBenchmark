@@ -1,4 +1,7 @@
+from typing import Dict
+
 from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
+from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.tdatasets import TSDataset
 from tsbenchmark.ttasks import TSTask, TSTaskConfig
 
@@ -33,12 +36,37 @@ def create_task():
     return t
 
 
+class ConsoleCallback(BenchmarkCallback):
+
+    def on_start(self, bm):
+        print('on_start')
+
+    def on_task_start(self, bm, bm_task):
+        print('on_task_start')
+
+    def on_task_finish(self, bm, bm_task, elapsed: float):
+        print('on_task_finish')
+
+    def on_task_message(self, bm, bm_task, message: Dict):
+        # reward, reward_metric, hyperparams, elapsed
+        print('on_task_message')
+
+    def on_task_break(self, bm, bm_task, elapsed: float):
+        print('on_task_break')
+
+    def on_finish(self, bm):
+        print('on_finish')
+
+
 def test_local_benchmark():
     # define players
     players = load_players(['plain_player'])
     task0 = create_task()
-    lb = LocalBenchmark(name='name', desc='desc', players=players, tasks=[task0], constraints={})
-    lb.run()
+
+    callbacks = [ConsoleCallback()]
+
+    # lb = LocalBenchmark(name='name', desc='desc', players=players, tasks=[task0], constraints={}, callbacks=callbacks)
+    # lb.run()
 
 
 def atest_remote_benchmark():
