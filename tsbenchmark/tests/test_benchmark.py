@@ -2,10 +2,10 @@ from typing import Dict
 
 from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
-from tsbenchmark.tdatasets import TSDataset
-from tsbenchmark.ttasks import TSTask, TSTaskConfig
+from tsbenchmark.datasets import TSDataset
+from tsbenchmark.tasks import TSTask, TSTaskConfig
 
-import tsbenchmark.ttasks
+import tsbenchmark.tasks
 
 
 class NetworkTrafficMockDataset(TSDataset):
@@ -72,7 +72,7 @@ def test_local_benchmark():
 def atest_remote_benchmark():
     # define players
     players = load_players(['plain_player'])
-    task0 = tsbenchmark.ttasks.get_task(0)
+    task0 = tsbenchmark.tasks.get_task(0)
     machines = []
     lb = RemoteSSHBenchmark(name='name', desc='desc', players=players, tasks=[task0], constraints={}, machines=machines)
     lb.run()

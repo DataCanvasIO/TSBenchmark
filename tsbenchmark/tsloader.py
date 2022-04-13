@@ -1,10 +1,10 @@
 from tsbenchmark.core.loader import DataSetLoader, TaskLoader
-from tsbenchmark.tdatasets import TSDataset
+from tsbenchmark.datasets import TSDataset
 import os
 from hypernets.utils import logging
 import pandas as pd
 import yaml
-from tsbenchmark.ttasks import TSTaskConfig
+from tsbenchmark.tasks import TSTaskConfig
 
 logging.set_level('DEBUG')  # TODO
 logger = logging.getLogger(__name__)

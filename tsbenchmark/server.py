@@ -16,7 +16,7 @@ from hypernets.hyperctl.server import RestCode, RestResult, BaseHandler, create_
     HyperctlWebApplication
 from hypernets.hyperctl.utils import http_portal
 from hypernets.utils import logging as hyn_logging
-import tsbenchmark.ttasks
+import tsbenchmark.tasks
 
 logger = hyn_logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class TSTaskHandler(BaseHandler):
             return self.response(ret_dict)
 
     def mock_task(self):
-        from tsbenchmark.ttasks import TSTask
+        from tsbenchmark.tasks import TSTask
         return TSTask(1, task='multivariate-forecast',
                       target='Var_1', time_series='TimeStamp',
                       dataset_id="NetworkTrafficDataset",

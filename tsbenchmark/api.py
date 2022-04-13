@@ -1,12 +1,12 @@
 from hypernets.hyperctl import api as hyperctl_api
-from tsbenchmark import ttasks
+from tsbenchmark import tasks
 
 
 def get_task():
     hyperctl_job_params = hyperctl_api.get_job_params()
     task_id = hyperctl_job_params['task_id']
     print(task_id)
-    return ttasks.get_task(task_id)
+    return tasks.get_task(task_id)
 
 
 import json

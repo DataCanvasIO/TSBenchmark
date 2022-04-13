@@ -15,8 +15,8 @@ from hypernets.utils import logging
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.players import Player, load_players
 from tsbenchmark.server import BenchmarkBatchApplication
-import tsbenchmark.ttasks
-from tsbenchmark.ttasks import TSTask
+import tsbenchmark.tasks
+from tsbenchmark.tasks import TSTask
 from collections import Iterable
 logging.set_level('DEBUG')
 
@@ -27,7 +27,7 @@ SRC_DIR = os.path.dirname(__file__)
 
 class BenchmarkTask:
 
-    def __init__(self, name, ts_task: tsbenchmark.ttasks.TSTask, player, round):
+    def __init__(self, name, ts_task: tsbenchmark.tasks.TSTask, player, round):
         self.name = name
         self.ts_task = ts_task
         # TODO add round no
@@ -206,10 +206,10 @@ def load(config_file):
     if tasks_ids is None:
         if task_filter is None:
             # select all tasks
-            tasks = tsbenchmark.ttasks.list_tasks()  # TODO to ids
+            tasks = tsbenchmark.tasks.list_tasks()  # TODO to ids
         else:
             # filter task
-            tasks = tsbenchmark.ttasks.list_tasks(**task_filter)
+            tasks = tsbenchmark.tasks.list_tasks(**task_filter)
     else:
         tasks = tasks_ids
 

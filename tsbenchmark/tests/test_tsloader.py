@@ -1,7 +1,7 @@
 import os
 import tsbenchmark
 from tsbenchmark.tsloader import TSDataSetLoader, TSTaskLoader
-from tsbenchmark.ttasks import TSTask
+from tsbenchmark.tasks import TSTask
 
 data_path = os.path.join(os.path.dirname(os.path.dirname(tsbenchmark.__file__)), 'datas')
 dataloader = tsbenchmark.tsloader.TSDataSetLoader(data_path)
