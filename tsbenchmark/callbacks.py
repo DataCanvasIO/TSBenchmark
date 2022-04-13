@@ -1,26 +1,25 @@
 from typing import Dict
 
-from tsbenchmark.benchmark import Benchmark, BenchmarkTask
 
 
 class BenchmarkCallback:
 
-    def on_start(self, bm: Benchmark):
+    def on_start(self, bm):
         pass
 
-    def on_task_start(self, bm: Benchmark, bm_task: BenchmarkTask):
+    def on_task_start(self, bm, bm_task):
         pass
 
-    def on_task_finish(self, bm: Benchmark, bm_task: BenchmarkTask, elapsed: float):
+    def on_task_finish(self, bm, bm_task, elapsed: float):
         pass
 
-    def on_task_message(self, bm: Benchmark, bm_task: BenchmarkTask, message: Dict):
+    def on_task_message(self, bm, bm_task, message: Dict):
         # reward, reward_metric, hyperparams, elapsed
         pass
 
-    def on_task_break(self, bm: Benchmark, bm_task: BenchmarkTask, elapsed: float):
+    def on_task_break(self, bm, bm_task, elapsed: float):
         pass
 
-    def on_finish(self, bm: Benchmark):
+    def on_finish(self, bm):
         pass
 

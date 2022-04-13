@@ -7,9 +7,9 @@ import tsbenchmark.ttasks
 def test_local_benchmark():
     # define players
     players = load_players(['plain_player'])
-    task0 = tsbenchmark.ttasks.get_task(0)
-    lb = LocalBenchmark(name='name', desc='desc', players=players, tasks=[task0], constraints={})
-    lb.run()
+    # task0 = tsbenchmark.ttasks.get_task(0)
+    # lb = LocalBenchmark(name='name', desc='desc', players=players, tasks=[task0], constraints={})
+    # lb.run()
 
 
 def atest_remote_benchmark():
