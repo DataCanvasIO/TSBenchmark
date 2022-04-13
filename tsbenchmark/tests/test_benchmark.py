@@ -28,7 +28,7 @@ class NetworkTrafficMockDataset(TSDataset):
 
 def create_task():
     dataset = NetworkTrafficMockDataset()
-    config = TSTaskConfig(dataset_id=0, dataset=dataset, date_name='TimeStamp', task='multivariate-forecast',
+    config = TSTaskConfig(dataset_id=0, taskdata=dataset, date_name='TimeStamp', task='multivariate-forecast',
                           horizon=7, series_name='Var_1',
                           covariables_name=['HourSin', 'WeekCos', 'CBWD'], dtformat='%Y-%m-%d')
     # t = TSTask(task_config=config, random_state=8086, max_trails=3, reward_metric='rmse')
