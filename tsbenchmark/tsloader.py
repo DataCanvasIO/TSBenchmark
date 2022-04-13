@@ -1,5 +1,5 @@
 from tsbenchmark.core.loader import DataSetLoader, TaskLoader
-from tsbenchmark.datasets import TSDataset
+from tsbenchmark.datasets import TSDataset, TSTaskData
 import os
 from hypernets.utils import logging
 import pandas as pd
@@ -50,11 +50,8 @@ class TSDataSetDesc:
 
     def dataset_path_local(self, dataset_id):
         dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
-        return os.path.join(self.data_path,
-                            dataset.type.values[0],
-                            dataset.data_size.values[0],
-                            dataset.name.values[0]
-                            )
+        return os.path.join(self.data_path, dataset.type.values[0],
+                            dataset.data_size.values[0], dataset.name.values[0])
 
 
 def _get_metadata(meta_file_path):
@@ -68,6 +65,17 @@ def _get_metadata(meta_file_path):
     return metadata
 
 
+def _to_dataset(taskdata_id):
+    if '_' in str(taskdata_id):
+        strs = taskdata_id.split('_')
+        dataset_id = int(strs[0])
+        task_no = int(strs[1])
+    else:
+        dataset_id = int(taskdata_id)
+        task_no = 1
+    return dataset_id, task_no
+
+
 class TSDataSetLoader(DataSetLoader):
     def __init__(self, data_path):
         self.data_path = data_path
@@ -75,6 +83,7 @@ class TSDataSetLoader(DataSetLoader):
 
     def list(self, type=None, data_size=None):
         # 1. Get dataset desc from local or remote.
+        # TODO
         if not os.path.exists(self.data_path):
             os.makedirs(self.data_path)
 
@@ -88,8 +97,9 @@ class TSDataSetLoader(DataSetLoader):
     def exists(self, dataset_id):
         return self.dataset_desc.exists(dataset_id)
 
-    def load(self, dataset_id):
-        return self.load_train(dataset_id), self.load_test(dataset_id)
+    def data_format(self, dataset_id):
+        df = self.dataset_desc.dataset_desc
+        return df[df['id'] == dataset_id]['format'].values[0]
 
     def load_train(self, dataset_id):
         self._download_if_not_cached(dataset_id)
@@ -108,30 +118,86 @@ class TSDataSetLoader(DataSetLoader):
 
     def _download_if_not_cached(self, dataset_id):
         if not self.exists(dataset_id):
-            raise ValueError(f"Dataset {dataset_id} does not exists!")
+            raise ValueError(f"TaskData {dataset_id} does not exists!")
         if not self.dataset_desc.cached(dataset_id):
             logger.info(f"Downloading dattaset {dataset_id} from remote.")
             # TODO
-            self.local_update(dataset_id)
+            self.dataset_desc.local_update(dataset_id)
             logger.info(f"Finish download dattaset {dataset_id} from remote.")
 
 
-class TSTaskLoader(TaskLoader):
+class TSTaskDataLoader():
     def __init__(self, data_path):
         self.data_path = data_path
         self.dataset_loader = TSDataSetLoader(data_path)
 
     def list(self, type=None, data_size=None):
-        return self.dataset_loader.list(type, data_size)
+        df = self.dataset_loader.dataset_desc.dataset_desc
+        if data_size is not None:
+            df = df[df['data_size'] == data_size]
+        if type is not None:
+            df = df[df['type'] == type]
 
-    def exists(self, dataset_id):
-        return self.dataset_loader.exists(dataset_id)
+        taskdata_list = []
 
-    def load(self, dataset_id):
-        metadata = self.dataset_loader.load_meta(dataset_id)
+        for i, row in df.iterrows():
+            task_count = row['task_count']
+            if task_count == 1:
+                taskdata_list.append(str(row['id']))
+            else:
+                taskdata_list = taskdata_list + [str("{}_{}".format(row['id'], i)) for i in range(task_count)]
 
-        task = TSTaskConfig(dataset_id=dataset_id,
-                            dataset=TSDataset(id=dataset_id, name=metadata['name'], dataset_loader=self.dataset_loader),
+        return taskdata_list
+
+    def exists(self, task_data_id):
+        df = self.dataset_loader.dataset_desc.dataset_desc
+        dataset_id, task_no = _to_dataset(task_data_id)
+        row = df[df['id'] == dataset_id]
+        return row.shape[0] == 1 and int(row['task_count'].values[0]) >= task_no
+
+    def load_meta(self, task_data_id):
+        dataset_id, task_no = _to_dataset(task_data_id)
+        return self.dataset_loader.load_meta(dataset_id)
+
+    def load(self, task_data_id):
+        return self.load_train(task_data_id), self.load_test(task_data_id)
+
+    def load_train(self, task_data_id):
+        dataset_id, task_no = _to_dataset(task_data_id)
+        if self.dataset_loader.data_format(dataset_id) == 'csv':
+            return self.dataset_loader.load_train(dataset_id)
+        else:
+            logger.info("To be implement.")  # todo
+            raise NotImplemented
+
+    def load_test(self, task_data_id):
+        dataset_id, task_no = _to_dataset(task_data_id)
+        if self.dataset_loader.data_format(dataset_id) == 'csv':
+            return self.dataset_loader.load_test(dataset_id)
+        else:
+            logger.info("To be implement.")  # todo
+            raise NotImplemented
+
+
+class TSTaskLoader(TaskLoader):
+    def __init__(self, data_path):
+        self.data_path = data_path
+        self.taskdata_loader = TSTaskDataLoader(data_path)
+
+    def list(self, type=None, data_size=None):
+        return self.taskdata_loader.list(type, data_size)
+
+    def exists(self, taskconfig_id):
+        return self.taskdata_loader.exists(taskconfig_id)
+
+    def load(self, taskconfig_id):
+        metadata = self.taskdata_loader.load_meta(taskconfig_id)
+        dataset_id, task_no = _to_dataset(taskconfig_id)
+
+        task = TSTaskConfig(taskconfig_id=taskconfig_id,
+                            dataset_id=dataset_id,
+                            taskdata=TSTaskData(id=taskconfig_id, dataset_id=dataset_id, name=metadata['name'],
+                                                taskdata_loader=self.taskdata_loader),
                             date_name=metadata['date_name'],
                             task=metadata['task'],
                             horizon=metadata['horizon'],

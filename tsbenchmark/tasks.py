@@ -1,8 +1,10 @@
 class TSTaskConfig:
 
-    def __init__(self, dataset_id, dataset, date_name, task, horizon, series_name, covariables_name, dtformat):
+    def __init__(self, taskconfig_id, dataset_id, taskdata, date_name, task, horizon, series_name, covariables_name,
+                 dtformat):
+        self.id = taskconfig_id
         self.dataset_id = dataset_id
-        self.dataset = dataset
+        self.taskdata = taskdata
         self.date_name = date_name
         self.task = task
         self.horizon = horizon
@@ -13,12 +15,12 @@ class TSTaskConfig:
 
 class TSTask(TSTaskConfig):
 
-    def __init__(self, task_config, random_state, max_trails, reward_metric):
-        self.id = task_config.dataset_id
+    def __init__(self, task_config, random_state, max_trails, reward_metric, id=None):
+        self.id = None
         self.random_state = random_state
         self.max_trails = max_trails
         self.reward_metric = reward_metric
-        self.dataset = task_config.dataset
+        self.taskdata = task_config.taskdata
         for k, v in task_config.__dict__.items():
             self.__dict__[k] = v
 
@@ -33,13 +35,13 @@ class TSTask(TSTaskConfig):
         }
 
     def get_data(self):
-        return self.dataset.get_train(), self.dataset.get_test()
+        return self.taskdata.get_train(), self.taskdata.get_test()
 
     def get_train(self):
-        return self.dataset.get_train()
+        return self.taskdata.get_train()
 
     def get_test(self):
-        return self.dataset.get_test()
+        return self.taskdata.get_test()
 
 
 def get_task(task_id):
