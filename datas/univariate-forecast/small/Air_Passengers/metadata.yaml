@@ -1,8 +1,8 @@
 name: Air Passengers @SGP Changi Airport for past 10yrs
 metric: rmse
-date_col_name: month
-series_col_name: value
-forecast_len: 6
+date_name: month
+series_name: value
+horizon: 6
 dtformat: '%Y-%m'
 task: univariate-forecast
 shape:  (124, 2)

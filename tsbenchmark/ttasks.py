@@ -13,15 +13,8 @@ class TSTaskConfig:
 
 class TSTask(TSTaskConfig):
 
-    # def __init__(self, id, task, target, time_series, dataset_id, covariables=None, **kwargs):
-    #     self.id = id
-    #     self.task = task
-    #     self.target = target
-    #     self.time_series = time_series
-    #     self.dataset_id = dataset_id
-    #     self.covariables = covariables
-
     def __init__(self, task_config, random_state, max_trails, reward_metric):
+        self.id = task_config.dataset_id
         self.random_state = random_state
         self.max_trails = max_trails
         self.reward_metric = reward_metric

@@ -1,7 +1,7 @@
 name: nn5_weekly
 metric: rmse
-date_col_name: datetime
-forecast_len: 8
+series_name: datetime
+horizon: 8
 dtformat: '%Y-%m-%d'
 task: multivariate-forecast
 shape:  (105, 112)

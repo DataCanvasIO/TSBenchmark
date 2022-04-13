@@ -101,11 +101,11 @@ def cal_metric(y_pred, y_test, date_col_name, series_col_name, covariables, metr
 
 
 def convertdf(df_train, df_test, Date_Col_Name, Series_Col_name, covariables, format):
-    if Series_Col_name != None and covariables != None:
+    if Series_Col_name is not None and covariables is not None:
         Series_Col_name = Series_Col_name + covariables
     df_train[Date_Col_Name] = pd.to_datetime(df_train[Date_Col_Name], format=format)
     df_test[Date_Col_Name] = pd.to_datetime(df_test[Date_Col_Name], format=format)
-    if Series_Col_name != None:
+    if Series_Col_name is not None:
         df_train[Series_Col_name] = df_train[Series_Col_name].astype(float)
         df_test[Series_Col_name] = df_test[Series_Col_name].astype(float)
         cols = Series_Col_name + [Date_Col_Name]

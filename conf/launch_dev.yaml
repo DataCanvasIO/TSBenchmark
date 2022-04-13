@@ -1,4 +1,4 @@
-launch_name: 'test_v4'
+launch_name: 'test_v5'
 launch_desc: 'hyperts V0.1.0 release benchmark on 20220321'
 frameworks: [ 'navie','snavie','hyperts_dl' ] #  'hyperts_dl','hyperts_stat','autoTS', 'navie'
 tasks: [ 'univariate-forecast','multivariate-forecast' ] #  'univariate-forecast','multivariate-forecast'

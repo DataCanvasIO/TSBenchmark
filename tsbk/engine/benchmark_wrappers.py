@@ -107,10 +107,10 @@ class BenchmarkLocal(BenchmarkBase):
                     covariables = metadata['covariables']
                     forecast_len = df_test.shape[0]
                     series_col_name = metadata['series_col_name']
-                    if series_col_name == None:
-                        series_col_name = df_train.columns
+                    if series_col_name is None:
+                        series_col_name = list(df_train.columns.values)
                         series_col_name.remove(metadata['date_col_name'])
-                        if covariables != None:
+                        if covariables is not None:
                             for col in covariables:
                                 if col not in series_col_name:
                                     series_col_name.remove(col)

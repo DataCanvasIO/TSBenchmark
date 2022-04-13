@@ -1,10 +1,10 @@
 name: US Births Dataset
 metric: rmse
-date_col_name: date
-series_col_name: value
-#covariables_col_name: wd,dofw_1,dofw_2,dofw_3,dofw_4,dofw_5,dofw_6,type_Additional,type_Bridge,type_Event,type_Holiday,type_Transfer,type_Work Day
+date_name: date
+series_name: value
+#covariables_name: wd,dofw_1,dofw_2,dofw_3,dofw_4,dofw_5,dofw_6,type_Additional,type_Bridge,type_Event,type_Holiday,type_Transfer,type_Work Day
 #target_col_name: others
-forecast_len: 365
+horizon: 365
 dtformat: '%Y-%m-%d'
 task: univariate-forecast
 shape:  (6940, 2)
