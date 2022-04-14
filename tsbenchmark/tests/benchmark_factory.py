@@ -5,8 +5,6 @@ from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.datasets import TSDataset
 from tsbenchmark.tasks import TSTask, TSTaskConfig
 
-import tsbenchmark.tasks
-
 
 class NetworkTrafficMockDataset(TSDataset):
     """Test dataset"""
@@ -60,7 +58,7 @@ class ConsoleCallback(BenchmarkCallback):
         print('on_finish')
 
 
-def test_local_benchmark():
+def create_minimal_local_benchmark():
     # define players
     players = load_players(['plain_player'])
     task0 = create_task()
@@ -68,14 +66,6 @@ def test_local_benchmark():
     callbacks = [ConsoleCallback()]
 
     lb = LocalBenchmark(name='name', desc='desc', players=players,
-                        random_states=[8060], ts_tasks_config=[task0], constraints={}, callbacks=callbacks)
-    lb.run()
+                        random_states=[8086], ts_tasks_config=[task0], constraints={}, callbacks=callbacks)
+    return lb
 
-
-def atest_remote_benchmark():
-    # define players
-    players = load_players(['plain_player'])
-    task0 = tsbenchmark.tasks.get_task_config(0)
-    machines = []
-    lb = RemoteSSHBenchmark(name='name', desc='desc', players=players, ts_tasks=[task0], constraints={}, machines=machines)
-    lb.run()

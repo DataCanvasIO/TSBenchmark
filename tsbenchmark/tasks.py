@@ -1,3 +1,8 @@
+from pathlib import Path
+
+HERE = __file__
+
+
 class TSTaskConfig:
 
     def __init__(self, taskconfig_id, dataset_id, taskdata, date_name, task, horizon, series_name, covariables_name,
@@ -44,9 +49,13 @@ class TSTask(TSTaskConfig):
         return self.taskdata.get_test()
 
 
-def get_task(task_id):
-    pass
+def get_task_config(task_id) -> TSTaskConfig:
+    from tsbenchmark.tsloader import TSTaskLoader
+    data_path = (Path(HERE).parent.parent / "datas").absolute().as_posix()
+    task_loader = TSTaskLoader(data_path)
+    task_config: TSTaskConfig = task_loader.load(task_id)
+    return task_config
 
 
-def list_tasks(tags=None, data_sizes=None, tasks=()):
+def list_task_configs(tags=None, data_sizes=None, tasks=()):
     pass

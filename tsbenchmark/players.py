@@ -47,6 +47,17 @@ class Player:
             raise ValueError(f"unseen env kind {self.env.kind}")
 
 
+class JobParams:
+    def __init__(self, task_config_id, random_state,  max_trails, reward_metric, **kwargs):
+        self.task_config_id = task_config_id
+        self.random_state = random_state
+        self.max_trails = max_trails
+        self.reward_metric = reward_metric
+
+    def to_dict(self):
+        return self.__dict__
+
+
 def load_player(folder):
     config_file = Path(folder) / "player.yaml"
     if not config_file.exists():

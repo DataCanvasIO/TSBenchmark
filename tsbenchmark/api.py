@@ -1,14 +1,5 @@
 from hypernets.hyperctl import api as hyperctl_api
 from tsbenchmark import tasks
-
-
-def get_task():
-    hyperctl_job_params = hyperctl_api.get_job_params()
-    task_id = hyperctl_job_params['task_id']
-    print(task_id)
-    return tasks.get_task(task_id)
-
-
 import json
 import os
 
@@ -16,8 +7,27 @@ import requests
 
 from hypernets.hyperctl import consts
 from hypernets.utils import logging as hyn_logging
+from tsbenchmark.players import JobParams
+from tsbenchmark.tasks import TSTask
 
 logger = hyn_logging.get_logger(__name__)
+
+
+def get_task():
+    hyperctl_job_params = hyperctl_api.get_job_params()
+
+    job_params = JobParams(**hyperctl_job_params)
+
+    # task_id = hyperctl_job_params['task_id']
+    # random_state = hyperctl_job_params['random_state']
+    # max_trails = hyperctl_job_params['max_trails']
+    # reward_metric = hyperctl_job_params['reward_metric']
+
+    task_config = tasks.get_task_config(job_params.task_config_id)
+
+    t = TSTask(task_config=task_config, random_state=job_params.random_state,
+               max_trails=job_params.max_trails, reward_metric=job_params.reward_metric)
+    return t
 
 
 def _fetch_url(url, method='get'):
@@ -34,12 +44,6 @@ def _fetch_url(url, method='get'):
         raise RuntimeError(txt_resp)
 
 
-def get_job(job_name, api_server_portal):
-    url_get_job = f"{api_server_portal}/hyperctl/api/job/{job_name}"
-    data = _fetch_url(url_get_job)
-    return data
-
-
 def _get_job_name_and_damon_portal():
     job_name = os.getenv(consts.KEY_ENV_JOB_NAME)
     api_server_portal = f"{os.getenv(consts.KEY_ENV_SERVER_PORTAL)}"
@@ -48,11 +52,6 @@ def _get_job_name_and_damon_portal():
     assert api_server_portal
 
     return job_name, api_server_portal
-
-
-def get_job_params():
-    job_name, api_server_portal = _get_job_name_and_damon_portal()
-    return get_job(job_name, api_server_portal)['params']
 
 
 def get_job_working_dir():

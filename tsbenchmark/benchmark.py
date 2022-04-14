@@ -13,7 +13,7 @@ from hypernets.hyperctl.server import create_hyperctl_handlers
 from hypernets.hyperctl.utils import load_yaml
 from hypernets.utils import logging
 from tsbenchmark.callbacks import BenchmarkCallback
-from tsbenchmark.players import Player, load_players
+from tsbenchmark.players import Player, load_players, JobParams
 from tsbenchmark.server import BenchmarkBatchApplication
 import tsbenchmark.tasks
 from tsbenchmark.tasks import TSTask, TSTaskConfig
@@ -69,6 +69,9 @@ class Benchmark(metaclass=abc.ABCMeta):
     def run(self):
         pass
 
+    def stop(self):
+        pass
+
     def get_task(self, bm_task_id):
         if self._tasks is None:
             return None
@@ -78,7 +81,12 @@ class Benchmark(metaclass=abc.ABCMeta):
         return None
 
 
+
 class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
+    def __init__(self, **kwargs):
+        super(BenchmarkBaseOnHyperctl, self).__init__(**kwargs)
+
+        self._batch_app = None
 
     def setup(self):
         for player in self.players:
@@ -89,17 +97,14 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         player = bm_task.player
         random_state = bm_task.ts_task.random_state
         name = f'{player.name}_{task_id}_{random_state}'
-
-        job_params = {  #
-            "task_id": task_id,
-            'random_state': random_state
-        }
+        # TODO handle max_trials and reward_metric
+        job_params = JobParams(task_config_id=task_id, random_state=random_state, max_trails=3, reward_metric='rmse')
 
         command = f"{player.py_executable} {player.exec_file}"
 
         working_dir = (batch.data_dir_path() / name).absolute().as_posix()
         batch.add_job(name=name,
-                      params=job_params,
+                      params=job_params.to_dict(),
                       command=command,
                       output_dir=working_dir,
                       working_dir=working_dir)
@@ -137,10 +142,13 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         for bm_task in self._tasks:
             self.add_job(bm_task, batch)
 
-        batch_app = self.create_batch_app(batch)
-        batch_app.start()
+        self._batch_app = self.create_batch_app(batch)
+        self._batch_app.start()
 
         self._handle_on_finish()
+
+    def stop(self):
+        self._batch_app.stop()
 
 
 class HyperctlBatchCallback(BatchCallback):
@@ -252,10 +260,10 @@ def load(config_file):
     if tasks_ids is None:
         if task_filter is None:
             # select all tasks
-            tasks = tsbenchmark.tasks.list_tasks()  # TODO to ids
+            tasks = tsbenchmark.tasks.list_task_configs()  # TODO to ids
         else:
             # filter task
-            tasks = tsbenchmark.tasks.list_tasks(**task_filter)
+            tasks = tsbenchmark.tasks.list_task_configs(**task_filter)
     else:
         tasks = tasks_ids
 

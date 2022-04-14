@@ -44,7 +44,7 @@ class BenchmarkTaskOperationHandler(BaseHandler):
         message_dict = request_body
 
         # check bm_task_id
-        bm_task = benchmark.get_task(bm_task_id)
+        bm_task = benchmark.get_task_config(bm_task_id)
         if bm_task is None:
             self.response({"msg": "resource not found"}, RestCode.Exception)
             return
