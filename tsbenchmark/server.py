@@ -51,22 +51,27 @@ class TSTaskHandler(BaseHandler):
 
 class BenchmarkTaskOperationHandler(BaseHandler):
 
-    def post(self, task_name, operation,  **kwargs):
+    def post(self, bm_task_id, operation,  **kwargs):
         request_body = self.get_request_as_dict()
-        print(task_name)
-        # 修改job的状态, 再调用callback事件
-        #
         benchmark = self.benchmark
-        for task in benchmark.ts_tasks_config:
-            if task.name == task_name:
-                task._status = 'finished'
-                # check
+        message_dict = request_body
 
-        if task is None:
+        # check bm_task_id
+        bm_task = benchmark.get_task(bm_task_id)
+        if bm_task is None:
             self.response({"msg": "resource not found"}, RestCode.Exception)
+            return
+
+        if operation == 'report':
+            for callback in benchmark.callbacks:
+                from tsbenchmark.callbacks import BenchmarkCallback
+                callback: BenchmarkCallback = callback
+                callback.on_task_message(benchmark, bm_task, message_dict)
+
+            return self.response({}, code=RestCode.Success)
         else:
-            ret_dict = task.to_dict()
-            return self.response(ret_dict)
+            # TODO kill operation
+            pass
 
     def initialize(self, benchmark):
         self.benchmark = benchmark

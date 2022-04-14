@@ -36,6 +36,9 @@ class BenchmarkTask:
     def status(self):
         return self._status
 
+    def id(self):
+        return f"{self.player.name}_{self.ts_task.id}_{self.ts_task.random_state}"
+
 
 class Benchmark(metaclass=abc.ABCMeta):
 
@@ -65,6 +68,14 @@ class Benchmark(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def run(self):
         pass
+
+    def get_task(self, bm_task_id):
+        if self._tasks is None:
+            return None
+        for bm_task in self._tasks:
+            if bm_task.id == bm_task_id:
+                return bm_task
+        return None
 
 
 class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):

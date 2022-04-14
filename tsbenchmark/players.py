@@ -1,13 +1,3 @@
-
-class PythonEnv:
-
-    def __init__(self, kind, custom_python=None, pip=None, conda=None):
-        self.kind = kind
-        self.custom_python = custom_python
-        self.pip = pip
-        self.conda = conda
-
-    KIND_CUSTOM_PYTHON = 'custom_python'
 import abc
 import os
 from pathlib import Path
@@ -21,6 +11,17 @@ from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.server import create_hyperctl_handlers
 from hypernets.utils import logging
 from tsbenchmark.server import BenchmarkBatchApplication
+
+
+class PythonEnv:
+
+    def __init__(self, kind, custom_python=None, pip=None, conda=None):
+        self.kind = kind
+        self.custom_python = custom_python
+        self.pip = pip
+        self.conda = conda
+
+    KIND_CUSTOM_PYTHON = 'custom_python'
 
 logging.set_level('DEBUG')
 
