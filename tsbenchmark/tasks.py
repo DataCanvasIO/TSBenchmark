@@ -45,11 +45,8 @@ class TSTask(TSTaskConfig):
 
 
 def get_task(task_id):
-    return TSTask(0, task='multivariate-forecast',
-                  target='Var_1', time_series='TimeStamp',
-                  dataset_id=0,
-                  covariables=['HourSin', 'WeekCos', 'CBWD'])
+    pass
 
 
 def list_tasks(tags=None, data_sizes=None, tasks=()):
-    return [get_task(0)]  # TODO
+    pass
