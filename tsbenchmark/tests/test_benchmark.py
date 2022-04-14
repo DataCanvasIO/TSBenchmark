@@ -79,3 +79,7 @@ def atest_remote_benchmark():
     machines = []
     lb = RemoteSSHBenchmark(name='name', desc='desc', players=players, ts_tasks=[task0], constraints={}, machines=machines)
     lb.run()
+
+#
+# if __name__ == '__main__':
+#     test_local_benchmark()

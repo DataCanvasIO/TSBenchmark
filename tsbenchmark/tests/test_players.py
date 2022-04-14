@@ -9,11 +9,3 @@ def test_load_players():
     env = plain_player.env
     assert env.kind == 'custom_python'
     assert env.custom_python['executable'] == 'python'
-
-#
-# def test_run_benchmark():
-#     players = load_players(['plain_player'])
-#     lb = LocalBenchmark(name='name', desc='desc', players=players, constraints={})
-#
-#     lb.run()
-#

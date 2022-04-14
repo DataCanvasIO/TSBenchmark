@@ -167,13 +167,13 @@ class HyperctlBatchCallback(BatchCallback):
 
     def find_ts_task(self, job):
         job: ShellJob = job
-        job_params = job.params
-        ts_task_id = job_params['task_id']
-        random_state = job_params['random_state']
-        print(random_state)
+        job_params = JobParams(**job.params)
+
+        random_state = job_params.random_state
+        task_config_id = job_params.task_config_id
         for bm_task in self.bm.tasks():
             bm_task: BenchmarkTask = bm_task
-            if bm_task.ts_task.id == ts_task_id and bm_task.ts_task.random_state == random_state:
+            if bm_task.ts_task.id == task_config_id and bm_task.ts_task.random_state == random_state:
                 return bm_task
         return None
 
