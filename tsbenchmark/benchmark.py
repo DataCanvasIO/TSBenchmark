@@ -81,6 +81,14 @@ class Benchmark(metaclass=abc.ABCMeta):
                 return bm_task
         return None
 
+    def find_task(self, player_name, random_state, task_config_id):
+        for bm_task in self._tasks:
+            bm_task: BenchmarkTask = bm_task
+            if bm_task.ts_task.id == task_config_id and bm_task.ts_task.random_state == random_state\
+                    and player_name == bm_task.player.name:
+                return bm_task
+        return None
+
 
 class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
     def __init__(self, scheduler_exit_on_finish=False,
@@ -101,7 +109,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         random_state = bm_task.ts_task.random_state
         name = f'{player.name}_{task_id}_{random_state}'
         # TODO handle max_trials and reward_metric
-        job_params = JobParams(task_config_id=task_id, random_state=random_state, max_trails=3, reward_metric='rmse')
+        job_params = JobParams(bm_task_id=bm_task.id, task_config_id=task_id, random_state=random_state, max_trails=3, reward_metric='rmse')
 
         command = f"{player.py_executable} {player.exec_file}"
 
@@ -129,7 +137,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         self._tasks = []
         players = self.players
         # create batch app
-        batches_data_dir = Path("~/tsbenchmark-hyperctl").expanduser().absolute().as_posix()  # TODO move config file
+        batches_data_dir = Path("/tmp/tsbenchmark-hyperctl").expanduser().absolute().as_posix()  # TODO move config file
 
         # backend_conf = BackendConf(type = 'local', conf = {})
         from hypernets.utils import common
