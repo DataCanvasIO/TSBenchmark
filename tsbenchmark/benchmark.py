@@ -83,7 +83,10 @@ class Benchmark(metaclass=abc.ABCMeta):
 
 
 class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
-    def __init__(self, **kwargs):
+    def __init__(self, scheduler_exit_on_finish=False,
+                 scheduler_interval=5000, **kwargs):
+        self.scheduler_exit_on_finish = scheduler_exit_on_finish
+        self.scheduler_interval = scheduler_interval
         super(BenchmarkBaseOnHyperctl, self).__init__(**kwargs)
 
         self._batch_app = None
@@ -198,7 +201,8 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
         else:
             scheduler_callbacks = None
         batch_app = BenchmarkBatchApplication(benchmark=self, batch=batch,
-                                              scheduler_exit_on_finish=False,
+                                              scheduler_exit_on_finish=self.scheduler_exit_on_finish,
+                                              scheduler_interval=self.scheduler_interval,
                                               scheduler_callbacks=scheduler_callbacks)
         return batch_app
 

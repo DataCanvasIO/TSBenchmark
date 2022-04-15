@@ -56,7 +56,8 @@ class TestAPI:
 
         lb = LocalBenchmark(name='name', desc='desc', players=players,
                             random_states=[random_state], ts_tasks_config=[task_config],
-                            constraints={}, callbacks=[PlainCallback()])
+                            constraints={}, scheduler_exit_on_finish=True,
+                            callbacks=[PlainCallback()])
 
         self.runner = BenchmarkRunner(lb)
         self.runner.start()  # run benchmark in backend

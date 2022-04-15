@@ -79,9 +79,20 @@ def test_local_benchmark():
     callbacks = [ConsoleCallback()]
 
     lb = LocalBenchmark(name='name', desc='desc', players=players,
-                        random_states=[8060], ts_tasks_config=[task0], constraints={}, callbacks=callbacks)
+                        random_states=[8060], ts_tasks_config=[task0],
+                        scheduler_exit_on_finish=True,
+                        constraints={}, callbacks=callbacks)
     lb.run()
 
+
+# class TestLocalBenchmark:
+#     def setup_class(self):
+#         pass
+#
+#
+#     def teardown_class(self):
+#         self.runner.stop()
+#
 
 def atest_remote_benchmark():
     # define players
@@ -89,9 +100,11 @@ def atest_remote_benchmark():
     task0 = tsbenchmark.tasks.get_task_config(0)
     machines = []
     lb = RemoteSSHBenchmark(name='name', desc='desc',
-                            players=players, ts_tasks=[task0], constraints={}, machines=machines)
+                            players=players, ts_tasks=[task0],
+
+                            constraints={}, machines=machines)
     lb.run()
 
-#
+
 # if __name__ == '__main__':
 #     test_local_benchmark()

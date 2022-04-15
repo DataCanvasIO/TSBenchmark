@@ -66,6 +66,7 @@ def create_minimal_local_benchmark():
     callbacks = [ConsoleCallback()]
 
     lb = LocalBenchmark(name='name', desc='desc', players=players,
-                        random_states=[8086], ts_tasks_config=[task0], constraints={}, callbacks=callbacks)
+                        random_states=[8086], ts_tasks_config=[task0], scheduler_exit_on_finish=True,
+                        constraints={}, callbacks=callbacks)
     return lb
 

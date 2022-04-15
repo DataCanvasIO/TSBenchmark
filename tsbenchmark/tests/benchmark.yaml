@@ -32,6 +32,14 @@ report:
 datasets:
   cache_path: ~/.cache/tsbenchmark/datasets
 
+scheduler:
+    interval: 1
+    exit_on_finish: True
+
+server:
+  port: 8060
+  host: localhost
+
 machines:
   - hostname: host1
     username: hyperctl
