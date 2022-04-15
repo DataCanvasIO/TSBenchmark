@@ -36,6 +36,7 @@ class BenchmarkTask:
     def status(self):
         return self._status
 
+    @property
     def id(self):
         return f"{self.player.name}_{self.ts_task.id}_{self.ts_task.random_state}"
 
@@ -79,7 +80,6 @@ class Benchmark(metaclass=abc.ABCMeta):
             if bm_task.id == bm_task_id:
                 return bm_task
         return None
-
 
 
 class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
@@ -198,7 +198,7 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
         else:
             scheduler_callbacks = None
         batch_app = BenchmarkBatchApplication(benchmark=self, batch=batch,
-                                              scheduler_exit_on_finish=True,
+                                              scheduler_exit_on_finish=False,
                                               scheduler_callbacks=scheduler_callbacks)
         return batch_app
 

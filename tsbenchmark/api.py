@@ -1,3 +1,5 @@
+from typing import Dict
+
 from hypernets.hyperctl import api as hyperctl_api
 from tsbenchmark import tasks
 import json
@@ -6,9 +8,13 @@ import os
 import requests
 
 from hypernets.hyperctl import consts
+from hypernets.hyperctl import utils
+
 from hypernets.utils import logging as hyn_logging
 from tsbenchmark.players import JobParams
 from tsbenchmark.tasks import TSTask
+
+hyn_logging.set_level(hyn_logging.DEBUG)
 
 logger = hyn_logging.get_logger(__name__)
 
@@ -30,18 +36,25 @@ def get_task():
     return t
 
 
-def _fetch_url(url, method='get'):
-    logger.debug(f"http {method} to {url}")
-    http_method = getattr(requests, method)
-    resp = http_method(url)
-    txt_resp = resp.text
-    logger.debug(f"response text: \n{txt_resp}")
-    json_resp = json.loads(txt_resp)
-    code = json_resp['code']
-    if code == 0:
-        return json_resp['data']
+def report_task(report_data: Dict, bm_task_id=None, api_server_uri=None):
+    assert bm_task_id
+    api_server_uri = _get_api_server_api(api_server_uri)
+    report_url = f"{api_server_uri}/tsbenchmark/api/benchmark-task/{bm_task_id}/report"
+
+    request_dict = {
+        'data': report_data
+    }
+
+    utils.post_request(report_url, json.dumps(request_dict))
+
+
+def _get_api_server_api(api_server_uri=None):
+    if api_server_uri is not None:
+        api_server_portal = os.getenv(consts.KEY_ENV_SERVER_PORTAL)
+        assert api_server_portal
+        return api_server_portal
     else:
-        raise RuntimeError(txt_resp)
+        return api_server_uri
 
 
 def _get_job_name_and_damon_portal():
@@ -64,15 +77,11 @@ def list_jobs(api_server_portal):
     #     api_server_portal = os.getenv(consts.KEY_ENV_api_server_portal)
     assert api_server_portal
     url_get_jobs = f"{api_server_portal}/hyperctl/api/job"
-    data = _fetch_url(url_get_jobs)
+    data = _request(url_get_jobs)
     return data['jobs']
 
 
 def kill_job(api_server_portal, job_name):
     url_kill_job = f"{api_server_portal}/hyperctl/api/job/{job_name}/kill"
-    data = _fetch_url(url_kill_job, method='post')
+    data = _request(url_kill_job, method='post')
     return data
-
-
-def report_result(api_server_portal):  # TODO
-    pass

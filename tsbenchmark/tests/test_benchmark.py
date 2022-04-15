@@ -38,6 +38,16 @@ def create_task():
     return config
 
 
+def create_task_new(task_config_id):
+    task_config = tsbenchmark.tasks.get_task_config(task_config_id)
+
+    task = TSTask(task_config, random_state=8086, max_trails=5, reward_metric='rmse')
+    assert task.task == 'univariate-forecast' and task.dataset_id == 694826
+    assert task.get_train().shape[0] == 124 and task.get_test().shape[0] == 6
+    assert task.random_state == 8086
+    return task
+
+
 class ConsoleCallback(BenchmarkCallback):
 
     def on_start(self, bm):
@@ -63,7 +73,8 @@ class ConsoleCallback(BenchmarkCallback):
 def test_local_benchmark():
     # define players
     players = load_players(['plain_player'])
-    task0 = create_task()
+    task_config_id = 694826
+    task0 = create_task_new(task_config_id)
 
     callbacks = [ConsoleCallback()]
 
@@ -77,7 +88,8 @@ def atest_remote_benchmark():
     players = load_players(['plain_player'])
     task0 = tsbenchmark.tasks.get_task_config(0)
     machines = []
-    lb = RemoteSSHBenchmark(name='name', desc='desc', players=players, ts_tasks=[task0], constraints={}, machines=machines)
+    lb = RemoteSSHBenchmark(name='name', desc='desc',
+                            players=players, ts_tasks=[task0], constraints={}, machines=machines)
     lb.run()
 
 #

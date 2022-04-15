@@ -4,6 +4,7 @@ from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.server import RestCode, BaseHandler, create_hyperctl_handlers, \
     HyperctlWebApplication
 from hypernets.utils import logging as hyn_logging
+from tsbenchmark import tasks
 
 logger = hyn_logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class BenchmarkTaskOperationHandler(BaseHandler):
         message_dict = request_body
 
         # check bm_task_id
-        bm_task = benchmark.get_task_config(bm_task_id)
+        bm_task = benchmark.get_task(bm_task_id)
         if bm_task is None:
             self.response({"msg": "resource not found"}, RestCode.Exception)
             return
@@ -53,7 +54,7 @@ class BenchmarkTaskOperationHandler(BaseHandler):
             for callback in benchmark.callbacks:
                 from tsbenchmark.callbacks import BenchmarkCallback
                 callback: BenchmarkCallback = callback
-                callback.on_task_message(benchmark, bm_task, message_dict)
+                callback.on_task_message(benchmark, bm_task, message_dict.get('data'))
 
             return self.response({}, code=RestCode.Success)
         else:
@@ -79,14 +80,15 @@ class TSTaskListHandler(BaseHandler):
 class BenchmarkBatchApplication(BatchApplication):
 
     def __init__(self, benchmark, **kwargs):
-        super(BenchmarkBatchApplication, self).__init__(**kwargs)
         self.benchmark = benchmark
+        super(BenchmarkBatchApplication, self).__init__(**kwargs)
 
     def _create_web_app(self, server_host, server_port, batch):
         hyperctl_handlers = create_hyperctl_handlers(batch, self.job_scheduler)
         tsbenchmark_handlers = [
             (r'/tsbenchmark/api/task/(?P<task_id>.+)', TSTaskHandler),
-            (r'/tsbenchmark/api/benchmark-task/(?P<task_id>.+)/(?P<operation>.+)', BenchmarkTaskOperationHandler),
+            (r'/tsbenchmark/api/benchmark-task/(?P<bm_task_id>.+)/(?P<operation>.+)',
+             BenchmarkTaskOperationHandler, dict(benchmark=self.benchmark)),
             (r'/tsbenchmark/api/job', TSTaskListHandler),
             (r'/tsbenchmark', IndexHandler)
         ]
