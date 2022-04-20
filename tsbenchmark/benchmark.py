@@ -41,11 +41,11 @@ class BenchmarkTask:
         return f"{self.player.name}_{self.ts_task.id}_{self.ts_task.random_state}"
 
 
-
 class Benchmark(metaclass=abc.ABCMeta):
 
     def __init__(self, name, desc, players, ts_tasks_config: List[TSTaskConfig], random_states: List[int],
-                 constraints, callbacks: List[BenchmarkCallback] = None):
+                 constraints, working_dir=None, callbacks: List[BenchmarkCallback] = None):
+
         self.name = name
         self.desc = desc
         self.players: List[Player] = players
@@ -53,6 +53,11 @@ class Benchmark(metaclass=abc.ABCMeta):
         self.random_states = random_states
         self.constraints = constraints
         self.callbacks = callbacks if callbacks is not None else []
+
+        if working_dir is None:
+            self.working_dir = Path("~/tsbenchmark-working-dir").expanduser().absolute().as_posix()
+        else:
+            self.working_dir = Path(working_dir).absolute().as_posix()
 
         self._tasks = None
 
@@ -89,6 +94,9 @@ class Benchmark(metaclass=abc.ABCMeta):
                     and player_name == bm_task.player.name:
                 return bm_task
         return None
+
+    def get_batches_data_dir(self):
+        return (Path(self.working_dir) / "batches").as_posix()
 
 
 class HyperctlBatchCallback(BatchCallback):
@@ -173,7 +181,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         self._tasks = []
         players = self.players
         # create batch app
-        batches_data_dir = Path("/tmp/tsbenchmark-hyperctl").expanduser().absolute().as_posix()  # TODO move config file
+        batches_data_dir = self.get_batches_data_dir()
 
         # backend_conf = BackendConf(type = 'local', conf = {})
         from hypernets.utils import common
