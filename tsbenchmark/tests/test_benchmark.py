@@ -71,29 +71,27 @@ class ConsoleCallback(BenchmarkCallback):
         print('on_finish')
 
 
-def test_local_benchmark():
-    # define players
-    players = load_players(['plain_player'])
-    task_config_id = 694826
-    task0 = create_task_new(task_config_id)
+class TestLocalBenchmark:
 
-    callbacks = [ConsoleCallback()]
+    def setup_class(self):
+        # define players
+        players = load_players(['plain_player'])
+        task_config_id = 694826
+        task0 = create_task_new(task_config_id)
 
-    lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
-                        random_states=[8060], ts_tasks_config=[task0],
-                        scheduler_exit_on_finish=True,
-                        constraints={}, callbacks=callbacks)
-    lb.run()
+        callbacks = [ConsoleCallback()]
 
+        lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
+                            random_states=[8060], ts_tasks_config=[task0],
+                            scheduler_exit_on_finish=True,
+                            constraints={}, callbacks=callbacks)
+        self.lb = lb
 
-# class TestLocalBenchmark:
-#     def setup_class(self):
-#         pass
-#
-#
-#     def teardown_class(self):
-#         self.runner.stop()
-#
+    def test_run(self):
+        self.lb.run()
+
+    def teardown_class(self):
+        self.lb.stop()
 
 
 @ssh_utils_test.need_psw_auth_ssh
