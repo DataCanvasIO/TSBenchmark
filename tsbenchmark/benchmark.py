@@ -177,7 +177,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 
         # backend_conf = BackendConf(type = 'local', conf = {})
         from hypernets.utils import common
-        batch_name = common.generate_short_id()  # TODO move to benchmark
+        batch_name = self.name
         batch: Batch = Batch(batch_name, batches_data_dir)
         for ts_task_config in self.ts_tasks_config:
             for player in players:
