@@ -37,8 +37,23 @@ def get_task():
 
 
 def report_task(report_data: Dict, bm_task_id=None, api_server_uri=None):
+    """Report metrics or running information to api server.
+
+    Args:
+        report_data:
+        bm_task_id: str, optional, BenchmarkTask id, if is None will get from current job
+        api_server_uri: str, optional, tsbenchmark api server uri, if is None will get from environment or
+            use default value
+
+    Returns:
+
+    """
+
+    bm_task_id = _get_bm_task_id(bm_task_id)
     assert bm_task_id
     api_server_uri = _get_api_server_api(api_server_uri)
+    assert api_server_uri
+
     report_url = f"{api_server_uri}/tsbenchmark/api/benchmark-task/{bm_task_id}/report"
 
     request_dict = {
@@ -49,12 +64,21 @@ def report_task(report_data: Dict, bm_task_id=None, api_server_uri=None):
 
 
 def _get_api_server_api(api_server_uri=None):
-    if api_server_uri is not None:
+    if api_server_uri is None:
         api_server_portal = os.getenv(consts.KEY_ENV_SERVER_PORTAL)
         assert api_server_portal
         return api_server_portal
     else:
         return api_server_uri
+
+
+def _get_bm_task_id(bm_task_id):
+    if bm_task_id is None:
+        hyperctl_job_params = hyperctl_api.get_job_params()
+        job_params = JobParams(**hyperctl_job_params)
+        return job_params.bm_task_id
+    else:
+        return bm_task_id
 
 
 def _get_job_name_and_damon_portal():

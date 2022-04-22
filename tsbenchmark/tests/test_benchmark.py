@@ -4,6 +4,7 @@ from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchma
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.datasets import TSDataset
 from tsbenchmark.tasks import TSTask, TSTaskConfig
+from hypernets.tests.utils import ssh_utils_test
 
 import tsbenchmark.tasks
 
@@ -70,41 +71,76 @@ class ConsoleCallback(BenchmarkCallback):
         print('on_finish')
 
 
-def test_local_benchmark():
+class TestLocalBenchmark:
+
+    def setup_class(self):
+        # define players
+        players = load_players(['plain_player'])
+        task_config_id = 694826
+        task0 = create_task_new(task_config_id)
+
+        callbacks = [ConsoleCallback()]
+
+        lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
+                            random_states=[8060], ts_tasks_config=[task0],
+                            scheduler_exit_on_finish=True,
+                            constraints={}, callbacks=callbacks)
+        self.lb = lb
+
+    def test_run(self):
+        self.lb.run()
+
+    def teardown_class(self):
+        self.lb.stop()
+
+
+@ssh_utils_test.need_psw_auth_ssh
+def test_remote_benchmark():
     # define players
     players = load_players(['plain_player'])
     task_config_id = 694826
     task0 = create_task_new(task_config_id)
 
     callbacks = [ConsoleCallback()]
+    machines = [ssh_utils_test.load_ssh_psw_config()]
+    print(machines)
+    lb = RemoteSSHBenchmark(name='remote-benchmark', desc='desc', players=players,
+                            random_states=[8060], ts_tasks_config=[task0],
+                            scheduler_exit_on_finish=True,
+                            constraints={}, callbacks=callbacks,
+                            machines=machines)
+    lb.run()
 
-    lb = LocalBenchmark(name='name', desc='desc', players=players,
+
+def create_local_benchmark():
+    players = load_players(['plain_player'])
+    task_config_id = 694826
+    task0 = create_task_new(task_config_id)
+
+    callbacks = [ConsoleCallback()]
+
+    lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
                         random_states=[8060], ts_tasks_config=[task0],
                         scheduler_exit_on_finish=True,
                         constraints={}, callbacks=callbacks)
-    lb.run()
+    return lb
 
 
-# class TestLocalBenchmark:
-#     def setup_class(self):
-#         pass
-#
-#
-#     def teardown_class(self):
-#         self.runner.stop()
-#
+def test_run_base_previous_batch():
+    bc1 = create_local_benchmark()
+    bc1.run()
+    bc1._batch_app._http_server.stop()
 
-def atest_remote_benchmark():
-    # define players
-    players = load_players(['plain_player'])
-    task0 = tsbenchmark.tasks.get_task_config(0)
-    machines = []
-    lb = RemoteSSHBenchmark(name='name', desc='desc',
-                            players=players, ts_tasks=[task0],
+    bc2 = create_local_benchmark()
+    bc2.run()
+    bc2._batch_app._http_server.stop()
 
-                            constraints={}, machines=machines)
-    lb.run()
+    ba1 = bc1._batch_app.batch
+    ba2 = bc2._batch_app.batch
 
+    assert ba1.name == ba2.name
+    assert len(ba1.jobs) == len(ba2.jobs)
+    assert set([_.name for _ in ba1.jobs]) == set([_.name for _ in ba2.jobs])
 
 # if __name__ == '__main__':
-#     test_local_benchmark()
+#     test_remote_benchmark()

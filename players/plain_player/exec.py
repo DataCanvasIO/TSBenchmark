@@ -4,11 +4,9 @@ import tsbenchmark.api
 
 def main():
   task = tsb.api.get_task()
-  dataset = task.dataset_id
-
   print(task)
-  print(dataset)
-  tsb.api.report_result()
+  report_data = {'reward': 0.7}
+  tsb.api.report_task(report_data=report_data)
 
 
 if __name__ == "__main__":

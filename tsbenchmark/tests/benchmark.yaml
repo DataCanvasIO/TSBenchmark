@@ -40,6 +40,8 @@ server:
   port: 8060
   host: localhost
 
+workding_dir: /tmp/tsbenchmark-hyperctl
+
 machines:
   - hostname: host1
     username: hyperctl
