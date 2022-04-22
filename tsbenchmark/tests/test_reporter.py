@@ -54,18 +54,18 @@ class ReporterCallback(BenchmarkCallback):
         print('on_task_break')
 
     def on_finish(self, bm):
-        self.reporter.generate_report()
+        # self.reporter.generate_report()
         print('on_finish')
 
 
-def test_local_benchmark():
+def test_benchmark_reporter():
     # define players
     players = load_players(['plain_player'])
     task_config_id = 694826
     task0 = create_task_new(task_config_id)
     # Mock data for benchmark_config
 
-    benchmark_config = {'report_path': '/tmp/benchmark',
+    benchmark_config = {'report_path': '~/report_path',
                         'name': 'hyperts_release_0.1.0',
                         'random_states': [8086],
                         'task_filter.tasks': ['univariate-forecast'],
