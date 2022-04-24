@@ -11,6 +11,13 @@ from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.server import create_hyperctl_handlers
 from hypernets.utils import logging
 from tsbenchmark.server import BenchmarkBatchApplication
+logging.set_level('DEBUG')
+
+logger = logging.getLogger(__name__)
+
+
+
+SRC_DIR = os.path.dirname(__file__)
 
 
 class PythonEnv:
@@ -22,16 +29,11 @@ class PythonEnv:
         self.conda = conda
 
     KIND_CUSTOM_PYTHON = 'custom_python'
-
-logging.set_level('DEBUG')
-
-logger = logging.getLogger(__name__)
-
-SRC_DIR = os.path.dirname(__file__)
+    KIND_CONDA_YAML = 'conda_yaml'
+    KIND_REQUIREMENTS_TXT = 'requirements_txt'
 
 
 class Player:
-
     def __init__(self, name, exec_file: str, env: PythonEnv):
         self.name = name
         self.env: PythonEnv = env

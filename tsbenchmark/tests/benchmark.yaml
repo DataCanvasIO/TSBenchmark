@@ -22,7 +22,7 @@ task_filter:
 rounds_per_framework: 5
 random_states: [ 23163,4,5318,9527,33179 ]
 
-constraints:  # 约束条件
+constraints:
   time_limit: 2h
   trials: 10
 
@@ -40,7 +40,7 @@ server:
   port: 8060
   host: localhost
 
-workding_dir: /tmp/tsbenchmark-hyperctl
+working_dir: /tmp/tsbenchmark-hyperctl
 
 machines:
   - hostname: host1
