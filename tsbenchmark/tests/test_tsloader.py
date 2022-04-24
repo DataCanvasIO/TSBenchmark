@@ -27,7 +27,7 @@ class Test_TSDataSetLoader():
         assert df_test.shape[0] == 6
 
         metadata = dataloader.load_meta(694826)
-        assert len(metadata) == 15
+        assert len(metadata) == 16
 
 
 taskdataloader = tsbenchmark.tsloader.TSTaskDataLoader(data_path)
