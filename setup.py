@@ -79,7 +79,7 @@ setup(
     ],
     packages=find_packages(exclude=('docs', 'tests*')),
     package_data={
-        'tsbenchmark': ['tabular/datasets/*.gz'],
+        'tsbenchmark': ['*.sh'],
     },
     entry_points={
         # 'console_scripts': [

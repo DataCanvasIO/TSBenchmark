@@ -22,7 +22,7 @@ logging.set_level('DEBUG')
 
 logger = logging.getLogger(__name__)
 
-SRC_DIR = os.path.dirname(__file__)
+HERE = Path(__file__).parent
 
 
 class BenchmarkTask:
@@ -41,10 +41,19 @@ class BenchmarkTask:
         return f"{self.player.name}_{self.ts_task.id}_{self.ts_task.random_state}"
 
 
+class EnvMGR:
+
+    KIND_CONDA = 'conda'
+
+    def __init__(self, kind, conda=None):
+        self.kind = kind
+        self.conda = conda
+
+
 class Benchmark(metaclass=abc.ABCMeta):
 
     def __init__(self, name, desc, players, ts_tasks_config: List[TSTaskConfig], random_states: List[int],
-                 constraints, working_dir=None, callbacks: List[BenchmarkCallback] = None):
+                 constraints, envmgr=None, working_dir=None, callbacks: List[BenchmarkCallback] = None):
 
         self.name = name
         self.desc = desc
@@ -58,6 +67,11 @@ class Benchmark(metaclass=abc.ABCMeta):
             self.working_dir = Path("~/tsbenchmark-working-dir").expanduser().absolute().as_posix()
         else:
             self.working_dir = Path(working_dir).absolute().as_posix()
+
+        if envmgr is None:
+            self.envmgr = EnvMGR(kind='conda', conda={'home': "~/miniconda3/"})
+        else:
+            self.envmgr = envmgr
 
         self._tasks = None
 
@@ -159,14 +173,23 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         # TODO handle max_trials and reward_metric
         job_params = JobParams(bm_task_id=bm_task.id, task_config_id=task_id, random_state=random_state, max_trails=3, reward_metric='rmse')
 
-        command = f"{player.py_executable} {player.exec_file}"
+        # TODO support conda yaml
+        # TODO support windows
+        if self.envmgr.kind != EnvMGR.KIND_CONDA:
+            raise ValueError(f"only {EnvMGR.KIND_CONDA} virtual env manager is supported currently.")
+
+        conda_home = Path(self.envmgr.conda['host']).expanduser().absolute().as_posix()
+        command = f"/bin/sh -x resources/runpy.sh --conda-home={conda_home} --venv-name=ts-plain-player --requirements-kind=requirements_txt --requirements-txt-file=/home/wuhf/PycharmProjects/TSBenchmark/players/plain_player/requirements.txt --requirements-txt-py-version=3.8 --python-script=/home/wuhf/PycharmProjects/TSBenchmark/players/plain_player/exec.py"
 
         working_dir = (batch.data_dir_path() / name).absolute().as_posix()
+        run_py_shell = (HERE / "runpy.sh").absolute().as_posix()
+
         batch.add_job(name=name,
                       params=job_params.to_dict(),
                       command=command,
                       output_dir=working_dir,
-                      working_dir=working_dir)
+                      working_dir=working_dir,
+                      assets=[run_py_shell])
 
     def _handle_on_start(self):
         for callback in self.callbacks:

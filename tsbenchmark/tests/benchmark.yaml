@@ -46,3 +46,8 @@ machines:
   - hostname: host1
     username: hyperctl
     password: hyperctl
+
+envmgr:
+  kind: conda
+  conda:
+    home: ~/miniconda3/

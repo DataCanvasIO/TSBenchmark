@@ -32,7 +32,7 @@ for i in "$@"; do
         --python-script=*)
             python_script="${i#*=}"
             shift ;;
-        -*|--*=) # unsupported args
+        -*|--*=)
             echo "unsupported args"
             usage
             exit 1 ;;
