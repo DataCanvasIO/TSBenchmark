@@ -1,4 +1,6 @@
+import tempfile
 from typing import Dict
+from pathlib import Path
 
 from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
@@ -7,6 +9,8 @@ from tsbenchmark.tasks import TSTask, TSTaskConfig
 from hypernets.tests.utils import ssh_utils_test
 
 import tsbenchmark.tasks
+
+HERE = Path(__file__).parent
 
 
 class NetworkTrafficMockDataset(TSDataset):
@@ -110,6 +114,31 @@ def test_remote_benchmark():
                             constraints={}, callbacks=callbacks,
                             machines=machines)
     lb.run()
+
+
+@ssh_utils_test.need_psw_auth_ssh
+class TestRemoteBenchmark:
+
+    def setup_class(self):
+        # define players
+        players = load_players([(HERE / "players" / "plain_player_requirements_txt").as_posix()])
+        task_config_id = 694826
+        task0 = create_task_new(task_config_id)
+
+        callbacks = [ConsoleCallback()]
+        machines = [ssh_utils_test.load_ssh_psw_config()]
+        print(machines)
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
+        lb = RemoteSSHBenchmark(name='remote-benchmark', desc='desc', players=players,
+                                random_states=[8060], ts_tasks_config=[task0],
+                                working_dir=batches_data_dir,
+                                scheduler_exit_on_finish=True,
+                                constraints={}, callbacks=callbacks,
+                                machines=machines)
+        self.lb = lb
+
+    def test_run_benchmark(self):
+        self.lb.run()
 
 
 def create_local_benchmark():

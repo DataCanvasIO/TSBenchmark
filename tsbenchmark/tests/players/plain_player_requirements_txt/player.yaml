@@ -1,0 +1,5 @@
+env:
+  kind: requirements_txt
+  requirements_txt:
+    python_version: 3.8
+    file: requirements.txt

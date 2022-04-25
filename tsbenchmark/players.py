@@ -16,21 +16,34 @@ logging.set_level('DEBUG')
 logger = logging.getLogger(__name__)
 
 
-
 SRC_DIR = os.path.dirname(__file__)
 
 
 class PythonEnv:
 
-    def __init__(self, kind, custom_python=None, pip=None, conda=None):
+    def __init__(self, kind, custom_python=None, requirements_txt=None, conda=None):
         self.kind = kind
         self.custom_python = custom_python
-        self.pip = pip
+        self.requirements_txt = requirements_txt
         self.conda = conda
 
     KIND_CUSTOM_PYTHON = 'custom_python'
     KIND_CONDA_YAML = 'conda_yaml'
     KIND_REQUIREMENTS_TXT = 'requirements_txt'
+
+    @property
+    def requirements_txt_file(self):
+        if self.requirements_txt is not None:
+            return self.requirements_txt.get('file')
+        else:
+            return None
+
+    @property
+    def requirements_txt_python_version(self):
+        if self.requirements_txt is not None:
+            return self.requirements_txt.get('python_version')
+        else:
+            return None
 
 
 class Player:
@@ -43,10 +56,7 @@ class Player:
 
     @property
     def py_executable(self):
-        if self.env.kind == PythonEnv.KIND_CUSTOM_PYTHON:
-            return self.env.custom_python['executable']
-        else:
-            raise ValueError(f"unseen env kind {self.env.kind}")
+        return self.exec_file
 
 
 class JobParams:
@@ -79,6 +89,8 @@ def load_player(folder):
     exec_file = (Path(folder) / "exec.py").absolute().as_posix()
 
     play_dict['exec_file'] = exec_file
+
+    # PythonEnv(**play_dict['env'])
     play_dict['env'] = PythonEnv(**play_dict['env'])
 
     return Player(**play_dict)

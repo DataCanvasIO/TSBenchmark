@@ -79,7 +79,7 @@ setup(
     ],
     packages=find_packages(exclude=('docs', 'tests*')),
     package_data={
-        'tsbenchmark': ['*.sh'],
+        'tsbenchmark': ['*.sh', 'datas/*', 'datas/multivariate-forecast/medium/nn5_weekly/*', 'datas/univariate-forecast/small/Air_Passengers/*', 'datas/univariate-forecast/small/US_Births/*'],
     },
     entry_points={
         # 'console_scripts': [
