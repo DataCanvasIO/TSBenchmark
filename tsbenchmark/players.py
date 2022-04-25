@@ -21,15 +21,17 @@ SRC_DIR = os.path.dirname(__file__)
 
 class PythonEnv:
 
-    def __init__(self, kind, custom_python=None, requirements_txt=None, conda=None):
+    def __init__(self, kind, requirements,  requirements_txt=None, conda_yaml=None):
         self.kind = kind
-        self.custom_python = custom_python
+        self.requirements = requirements
         self.requirements_txt = requirements_txt
-        self.conda = conda
+        self.conda_yaml = conda_yaml
 
     KIND_CUSTOM_PYTHON = 'custom_python'
-    KIND_CONDA_YAML = 'conda_yaml'
-    KIND_REQUIREMENTS_TXT = 'requirements_txt'
+    KIND_CONDA = 'conda'
+
+    REQUIREMENTS_REQUIREMENTS_TXT = 'requirements_txt'
+    REQUIREMENTS_CONDA_YAML = 'conda_yaml'
 
     @property
     def requirements_txt_file(self):

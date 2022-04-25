@@ -56,7 +56,7 @@ class TestAPI:
 
         lb = LocalBenchmark(name='name', desc='desc', players=players,
                             random_states=[random_state], ts_tasks_config=[task_config],
-                            constraints={}, scheduler_exit_on_finish=True,
+                            constraints={}, scheduler_exit_on_finish=False,
                             callbacks=[PlainCallback()])
 
         self.runner = BenchmarkRunner(lb)
@@ -89,3 +89,9 @@ class TestAPI:
 
     def teardown_class(self):
         self.runner.stop()
+
+
+# if __name__ == '__main__':
+#     t = TestAPI()
+#     t.setup_class()
+#     t.test_get_task()
