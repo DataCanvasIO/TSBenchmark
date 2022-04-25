@@ -53,6 +53,14 @@ class TSDataSetDesc:
         return os.path.join(self.data_path, dataset.type.values[0],
                             dataset.data_size.values[0], dataset.name.values[0])
 
+    def data_size(self, dataset_id):
+        dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
+        return dataset.data_size.values[0]
+
+    def data_shape(self, dataset_id):
+        dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
+        return dataset.shape
+
 
 def _get_metadata(meta_file_path):
     f = open(meta_file_path, 'r', encoding='utf-8')
@@ -114,6 +122,8 @@ class TSDataSetLoader(DataSetLoader):
     def load_meta(self, dataset_id):
         self._download_if_not_cached(dataset_id)
         metadata = _get_metadata(self.dataset_desc.meta_file_path(dataset_id))
+        metadata['data_size'] = self.dataset_desc.data_size(dataset_id)
+        metadata['shape'] = self.dataset_desc.data_shape(dataset_id)
         return metadata
 
     def _download_if_not_cached(self, dataset_id):
@@ -201,6 +211,8 @@ class TSTaskLoader(TaskLoader):
                             date_name=metadata['date_name'],
                             task=metadata['task'],
                             horizon=metadata['horizon'],
+                            data_size=metadata['data_size'],
+                            shape=metadata['shape'],
                             series_name=metadata['series_name'],
                             covariables_name=metadata['covariables_name'],
                             dtformat=metadata['dtformat'])

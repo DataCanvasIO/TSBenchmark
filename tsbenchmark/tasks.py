@@ -5,7 +5,8 @@ HERE = __file__
 
 class TSTaskConfig:
 
-    def __init__(self, taskconfig_id, dataset_id, taskdata, date_name, task, horizon, series_name, covariables_name,
+    def __init__(self, taskconfig_id, dataset_id, taskdata, date_name, task, horizon, data_size, shape, series_name,
+                 covariables_name,
                  dtformat):
         self.id = taskconfig_id
         self.dataset_id = dataset_id
@@ -13,6 +14,8 @@ class TSTaskConfig:
         self.date_name = date_name
         self.task = task
         self.horizon = horizon
+        self.data_size = data_size
+        self.shape = shape
         self.series_name = series_name
         self.covariables_name = covariables_name
         self.dtformat = dtformat
@@ -58,4 +61,7 @@ def get_task_config(task_id) -> TSTaskConfig:
 
 
 def list_task_configs(tags=None, data_sizes=None, tasks=()):
-    pass
+    from tsbenchmark.tsloader import TSTaskLoader
+    data_path = (Path(HERE).parent.parent / "datas").absolute().as_posix()
+    task_loader = TSTaskLoader(data_path)
+    return task_loader.list()
