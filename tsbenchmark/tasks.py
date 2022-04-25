@@ -1,6 +1,6 @@
 from pathlib import Path
 
-HERE = __file__
+PWD = Path(__file__).parent
 
 
 class TSTaskConfig:
@@ -54,7 +54,7 @@ class TSTask(TSTaskConfig):
 
 def get_task_config(task_id) -> TSTaskConfig:
     from tsbenchmark.tsloader import TSTaskLoader
-    data_path = (Path(HERE).parent.parent / "datas").absolute().as_posix()
+    data_path = (PWD / "datas").absolute().as_posix()
     task_loader = TSTaskLoader(data_path)
     task_config: TSTaskConfig = task_loader.load(task_id)
     return task_config

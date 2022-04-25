@@ -1,0 +1,15 @@
+name: Air Passengers @SGP Changi Airport for past 10yrs
+metric: rmse
+date_name: month
+series_name: value
+horizon: 6
+dtformat: '%Y-%m'
+task: univariate-forecast
+shape:  (124, 2)
+label:  Regular time series,
+frequency: Month
+industry: aviation
+source: https://www.kaggle.com/gohsoonheng/air-passengers-sgp-changi-airport-for-past-10yrs
+is_competion: false
+describe: ...
+

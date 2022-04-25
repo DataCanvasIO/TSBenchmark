@@ -1,0 +1,5 @@
+id,type,data_size,shape,name,ok,label,frequency,industry,covariables,category,source_type,format,task_count
+890686,multivariate-forecast,medium,"(105, 112)",nn5_weekly,Y,Regular time series,Week,finance,,benchmark,monash,csv,1
+694826,univariate-forecast,small,"(124, 2)",Air_Passengers,Y,"Regular time series,",Month,aviation,,benchmark,,csv,1
+309496,univariate-forecast,small,"(6940, 2)",US_Births,Y,"Regular time series,",Day,sociology,,benchmark,,csv,1
+192837,univariate-forecast,small,"(6940, 2)",M3,Y,"Regular time series,",Day,sociology,,benchmark,,tsf,5
