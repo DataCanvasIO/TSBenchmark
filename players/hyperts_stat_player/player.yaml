@@ -1,4 +1,3 @@
 env:
-  kind: custom_python
-  custom_python:
-    executable: python
+  mgr:
+    kind: custom_python
