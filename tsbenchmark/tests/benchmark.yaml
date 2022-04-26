@@ -48,6 +48,5 @@ machines:
     password: hyperctl
 
 envmgr:
-  kind: conda
   conda:
     home: ~/miniconda3/

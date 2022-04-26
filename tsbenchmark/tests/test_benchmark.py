@@ -84,10 +84,13 @@ class TestLocalBenchmark:
         task0 = create_task_new(task_config_id)
 
         callbacks = [ConsoleCallback()]
-
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
+        custom_py_executable = '~/miniconda3/envs/ts-plain_player_requirements_txt/bin/python'
         lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
                             random_states=[8060], ts_tasks_config=[task0],
+                            custom_py_executable=custom_py_executable,
                             scheduler_exit_on_finish=True,
+                            working_dir=batches_data_dir,
                             constraints={}, callbacks=callbacks)
         self.lb = lb
 
@@ -147,9 +150,10 @@ def create_local_benchmark():
     task0 = create_task_new(task_config_id)
 
     callbacks = [ConsoleCallback()]
-
+    batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
     lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
                         random_states=[8060], ts_tasks_config=[task0],
+                        working_dir=batches_data_dir,
                         scheduler_exit_on_finish=True,
                         constraints={}, callbacks=callbacks)
     return lb
@@ -171,5 +175,9 @@ def test_run_base_previous_batch():
     assert len(ba1.jobs) == len(ba2.jobs)
     assert set([_.name for _ in ba1.jobs]) == set([_.name for _ in ba2.jobs])
 
-# if __name__ == '__main__':
-#     test_remote_benchmark()
+
+if __name__ == '__main__':
+    t = TestLocalBenchmark()
+    t.setup_class()
+    t.test_run()
+

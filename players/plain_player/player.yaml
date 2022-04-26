@@ -1,4 +1,8 @@
 env:
-  kind: custom_python
-  custom_python:
-    executable: python
+  mgr:
+    kind: custom_python
+  requirements:
+    kind: requirements_txt
+    config:
+      py_version: 3.8
+      file_name: requirements.txt

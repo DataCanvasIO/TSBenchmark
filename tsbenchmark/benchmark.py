@@ -60,7 +60,7 @@ class EnvMGR:
 class Benchmark(metaclass=abc.ABCMeta):
 
     def __init__(self, name, desc, players, ts_tasks_config: List[TSTaskConfig], random_states: List[int],
-                 constraints, envmgr=None, working_dir=None, callbacks: List[BenchmarkCallback] = None):
+                 constraints, conda_home=None, custom_py_executable=None, working_dir=None, callbacks: List[BenchmarkCallback] = None):
 
         self.name = name
         self.desc = desc
@@ -75,14 +75,21 @@ class Benchmark(metaclass=abc.ABCMeta):
         else:
             self.working_dir = Path(working_dir).absolute().as_posix()
 
-        if envmgr is None:
+        venvs = set([p.env.venv_kind for p in self.players])
+        if conda_home is None:
             # check whether all players use custom_python
-            venvs = set([p.env.kind for p in self.players])
-            if {PythonEnv.KIND_CUSTOM_PYTHON} != venvs:
-                raise ValueError(f"all virtual env kinds of player is {venvs},"
-                                 f" only if all is {PythonEnv.KIND_CUSTOM_PYTHON} 'envmgr' can be None ")
+            if PythonEnv.KIND_CONDA in venvs:
+                raise ValueError(f"'conda_home' can not be None because of some player using conda virtual env.")
         else:
-            self.envmgr = envmgr
+            self.conda_home = conda_home
+
+        if custom_py_executable is None:
+            if PythonEnv.KIND_CUSTOM_PYTHON in venvs:
+                logger.warning("your players need custom python executable but `custom_py_executable` is None, "
+                               "set to default value")
+                self.custom_py_executable = '/usr/bin/python'  # TODO support windows
+        else:
+            self.custom_py_executable = custom_py_executable
 
         self._tasks = None
 
@@ -179,14 +186,14 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
     def make_run_conda_yaml_env_command(self):
         pass
 
-    def make_run_custom_pythonenv_command(self, py_executable, player_exec_file):
-        # TODO add support of custom python
-        command = f"/bin/sh -x resources/runpy.sh  --env-kind=custom_python  --py-executable=ts-{py_executable} --python-script={player_exec_file}"
+    def make_run_custom_pythonenv_command(self,  player_exec_file):
+        command = f"/bin/sh -x resources/runpy.sh  --venv-kind=custom_python --custom-py-executable={self.custom_py_executable} --python-script={player_exec_file}"
         return command
 
-    def make_run_requirements_requirements_txt_command(self, conda_home, player, requirements_txt_file, player_exec_file):
-        command = f"/bin/sh -x resources/runpy.sh --conda-home={conda_home} --venv-name=ts-{player.name} --requirements-kind=requirements_txt --requirements-txt-file={requirements_txt_file} --requirements-txt-py-version={player.env.requirements_txt_python_version} --python-script={player_exec_file}"
-        pass
+    def make_run_requirements_requirements_txt_command(self, working_dir_path, player, player_exec_file):
+        remote_requirements_txt_file = (working_dir_path / "resources" / player.env.requirements.file_name).as_posix()
+        command = f"/bin/sh -x resources/runpy.sh --venv-kind=conda  --conda-home={self.conda_home} --venv-name=ts-{player.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
+        return command
 
     def add_job(self, bm_task: BenchmarkTask, batch: Batch):
         task_id = bm_task.ts_task.id
@@ -199,32 +206,28 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 
         # TODO support conda yaml
         # TODO support windows
-        if self.envmgr is not None:
-            if self.envmgr.kind != EnvMGR.KIND_CONDA:
-                raise ValueError(f"only {EnvMGR.KIND_CONDA} virtual env manager is supported currently.")
+        # if self.envmgr is not None:
+        #     if self.envmgr.kind != EnvMGR.KIND_CONDA:
+        #         raise ValueError(f"only {EnvMGR.KIND_CONDA} virtual env manager is supported currently.")
 
         working_dir_path = batch.data_dir_path() / name
         working_dir = working_dir_path.as_posix()
 
-        if player.env.kind == PythonEnv.KIND_CUSTOM_PYTHON:
-            command = self.make_run_custom_pythonenv_command(py_executable, player_exec_file)
+        remote_player_exec_file = (working_dir_path / "resources" / player.exec_file).as_posix()
 
-        elif player.env.kind == PythonEnv.KIND_CONDA:
+        if player.env.venv_kind == PythonEnv.KIND_CUSTOM_PYTHON:
+            command = self.make_run_custom_pythonenv_command(remote_player_exec_file)
+        elif player.env.venv_kind == PythonEnv.KIND_CONDA:
             if player.env.requirements == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT:
-                command = self.make_run_requirements_requirements_txt_command(None, None)
+                command = self.make_run_requirements_requirements_txt_command(working_dir_path,
+                                                                              player, remote_player_exec_file)
             else:
                 raise NotImplemented
-
-        requirements_txt_file = (working_dir_path / "resources" / player.env.requirements_txt_file).as_posix()
-        player_exec_file = (working_dir_path / "resources" / player.exec_file).as_posix()
-
-        conda_home, player, requirements_txt_file, player_exec_file
-        conda_home = Path(self.envmgr.conda_home).expanduser().absolute().as_posix()
+        else:
+            raise NotImplemented
 
         logger.info(f"command of job {name} is {command} ")
-
         run_py_shell = (HERE / "runpy.sh").absolute().as_posix()
-        command = f"/bin/sh -x resources/runpy.sh --conda-home={conda_home} --venv-name=ts-{player.name} --requirements-kind=requirements_txt --requirements-txt-file={requirements_txt_file} --requirements-txt-py-version={player.env.requirements_txt_python_version} --python-script={player_exec_file}"
 
         batch.add_job(name=name,
                       params=job_params.to_dict(),
