@@ -14,6 +14,12 @@ for i in "$@"; do
         -h | --help)
             usage
             exit ;;
+        --venv-kind=*)
+            venv_kind="${i#*=}"
+            shift ;;
+        --custom-py-executable=*)
+            custom_py_executable="${i#*=}"
+            shift ;;
         --conda-home=*)
             conda_home="${i#*=}"
             shift ;;
@@ -44,12 +50,14 @@ done
 
 echo -e "\n"
 echo "-----------------------"
-echo "conda_home: $conda_home"
-echo "venv_name: $venv_name"
-echo "requirements_kind: $requirements_kind"
-echo "requirements_txt_file: $requirements_txt_file"
-echo "requirements_txt_py_version: $requirements_txt_py_version"
-echo "python_script: $python_script"
+echo "venv-kind: $venv_kind"
+echo "custom-py-executable: $custom_py_executable"
+echo "conda-home: $conda_home"
+echo "venv-name: $venv_name"
+echo "requirements-kind: $requirements_kind"
+echo "requirements-txt-file: $requirements_txt_file"
+echo "requirements-txt-py-version: $requirements_txt_py_version"
+echo "python-script: $python_script"
 echo "-----------------------"
 
 function require_input() {
@@ -59,30 +67,39 @@ function require_input() {
   fi
 }
 
-require_input "$conda_home" "conda-home"
-require_input "$venv_name" "venv-name"
-require_input "$requirements_kind" "requirements-kind"
+require_input "$venv_kind" "venv-kind"
 require_input "$python_script" "python-script"
 
+#
+if [ "$venv_kind" == "custom_python"  ];then
+    if [ ! -f $custom_py_executable  ];then
+      echo "$custom_py_executable is not exists" 1>&2
+      exit -1
+    fi
+    py_exec=$custom_py_executable
+elif [ "$venv_kind" == "conda"   ]; then
+    # check env
+    if [ -d $venv_dir ];then
+      echo "env already exists, skipped create env"
+    else
+      require_input "$conda_home" "conda-home"
+      require_input "$venv_name" "venv-name"
+      require_input "$requirements_kind" "requirements-kind"
+      # define vars
+      conda_exec="$conda_home/bin/conda"
+      venv_dir="$conda_home/envs/$venv_name"
+      py_exec="$venv_dir/bin/python"
 
-# define vars
-conda_exec="$conda_home/bin/conda"
-venv_dir="$conda_home/envs/$venv_name"
-py_exec="$venv_dir/bin/python"
-
-# check env
-if [ -d $venv_dir ];then
-  echo "env already exists, skipped create env"
-else
-  # create env
-  if [ "$requirements_kind" == "requirements_txt"  ];then
-    echo "env is not already exists, create it"
-    # handle requirement.txt
-    $conda_exec create -n $venv_name python=$requirements_txt_py_version -y
-    pip_exec="$venv_dir/bin/pip"
-    $pip_exec install tsbenchmark
-    $pip_exec install -r $requirements_txt_file
-  fi
+      # create env
+      if [ "$requirements_kind" == "requirements_txt"  ];then
+        echo "env is not already exists, create it"
+        # handle requirement.txt
+        $conda_exec create -n $venv_name python=$requirements_txt_py_version -y
+        pip_exec="$venv_dir/bin/pip"
+        $pip_exec install tsbenchmark
+        $pip_exec install -r $requirements_txt_file
+      fi
+    fi
 fi
 
 # run script

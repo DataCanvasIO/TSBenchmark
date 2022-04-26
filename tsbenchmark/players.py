@@ -19,13 +19,41 @@ logger = logging.getLogger(__name__)
 SRC_DIR = os.path.dirname(__file__)
 
 
+class BaseMRGConfig:
+    pass
+
+
+class CondaVenvMRGConfig(BaseMRGConfig):
+    def __init__(self, name):
+        self.name = name
+
+
+class CustomPyMRGConfig(BaseMRGConfig):
+    pass
+
+
+class BaseReqsConfig:
+    pass
+
+
+class ReqsRequirementsTxtConfig(BaseReqsConfig):
+
+    def __init__(self, py_version, file_name):
+        self.py_version = py_version
+        self.file_name = file_name
+
+
+class ReqsCondaYamlConfig(BaseReqsConfig):
+
+    def __init__(self, file_name):
+        self.file_name = file_name
+
+
 class PythonEnv:
 
-    def __init__(self, kind, requirements,  requirements_txt=None, conda_yaml=None):
-        self.kind = kind
+    def __init__(self, venv_config: BaseMRGConfig, requirements: BaseReqsConfig):
+        self.venv_config = venv_config
         self.requirements = requirements
-        self.requirements_txt = requirements_txt
-        self.conda_yaml = conda_yaml
 
     KIND_CUSTOM_PYTHON = 'custom_python'
     KIND_CONDA = 'conda'
@@ -34,31 +62,37 @@ class PythonEnv:
     REQUIREMENTS_CONDA_YAML = 'conda_yaml'
 
     @property
-    def requirements_txt_file(self):
-        if self.requirements_txt is not None:
-            return self.requirements_txt.get('file')
+    def venv_kind(self):
+        if isinstance(self.venv_config,  CondaVenvMRGConfig):
+            return PythonEnv.KIND_CONDA
+        elif isinstance(self.venv_config,  CustomPyMRGConfig):
+            return PythonEnv.KIND_CUSTOM_PYTHON
         else:
             return None
 
     @property
-    def requirements_txt_python_version(self):
-        if self.requirements_txt is not None:
-            return self.requirements_txt.get('python_version')
+    def reqs_kind(self):
+        if isinstance(self.venv_config,  ReqsRequirementsTxtConfig):
+            return PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT
+        elif isinstance(self.venv_config,  ReqsCondaYamlConfig):
+            return PythonEnv.REQUIREMENTS_CONDA_YAML
         else:
             return None
 
 
 class Player:
-    def __init__(self, name, exec_file: str, env: PythonEnv):
-        self.name = name
+    def __init__(self, base_dir, exec_file: str, env: PythonEnv):
+        self.base_dir = base_dir
+        self.base_dir_path = Path(base_dir)
+
         self.env: PythonEnv = env
         self.exec_file = exec_file
         # 1. check env file
         # 2. check config file
 
     @property
-    def py_executable(self):
-        return self.exec_file
+    def name(self):
+        return Path(self.base_dir).name
 
 
 class JobParams:
@@ -84,17 +118,37 @@ def load_player(folder):
 
     play_dict = yaml.load(content, Loader=yaml.CLoader)
 
-    # name, exec_file, env: EnvSpec
-    if 'name' not in play_dict:
-        play_dict['name'] = os.path.basename(folder)
-
-    exec_file = (Path(folder) / "exec.py").absolute().as_posix()
-
-    play_dict['exec_file'] = exec_file
+    # exec_file, env: EnvSpec
+    play_dict['exec_file'] = "exec.py"  # TODO load exec.py from config
 
     # PythonEnv(**play_dict['env'])
-    play_dict['env'] = PythonEnv(**play_dict['env'])
+    env_dict = play_dict['env']
 
+    env_mgr_dict = env_dict.get('mgr')
+    env_mgr_kind = env_mgr_dict['kind']
+    env_mgr_config = env_mgr_dict.get('config', {})
+
+    if env_mgr_kind == PythonEnv.KIND_CONDA:
+        mgr_config = CondaVenvMRGConfig(**env_mgr_config)
+        requirements_dict = env_dict.get('requirements')
+        requirements_kind = requirements_dict['kind']
+        requirements_config = requirements_dict.get('config', {})
+
+        if requirements_kind == PythonEnv.REQUIREMENTS_CONDA_YAML:
+            reqs_config = ReqsCondaYamlConfig(**requirements_config)
+        elif requirements_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT:
+            reqs_config = ReqsRequirementsTxtConfig(**requirements_config)
+        else:
+            raise Exception(f"Unsupported env manager {env_mgr_kind}")
+
+    elif env_mgr_kind == PythonEnv.KIND_CUSTOM_PYTHON:
+        mgr_config = CustomPyMRGConfig()
+        reqs_config = None
+    else:
+        raise Exception(f"Unsupported env manager {env_mgr_kind}")
+
+    play_dict['env'] = PythonEnv(venv_config=mgr_config, requirements=reqs_config)
+    play_dict['base_dir'] = Path(folder).absolute().as_posix()
     return Player(**play_dict)
 
 
@@ -109,7 +163,7 @@ def load_players(player_specs):
     default_players = {}
 
     # 1. load default players
-    default_players_dir = (Path(SRC_DIR).parent / "players")
+    default_players_dir = Path(SRC_DIR).parent / "players"
     logger.debug(f"default players dir is at {default_players_dir}")
     for player_folder in os.listdir(default_players_dir):
         # filter dirs

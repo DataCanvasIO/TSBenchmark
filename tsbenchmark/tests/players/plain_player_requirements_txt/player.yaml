@@ -1,11 +1,10 @@
 env:
-  kind: conda
-  config:
-    conda_home: ~/miniconda3
-    name: plain_player_requirements_txt
-
+  mgr:
+    kind: conda
+    config:
+      name: plain_player_requirements_txt
   requirements:
     kind: requirements_txt
     config:
       python_version: 3.8
-      file: requirements.txt
+      file_name: requirements.txt
