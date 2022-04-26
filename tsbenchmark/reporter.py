@@ -31,7 +31,8 @@ class PathMaintainer:
         self.benchmark_name = benchmark_name
 
     def benchmark_dir(self):
-        return file_util.get_dir_path(self.report_path + os.sep + self.benchmark_name)
+        report_path = file_util.get_dir_path(self.report_path)
+        return file_util.get_dir_path(os.path.join(report_path, self.benchmark_name))
 
     # e.g. /mnt/result/hyperts_v0.1.0/univariate-forecast/
     def task_dir(self, task_type):
@@ -51,7 +52,7 @@ class PathMaintainer:
 
     # e.g. /mnt/result/hyperts_v0.1.0/univariate-forecast/datas/hyperts_dl.csv
     def data_file(self, bmtask):
-        return os.path.join(self.datas_dir(bmtask.ts_task.task), bmtask.player.name, '.csv')
+        return os.path.join(self.datas_dir(bmtask.ts_task.task), bmtask.player.name + '.csv')
 
     # e.g. /mnt/result/hyperts_v0.1.0/univariate-forecast/datas/hyperts_dl_tmp.csv
     def data_file_tmp(self, bmtask):
@@ -158,9 +159,7 @@ class Analysis:
     def __init__(self, benchmark_config):
         self.painter = Painter()
         self.benchmark_config = benchmark_config
-        self.path_maintainer = PathMaintainer(benchmark_config['report_path'], benchmark_config['name'])
-
-
+        self.path_maintainer = PathMaintainer(benchmark_config['report.path'], benchmark_config['name'])
 
     def gen_comparison_report(self, params):
         logger.info('gen_comparison_report=======')
@@ -266,18 +265,19 @@ class Analysis:
         report_path = '{}{}report_{}_{}.csv'.format(report_dir, os.sep, metric, stat_type)
         df_report.to_csv(report_path, index=False)
         logger.info('report generated: {}'.format(report_path))
+        return df_report
 
-        png_path = '{}{}report_{}_{}.png'.format(report_imgs_dir, os.sep, metric, stat_type)
-        if title_text == None:
-            title_text = '{} {} {} '.format(metric.upper(), stat_type, 'scores')
-        self.painter.paint_table(df_report, title_cols=columns, title_text=title_text, fontsize=6,
-                                 result_path=png_path)
+        # png_path = '{}{}report_{}_{}.png'.format(report_imgs_dir, os.sep, metric, stat_type)
+        # if title_text == None:
+        #     title_text = '{} {} {} '.format(metric.upper(), stat_type, 'scores')
+        # self.painter.paint_table(df_report, title_cols=columns, title_text=title_text, fontsize=6,
+        #                          result_path=png_path)
 
     def get_result_datas(self, result_file_list):
         results_datas = {}
         players = []
         for result_file in result_file_list:
-            if 'report_' in result_file or '.csv' not in result_file:
+            if 'report_' in os.path.basename(result_file) or '.csv' not in os.path.basename(result_file):
                 continue
             results_datas, players = self.result_data_from_file(result_file, results_datas, players)
         return results_datas, players
@@ -313,19 +313,25 @@ class Analysis:
 class Reporter():
     def __init__(self, benchmark_config):
         self.benchmark_config = benchmark_config
-        self.path_maintainer = PathMaintainer(benchmark_config['report_path'], benchmark_config['name'])
+        self.path_maintainer = PathMaintainer(benchmark_config['report.path'], benchmark_config['name'])
+        self.analysis = Analysis(self.benchmark_config)
+        self.painter = Painter()
 
-    def save_results_pred(self, message, bm_task):
+    def save_results(self, message, bm_task):
         # todo missing_rate periods cv cv_folds run_times init_params ensemble best_model_params run_kwargs industry frequency
-        cols_data_tmp = ['task_id', 'round_no', 'player', 'dataset', ',task', 'reward_metric', 'metrics', 'duration',
-                         'random_state', 'y_predict', 'y_real']
+        cols_data_tmp = ['task_id', 'round_no', 'player', 'dataset', 'shape', 'data_size', 'task', 'horizon',
+                         'reward_metric',
+                         'metrics', 'duration', 'random_state', 'y_predict', 'y_real']
         data_df = pd.DataFrame(columns=cols_data_tmp)
-        data_file_tmp = self.path_maintainer.data_file_tmp(bm_task)
+        data_file = self.path_maintainer.data_file(bm_task)
         data = {'task_id': bm_task.ts_task.id,
                 'round_no': self.benchmark_config['random_states'].index(bm_task.ts_task.random_state) + 1,
                 'player': bm_task.player.name,
                 'dataset': bm_task.ts_task.taskdata.name,
+                'shape': bm_task.ts_task.shape,
+                'data_size': bm_task.ts_task.data_size,
                 'task': bm_task.ts_task.task,
+                'horizon': bm_task.ts_task.horizon,
                 'reward_metric': bm_task.ts_task.reward_metric,
                 'metrics': message['metrics'],
                 'duration': message['duration'],
@@ -334,13 +340,45 @@ class Reporter():
                 'y_real': message['y_real'],
                 }
 
-        # print("metric: ", metadata['metric'], " merics: ", metrics)
         data_df = data_df.append(data, ignore_index=True)
-        # data_df[cols_data_tmp].to_csv(data_file_tmp, mode='a', index=False) #todo
-        logger.info(f"save result to : {data_file_tmp}")
-
-    def save_results(self, messages, bmtask):
-        NotImplemented
+        data_df[cols_data_tmp].to_csv(data_file, mode='a', index=False)  # todo
+        logger.info(f"save result to : {data_file}")
 
     def generate_report(self):
-        Analysis(self.benchmark_config).generate_report()
+        logger.info('start generate report')
+        for task_type in self.benchmark_config['task_filter.tasks']:
+            task_dir = self.path_maintainer.task_dir(task_type)
+            report_dir = self.path_maintainer.report_dir(task_type)
+            report_imgs_dir = self.path_maintainer.report_imgs_dir(task_type)
+            data_results_file = file_util.get_filelist(task_dir, [])
+            results_datas, players = self.analysis.get_result_datas(data_results_file)
+            self.generate_type_reports(results_datas, players, report_dir, report_imgs_dir)
+
+    def generate_type_reports(self, results_datas, players, report_dir, report_imgs_dir):
+        columns = ['dataset', 'shape', 'horizon']
+        frameworks_non_navie = [p for p in players if 'navie' not in p]
+
+        # metrics reports
+        for metric in ['smape', 'mape', 'rmse', 'mae']:
+            self.calc_and_paint(results_datas, columns, players, report_dir, report_imgs_dir, metric, 'mean')
+            self.calc_and_paint(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir,
+                                metric,
+                                'std')
+
+        # duration reports
+        for stat_type in ['mean', 'std', 'max', 'min']:
+            self.calc_and_paint(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir,
+                                'duration',
+                                stat_type,
+                                title_text=stat_type.upper() + ' duration')
+
+    def calc_and_paint(self, results_datas, columns, players, report_dir, report_imgs_dir, metric, stat_type,
+                       title_text=None):
+        df_report = self.analysis.report_calc_metric(results_datas, columns, players, report_dir, report_imgs_dir,
+                                                     metric, stat_type)
+        if title_text == None:
+            title_text = '{} {} {} '.format(metric.upper(), stat_type, 'scores')
+        png_path = '{}{}report_{}_{}.png'.format(report_imgs_dir, os.sep, metric, stat_type)
+        self.painter.paint_table(df_report, title_cols=columns, title_text=title_text, fontsize=6,
+                                 result_path=png_path)
+        logger.info('report figure generated: {}'.format(png_path))

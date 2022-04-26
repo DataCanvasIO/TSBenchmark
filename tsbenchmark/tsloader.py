@@ -55,7 +55,7 @@ class TSDataSetDesc:
 
     def data_size(self, dataset_id):
         dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
-        return dataset.type.values[0]
+        return dataset.data_size.values[0]
 
     def data_shape(self, dataset_id):
         dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
