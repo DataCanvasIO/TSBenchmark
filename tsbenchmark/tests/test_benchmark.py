@@ -1,7 +1,10 @@
 import tempfile
+import sys
 from typing import Dict
 from pathlib import Path
 
+from hypernets.hyperctl.appliation import BatchApplication
+from hypernets.utils import ssh_utils
 from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.datasets import TSDataset
@@ -32,18 +35,7 @@ class NetworkTrafficMockDataset(TSDataset):
 
 
 def create_task():
-    dataset = NetworkTrafficMockDataset()
-
-    config = TSTaskConfig(taskconfig_id=0, dataset_id=0, taskdata=dataset, date_name='TimeStamp', task='multivariate-forecast',
-                          horizon=7, series_name='Var_1',
-                          covariables_name=['HourSin', 'WeekCos', 'CBWD'], dtformat='%Y-%m-%d')
-    # t = TSTask(task_config=config, random_state=8086, max_trails=3, reward_metric='rmse')
-    # setattr(t, 'id', 0)  # TODO remove
-    # return t
-    return config
-
-
-def create_task_new(task_config_id):
+    task_config_id = 694826
     task_config = tsbenchmark.tasks.get_task_config(task_config_id)
 
     task = TSTask(task_config, random_state=8086, max_trails=5, reward_metric='rmse')
@@ -81,11 +73,12 @@ class TestLocalBenchmark:
         # define players
         players = load_players(['plain_player'])
         task_config_id = 694826
-        task0 = create_task_new(task_config_id)
+        task0 = create_task(task_config_id)
 
         callbacks = [ConsoleCallback()]
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
-        custom_py_executable = '~/miniconda3/envs/ts-plain_player_requirements_txt/bin/python'
+
+        custom_py_executable = sys.executable
         lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
                             random_states=[8060], ts_tasks_config=[task0],
                             custom_py_executable=custom_py_executable,
@@ -105,9 +98,7 @@ class TestLocalBenchmark:
 def test_remote_benchmark():
     # define players
     players = load_players(['plain_player'])
-    task_config_id = 694826
-    task0 = create_task_new(task_config_id)
-
+    task0 = create_task()
     callbacks = [ConsoleCallback()]
     machines = [ssh_utils_test.load_ssh_psw_config()]
     print(machines)
@@ -120,13 +111,74 @@ def test_remote_benchmark():
 
 
 @ssh_utils_test.need_psw_auth_ssh
-class TestRemoteBenchmark:
+class TestRemoteCustomPythonBenchmark:
+    """Benchmark with constraints:
+        - remote benchmark
+        - builtin players
+        - custom python
+    """
 
+    def setup_class(self):
+        self.connection = ssh_utils_test.load_ssh_psw_config()
+
+        players = load_players([(HERE / "players" / "plain_player_custom_python").as_posix()])
+        task0 = create_task()
+        callbacks = [ConsoleCallback()]
+        self.working_dir_path = Path(tempfile.mkdtemp(prefix="benchmark-test-batches"))
+        self.benchmark_name = 'remote-benchmark'
+
+        lb = RemoteSSHBenchmark(name=self.benchmark_name, desc='desc', players=players,
+                                random_states=[8060], ts_tasks_config=[task0],
+                                working_dir=self.working_dir_path.as_posix(),
+                                scheduler_exit_on_finish=True,
+                                custom_py_executable=sys.executable,
+                                constraints={}, callbacks=callbacks,
+                                machines=[self.connection])
+        self.lb = lb
+
+    def test_run_benchmark(self):
+        self.lb.run()
+
+        # assert local files
+        batch_path = self.working_dir_path / "batches" / self.benchmark_name
+        assert batch_path.exists()
+        batch_app: BatchApplication = self.lb._batch_app
+        jobs = batch_app.batch.jobs
+        assert len(jobs) == 1
+        job = jobs[0]
+        # job succeed
+        assert (batch_path / f"{job.name}.succeed").exists()
+
+        # assert remote files
+        job_working_dir_path = batch_path / job.name
+        with ssh_utils.sftp_client(**self.connection) as client:
+            # working dir
+            assert ssh_utils.exists(client, job_working_dir_path.as_posix())
+            # runpy.sh
+            assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "runpy.sh").as_posix())
+            # player
+            assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "plain_player_custom_python" / "exec.py").as_posix())
+            assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "plain_player_custom_python" / "player.yaml").as_posix())
+
+    def teardown_class(self):
+        pass
+
+
+class TestRemoteCustomPythonExternalPlayerBenchmark:
+
+    def setup_class(self):
+        pass
+
+    def test_run_benchmark(self):
+        pass
+
+
+class TestRemoteCondaReqsTxtBuiltInPlayerBenchmark:
     def setup_class(self):
         # define players
         players = load_players([(HERE / "players" / "plain_player_requirements_txt").as_posix()])
         task_config_id = 694826
-        task0 = create_task_new(task_config_id)
+        task0 = create_task(task_config_id)
 
         callbacks = [ConsoleCallback()]
         machines = [ssh_utils_test.load_ssh_psw_config()]
@@ -140,14 +192,61 @@ class TestRemoteBenchmark:
                                 machines=machines)
         self.lb = lb
 
+        pass
+
     def test_run_benchmark(self):
         self.lb.run()
+
+
+class TestRemoteCondaReqsTxtExternalPlayerBenchmark:
+
+    def setup_class(self):
+        pass
+
+    def test_run_benchmark(self):
+        pass
+
+
+class TestLocalCustomPythonBuiltInPlayerBenchmark:
+
+    def setup_class(self):
+        pass
+
+    def test_run_benchmark(self):
+        pass
+
+
+class TestLocalCustomPythonExternalPlayerBenchmark:
+
+    def setup_class(self):
+        pass
+
+    def test_run_benchmark(self):
+        pass
+
+
+class TestLocalCondaReqsTxtBuiltInPlayerBenchmark:
+
+    def setup_class(self):
+        pass
+
+    def test_run_benchmark(self):
+        pass
+
+
+class TestLocalCondaReqsTxtExternalPlayerBenchmark:
+
+    def setup_class(self):
+        pass
+
+    def test_run_benchmark(self):
+        pass
 
 
 def create_local_benchmark():
     players = load_players(['plain_player'])
     task_config_id = 694826
-    task0 = create_task_new(task_config_id)
+    task0 = create_task(task_config_id)
 
     callbacks = [ConsoleCallback()]
     batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
@@ -177,7 +276,8 @@ def test_run_base_previous_batch():
 
 
 if __name__ == '__main__':
-    t = TestLocalBenchmark()
-    t.setup_class()
-    t.test_run()
-
+    pass
+    # t = TestLocalBenchmark()
+    # t.setup_class()
+    # t.test_run()
+    #

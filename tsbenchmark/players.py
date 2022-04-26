@@ -81,16 +81,17 @@ class PythonEnv:
 
 
 class Player:
-    def __init__(self, name, exec_file: str, env: PythonEnv):
-        self.name = name
+    def __init__(self, base_dir, exec_file: str, env: PythonEnv):
+        self.base_dir = base_dir
+
         self.env: PythonEnv = env
         self.exec_file = exec_file
         # 1. check env file
         # 2. check config file
 
     @property
-    def py_executable(self):
-        return self.exec_file
+    def name(self):
+        return Path(self.base_dir).name
 
 
 class JobParams:
@@ -116,13 +117,8 @@ def load_player(folder):
 
     play_dict = yaml.load(content, Loader=yaml.CLoader)
 
-    # name, exec_file, env: EnvSpec
-    if 'name' not in play_dict:
-        play_dict['name'] = os.path.basename(folder)
-
-    exec_file = (Path(folder) / "exec.py").absolute().as_posix()
-
-    play_dict['exec_file'] = exec_file
+    # exec_file, env: EnvSpec
+    play_dict['exec_file'] = "exec.py"  # TODO load exec.py from config
 
     # PythonEnv(**play_dict['env'])
     env_dict = play_dict['env']
@@ -133,24 +129,25 @@ def load_player(folder):
 
     if env_mgr_kind == PythonEnv.KIND_CONDA:
         mgr_config = CondaVenvMRGConfig(**env_mgr_config)
+        requirements_dict = env_dict.get('requirements')
+        requirements_kind = requirements_dict['kind']
+        requirements_config = requirements_dict.get('config', {})
+
+        if requirements_kind == PythonEnv.REQUIREMENTS_CONDA_YAML:
+            reqs_config = ReqsCondaYamlConfig(**requirements_config)
+        elif requirements_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT:
+            reqs_config = ReqsRequirementsTxtConfig(**requirements_config)
+        else:
+            raise Exception(f"Unsupported env manager {env_mgr_kind}")
+
     elif env_mgr_kind == PythonEnv.KIND_CUSTOM_PYTHON:
-        mgr_config = CustomPyMRGConfig(**env_mgr_config)
-    else:
-        raise Exception(f"Unsupported env manager {env_mgr_kind}")
-
-    requirements_dict = env_dict.get('requirements')
-    requirements_kind = requirements_dict['kind']
-    requirements_config = requirements_dict['config']
-
-    if requirements_kind == PythonEnv.REQUIREMENTS_CONDA_YAML:
-        reqs_config = ReqsCondaYamlConfig(**requirements_config)
-    elif requirements_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT:
-        reqs_config = ReqsRequirementsTxtConfig(**requirements_config)
+        mgr_config = CustomPyMRGConfig()
+        reqs_config = None
     else:
         raise Exception(f"Unsupported env manager {env_mgr_kind}")
 
     play_dict['env'] = PythonEnv(venv_config=mgr_config, requirements=reqs_config)
-
+    play_dict['base_dir'] = Path(folder).absolute().as_posix()
     return Player(**play_dict)
 
 
@@ -165,7 +162,7 @@ def load_players(player_specs):
     default_players = {}
 
     # 1. load default players
-    default_players_dir = (Path(SRC_DIR).parent / "players")
+    default_players_dir = Path(SRC_DIR).parent / "players"
     logger.debug(f"default players dir is at {default_players_dir}")
     for player_folder in os.listdir(default_players_dir):
         # filter dirs

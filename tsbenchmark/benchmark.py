@@ -213,7 +213,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         working_dir_path = batch.data_dir_path() / name
         working_dir = working_dir_path.as_posix()
 
-        remote_player_exec_file = (working_dir_path / "resources" / player.exec_file).as_posix()
+        remote_player_exec_file = (working_dir_path / "resources" / player.name / player.exec_file).as_posix()
 
         if player.env.venv_kind == PythonEnv.KIND_CUSTOM_PYTHON:
             command = self.make_run_custom_pythonenv_command(remote_player_exec_file)
@@ -229,12 +229,14 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         logger.info(f"command of job {name} is {command} ")
         run_py_shell = (HERE / "runpy.sh").absolute().as_posix()
 
+        # upload player dir, player的目录得传进来
+
         batch.add_job(name=name,
                       params=job_params.to_dict(),
                       command=command,
                       output_dir=working_dir,
                       working_dir=working_dir,
-                      assets=[run_py_shell])
+                      assets=[run_py_shell, player.base_dir])
 
     def _handle_on_start(self):
         for callback in self.callbacks:
@@ -268,6 +270,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         self._batch_app = self.create_batch_app(batch)
         self._batch_app.start()
 
+        self._batch_app.stop()  # release tcp port
         self._handle_on_finish()
 
     def stop(self):
@@ -300,7 +303,7 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
     def setup_player(self, player: Player):
         # setup environment
-        if player.env.kind == 'custom_python':
+        if player.env.venv_kind == 'custom_python':
             pass
         else:
             pass
@@ -335,7 +338,7 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
 
     def setup_player(self, player: Player):
         # setup environment
-        if player.env.kind == 'custom_python':
+        if player.env.venv_kind == 'custom_python':
             pass
         else:
             pass
