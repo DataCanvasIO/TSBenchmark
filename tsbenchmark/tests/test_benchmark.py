@@ -4,6 +4,8 @@ from typing import Dict
 from pathlib import Path
 
 from hypernets.hyperctl.appliation import BatchApplication
+from hypernets.hyperctl.batch import ShellJob
+from hypernets.tests.hyperctl.test_scheduler import assert_batch_finished
 from hypernets.utils import ssh_utils
 from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
@@ -159,6 +161,15 @@ class TestLocalCustomPythonBuiltInPlayerBenchmark:
 
     def test_run(self):
         self.lb.run()
+
+        # assert does not upload any assets
+        batch_app:BatchApplication = self.lb.batch_app
+        for job in batch_app.batch.jobs:
+            job: ShellJob = job
+            assert not job.resources_path.exists()
+
+        # assert batch succeed
+        assert_batch_finished(batch_app.batch, ShellJob.STATUS_SUCCEED)
 
     def teardown_class(self):
         self.lb.stop()

@@ -171,6 +171,10 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 
         self._batch_app = None
 
+    @property
+    def batch_app(self):
+        return self._batch_app
+
     def make_run_conda_yaml_env_command(self):
         pass
 
