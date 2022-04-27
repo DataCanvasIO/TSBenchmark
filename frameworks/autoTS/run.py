@@ -28,10 +28,12 @@ def trail(df_train, df_test, Date_Col_Name, Series_Col_name, forecast_length, fo
     if covariables != None:
         df_train = df_train.drop(covariables, 1)
 
+    import pandas as pd
+    df_train[Date_Col_Name] = pd.to_datetime(df_train[Date_Col_Name])
+    df_train = df_train.set_index([Date_Col_Name])
+
     model = model.fit(
-        df_train,
-        date_col=Date_Col_Name,
-        value_col=Series_Col_name[0]
+        df_train
     )
 
     prediction = model.predict().forecast

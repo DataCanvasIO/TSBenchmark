@@ -5,9 +5,13 @@ from hypernets.utils import logging
 import pandas as pd
 import yaml
 from tsbenchmark.tasks import TSTaskConfig
+from tsbenchmark.util import download_util, file_util
 
 logging.set_level('DEBUG')  # TODO
 logger = logging.getLogger(__name__)
+
+BASE_URL = 'http://raz9e5klq.hb-bkt.clouddn.com/datas'
+DESC_URL = f'{BASE_URL}/dataset_desc.csv'
 
 
 class TSDataSetDesc:
@@ -16,7 +20,7 @@ class TSDataSetDesc:
 
         if not os.path.exists(self._desc_file()):
             logger.info('Downloading dataset_desc.csv from remote.')
-            # TODO DOWNLOAD
+            download_util.download(self._desc_file(), DESC_URL)
             logger.info('Finish download dataset_desc.csv.')
         self.dataset_desc = pd.read_csv(self._desc_file())
         self.dataset_desc_local = None
@@ -27,7 +31,8 @@ class TSDataSetDesc:
         return self.dataset_desc[self.dataset_desc['id'] == dataset_id].shape[0] == 1
 
     def cached(self, dataset_id):
-        return self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id].shape[0] == 1
+        return self.dataset_desc_local is not None and \
+               self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id].shape[0] == 1
 
     def update_local(self, dataset_id):
         df = pd.read_csv(self._desc_file())
@@ -90,11 +95,6 @@ class TSDataSetLoader(DataSetLoader):
         self.dataset_desc = TSDataSetDesc(data_path)
 
     def list(self, type=None, data_size=None):
-        # 1. Get dataset desc from local or remote.
-        # TODO
-        if not os.path.exists(self.data_path):
-            os.makedirs(self.data_path)
-
         df = self.dataset_desc.dataset_desc
         if data_size is not None:
             df = df[df['data_size'] == data_size]
@@ -130,10 +130,33 @@ class TSDataSetLoader(DataSetLoader):
         if not self.exists(dataset_id):
             raise ValueError(f"TaskData {dataset_id} does not exists!")
         if not self.dataset_desc.cached(dataset_id):
-            logger.info(f"Downloading dattaset {dataset_id} from remote.")
-            # TODO
-            self.dataset_desc.local_update(dataset_id)
-            logger.info(f"Finish download dattaset {dataset_id} from remote.")
+            # 1. Get dataset's meta from dataset_desc.
+            meta = self.dataset_desc.dataset_desc[self.dataset_desc.dataset_desc['id'] == dataset_id]
+            task_type = meta['type'].values[0]
+            data_size = meta['data_size'].values[0]
+            name = meta['name'].values[0]
+
+            # 2. Download tmp zip file from cloud.
+            tmp_path = file_util.get_dir_path(os.path.join(self.data_path, 'tmp'))
+            url = f"{BASE_URL}/{task_type}/{data_size}/{name}.zip"
+            import uuid
+            file_name = str(uuid.uuid1()) + '.zip'
+            file_tmp = os.path.join(tmp_path, file_name)
+            download_util.download(file_tmp, url)
+
+            # 3. Unzip file under data_path
+            data_path = os.path.join(self.data_path, task_type, data_size)
+            file_util.unzip(file_tmp, data_path)
+
+            # 4. Record to dataset_desc_local.
+            if self.dataset_desc.dataset_desc_local is not None:
+                self.dataset_desc.dataset_desc_local = pd.concat([self.dataset_desc.dataset_desc_local, meta], 0)
+            else:
+                self.dataset_desc.dataset_desc_local = meta.copy()
+            self.dataset_desc.dataset_desc_local.to_csv(self.dataset_desc._desc_local_file(), index=False)
+
+            # 5. Remove tmp file.
+            os.remove(file_tmp)
 
 
 class TSTaskDataLoader():

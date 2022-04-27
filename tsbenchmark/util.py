@@ -1,4 +1,5 @@
 import os
+import requests
 
 
 class file_util:
@@ -22,6 +23,52 @@ class file_util:
                 file_util.get_filelist(newDir, filelist)
 
         return filelist
+
+    @staticmethod
+    def get_or_create_file(file_path):
+        if not os.path.exists(os.path.dirname(file_path)):
+            os.makedirs(os.path.dirname(file_path))
+        if not os.path.exists(os.path.basename(file_path)):
+            with open(file_path, "w") as f:
+                pass
+
+    @staticmethod
+    def unzip(zipPath, unZipPath):
+        import zipfile
+        '''解压文件
+           zipPath : The file which will be unzip.
+           unZipPath : The path which the files will be unzip to.
+           '''
+        if not os.path.exists(zipPath):
+            raise 'function unZipFile:not exists file or dir(%s)' % zipPath;
+        if unZipPath == '':
+            unZipPath = os.path.splitext(zipPath)[0];
+        if not unZipPath.endswith(os.sep):
+            unZipPath += os.sep
+        z = zipfile.ZipFile(zipPath, 'r')
+        for k in z.infolist():
+            savePath = unZipPath + k.filename
+            saveDir = os.path.dirname(savePath)
+            if not os.path.exists(saveDir):
+                os.makedirs(saveDir)
+            if os.path.isdir(savePath):
+                if not os.path.exists(savePath):
+                    os.makedirs(savePath)
+            else:
+                f = open(savePath, 'wb')
+                f.write(z.read(k))
+                f.close()
+        z.close()
+
+
+class download_util:
+    @staticmethod
+    def download(file_path, url):
+        file_util.get_or_create_file(file_path)
+        r = requests.get(url)
+        with open(file_path, 'wb') as f:
+            f.write(r.content)
+            f.close
 
 
 class dict_util:

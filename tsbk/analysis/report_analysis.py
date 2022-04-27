@@ -53,7 +53,7 @@ def gen_comparison_report(params):
 
 
 def generate_report(params):
-    for task in params.ts_tasks_config:
+    for task in params.tasks:
         datas_results_dir = params.datas_results_dir(task)
         report_dir = params.report_dir(task)
         report_imgs_dir = params.report_imgs_dir(task)

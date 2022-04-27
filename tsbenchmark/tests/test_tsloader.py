@@ -29,6 +29,9 @@ class Test_TSDataSetLoader():
         metadata = dataloader.load_meta(694826)
         assert len(metadata) == 16
 
+        dataloader.load_train(890686)
+        dataloader.load_train(309496)
+
 
 taskdataloader = tsbenchmark.tsloader.TSTaskDataLoader(data_path)
 
