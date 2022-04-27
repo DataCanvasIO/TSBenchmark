@@ -93,12 +93,15 @@ class Player:
 
         self.env: PythonEnv = env
         self.exec_file = exec_file
-        # 1. check env file
-        # 2. check config file
+
+        assert self.abs_exec_file_path().exists(), "exec_file not exists"
 
     @property
     def name(self):
         return Path(self.base_dir).name
+
+    def abs_exec_file_path(self):
+        return self.base_dir_path / self.exec_file
 
 
 class JobParams:

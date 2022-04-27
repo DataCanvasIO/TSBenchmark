@@ -176,7 +176,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         raise NotImplemented
 
     @abc.abstractmethod
-    def make_run_requirements_requirements_txt_command(self, working_dir_path, player, player_exec_file):
+    def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
         raise NotImplemented
 
     def add_job(self, bm_task: BenchmarkTask, batch: Batch):
@@ -202,7 +202,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         elif player.env.venv_kind == PythonEnv.KIND_CONDA:
             if player.env.reqs_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT:
                 command = self.make_run_requirements_requirements_txt_command(working_dir_path,
-                                                                              player, None)  # TODO
+                                                                              player)  # TODO
             else:
                 raise NotImplemented
         else:
@@ -283,25 +283,26 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 
 class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
-    def setup(self):
-        pass
-
     def get_backend_type(self):
         return 'local'
 
     def make_run_custom_pythonenv_command(self,  bm_task: BenchmarkTask, batch: Batch ,name):
-        runpy_script = (HERE / "runpy.sh").absolute().as_posix()
+        player_exec_file_path = bm_task.player.abs_exec_file_path()
+        player_exec_file = player_exec_file_path.as_posix()
 
-        player_exec_file = (Path(bm_task.player.base_dir) / bm_task.player.exec_file).as_posix()
         custom_py_executable = bm_task.player.env.venv_config.py_executable
-
-        command = f"/bin/sh -x {runpy_script}  --venv-kind={PythonEnv.KIND_CUSTOM_PYTHON} --custom-py-executable={custom_py_executable} --python-script={player_exec_file}"
+        command = f"/bin/sh -x {self.get_runpy_shell()}  --venv-kind={PythonEnv.KIND_CUSTOM_PYTHON} --custom-py-executable={custom_py_executable} --python-script={player_exec_file}"
         return command
 
-    def make_run_requirements_requirements_txt_command(self, working_dir_path, player, player_exec_file):
-        remote_requirements_txt_file = (working_dir_path / "resources" / player.env.requirements.file_name).as_posix()
-        command = f"/bin/sh -x resources/runpy.sh --venv-kind=conda  --conda-home={self.conda_home} --venv-name=ts-{player.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
+    def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
+        local_requirements_txt_file = player.base_dir_path / player.env.requirements.file_name
+        player_exec_file = player.abs_exec_file_path().as_posix()
+        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} --venv-name=ts-{player.name} --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} --requirements-txt-file={local_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
         return command
+
+    def get_runpy_shell(self):
+        runpy_script = (HERE / "runpy.sh").absolute().as_posix()
+        return runpy_script
 
     def get_job_asserts(self, bm_task: BenchmarkTask):
         return []
@@ -326,8 +327,11 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
 
     def make_run_requirements_requirements_txt_command(self, working_dir_path, player, player_exec_file):
         remote_requirements_txt_file = (working_dir_path / "resources" / player.env.requirements.file_name).as_posix()
-        command = f"/bin/sh -x resources/runpy.sh --venv-kind=conda  --conda-home={self.conda_home} --venv-name=ts-{player.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
+        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind=conda  --conda-home={self.conda_home} --venv-name=ts-{player.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
         return command
+
+    def get_runpy_shell(self):
+        return "resources/runpy.sh"
 
     def get_job_asserts(self, bm_task: BenchmarkTask):
         run_py_shell = (HERE / "runpy.sh").absolute().as_posix()
@@ -338,7 +342,7 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
         working_dir_path = batch.data_dir_path() / name
         remote_player_exec_file = (working_dir_path / "resources" / player.name / player.exec_file).as_posix()
         custom_py_executable = bm_task.player.env.venv_config.py_executable
-        command = f"/bin/sh -x resources/runpy.sh  --venv-kind={PythonEnv.KIND_CUSTOM_PYTHON} --custom-py-executable={custom_py_executable} --python-script={remote_player_exec_file}"
+        command = f"/bin/sh -x {self.get_runpy_shell()}  --venv-kind={PythonEnv.KIND_CUSTOM_PYTHON} --custom-py-executable={custom_py_executable} --python-script={remote_player_exec_file}"
         return command
 
 

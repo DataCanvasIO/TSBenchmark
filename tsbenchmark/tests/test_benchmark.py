@@ -1,7 +1,10 @@
+import os
 import tempfile
 import sys
 from typing import Dict
 from pathlib import Path
+
+import pytest
 
 from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.batch import ShellJob
@@ -15,6 +18,23 @@ from hypernets.tests.utils import ssh_utils_test
 import tsbenchmark.tasks
 
 HERE = Path(__file__).parent
+
+
+def get_conda_home():
+    return os.getenv("TSB_CONDA_HOME")
+
+
+def _conda_ready():
+    conda_home = get_conda_home()
+    if conda_home is not None:
+        return Path(conda_home).exists()
+    else:
+        return False
+
+
+# export TSB_CONDA_HOME=/opt/miniconda3
+need_conda = pytest.mark.skipif(not _conda_ready(),
+                                reason='The test case need conda to be installed and set env "TSB_CONDA_HOME"')
 
 
 def create_task():
@@ -102,8 +122,6 @@ class TestRemoteCustomPythonBenchmark:
         pass
 
 
-# TODO need conda installed
-
 class aTestRemoteCondaReqsTxtPlayerBenchmark:
     def setup_class(self):
         # define players
@@ -136,7 +154,20 @@ class TestRemoteCondaReqsTxtExternalPlayerBenchmark:
         pass
 
 
-class TestLocalCustomPythonBuiltInPlayerBenchmark:
+class BaseLocalBenchmark:
+
+    def assert_bm_batch_succeed(self, lb):
+        # assert does not upload any assets
+        batch_app: BatchApplication = lb.batch_app
+        for job in batch_app.batch.jobs:
+            job: ShellJob = job
+            assert not job.resources_path.exists()
+
+        # assert batch succeed
+        assert_batch_finished(batch_app.batch, ShellJob.STATUS_SUCCEED)
+
+
+class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
     """Benchmark with constraints:
         - local benchmark
         - builtin players
@@ -162,35 +193,41 @@ class TestLocalCustomPythonBuiltInPlayerBenchmark:
     def test_run(self):
         self.lb.run()
 
-        # assert does not upload any assets
-        batch_app:BatchApplication = self.lb.batch_app
-        for job in batch_app.batch.jobs:
-            job: ShellJob = job
-            assert not job.resources_path.exists()
-
-        # assert batch succeed
-        assert_batch_finished(batch_app.batch, ShellJob.STATUS_SUCCEED)
+        self.assert_bm_batch_succeed(self.lb)
 
     def teardown_class(self):
         self.lb.stop()
 
 
-class TestLocalCustomPythonBenchmark:
+@need_conda
+class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
 
     def setup_class(self):
-        pass
+        # define players
+        players = load_players([(HERE / "players" / "plain_player_requirements_txt").as_posix()])
+        task0 = create_task()
+
+        callbacks = [ConsoleCallback()]
+
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
+        lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
+                            random_states=[8060], ts_tasks_config=[task0],
+                            working_dir=batches_data_dir,
+                            scheduler_exit_on_finish=True,
+                            conda_home=get_conda_home(),
+                            constraints={},
+                            callbacks=callbacks)
+        self.lb = lb
 
     def test_run_benchmark(self):
-        pass
+        self.lb.run()
+        # create virtual env
+        conda_home = get_conda_home()
+        env_dir_path = Path(conda_home) / "envs" / f"ts-{self.lb.players[0].name}"
+        assert env_dir_path.exists()
 
-
-class TestLocalCondaReqsTxtBenchmark:
-
-    def setup_class(self):
-        pass
-
-    def test_run_benchmark(self):
-        pass
+        # bm batch succeed
+        self.assert_bm_batch_succeed(self.lb)
 
 
 def create_local_benchmark():
@@ -226,6 +263,6 @@ def test_run_base_previous_batch():
 
 if __name__ == '__main__':
     pass
-    # t = TestRemoteCondaReqsTxtPlayerBenchmark()
+    # t = TestLocalCondaReqsTxtBenchmark()
     # t.setup_class()
     # t.test_run_benchmark()
