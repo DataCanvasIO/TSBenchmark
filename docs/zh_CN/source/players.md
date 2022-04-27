@@ -7,7 +7,7 @@ env:
   kind: conda
   requirements: requirements_txt
   requirements_txt:
-    python_version: 3.8
+    py_version: 3.8
     file: requirements.txt
 
 ---

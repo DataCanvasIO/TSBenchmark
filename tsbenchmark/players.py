@@ -68,16 +68,16 @@ class PythonEnv:
         elif isinstance(self.venv_config,  CustomPyMRGConfig):
             return PythonEnv.KIND_CUSTOM_PYTHON
         else:
-            return None
+            raise ValueError(f"unknown venv manager {self.venv_config}")
 
     @property
     def reqs_kind(self):
-        if isinstance(self.venv_config,  ReqsRequirementsTxtConfig):
+        if isinstance(self.requirements,  ReqsRequirementsTxtConfig):
             return PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT
-        elif isinstance(self.venv_config,  ReqsCondaYamlConfig):
+        elif isinstance(self.requirements,  ReqsCondaYamlConfig):
             return PythonEnv.REQUIREMENTS_CONDA_YAML
         else:
-            return None
+            raise ValueError(f"unknown requirements config {self.venv_config}")
 
 
 class Player:
@@ -137,6 +137,7 @@ def load_player(folder):
         if requirements_kind == PythonEnv.REQUIREMENTS_CONDA_YAML:
             reqs_config = ReqsCondaYamlConfig(**requirements_config)
         elif requirements_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT:
+            requirements_config['py_version'] = str(requirements_config['py_version'])
             reqs_config = ReqsRequirementsTxtConfig(**requirements_config)
         else:
             raise Exception(f"Unsupported env manager {env_mgr_kind}")

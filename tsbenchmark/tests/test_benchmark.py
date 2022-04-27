@@ -103,7 +103,7 @@ class TestRemoteCustomPythonBenchmark:
         pass
 
 
-class aTestRemoteCondaReqsTxtPlayerBenchmark: # TODO enable the test
+class TestRemoteCondaReqsTxtPlayerBenchmark:
     def setup_class(self):
         # define players
         players = load_players([(HERE / "players" / "plain_player_requirements_txt").as_posix()])
@@ -225,8 +225,6 @@ def test_run_base_previous_batch():
 
 
 if __name__ == '__main__':
-    pass
-    # t = TestLocalBenchmark()
-    # t.setup_class()
-    # t.test_run()
-    #
+    t = TestRemoteCondaReqsTxtPlayerBenchmark()
+    t.setup_class()
+    t.test_run_benchmark()
