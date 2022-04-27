@@ -1,5 +1,6 @@
 import abc
 import os
+import sys
 from pathlib import Path
 import yaml, os
 from typing import List
@@ -29,7 +30,12 @@ class CondaVenvMRGConfig(BaseMRGConfig):
 
 
 class CustomPyMRGConfig(BaseMRGConfig):
-    pass
+    def __init__(self, py_executable=None):
+        if py_executable is None:
+            self.py_executable = sys.executable
+        else:
+            assert Path(py_executable).exists(), "python executable should be exists"
+            self.py_executable = sys.executable
 
 
 class BaseReqsConfig:

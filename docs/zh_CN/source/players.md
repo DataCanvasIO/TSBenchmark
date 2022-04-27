@@ -1,27 +1,10 @@
 
 Env config example :
-
-```
-
-env:
-  kind: conda
-  requirements: requirements_txt
-  requirements_txt:
-    py_version: 3.8
-    file: requirements.txt
-
----
-env:
-  kind: conda
-  requirements: conda_yaml
-  conda_yaml:
-    file: requirements.txt
-
----
+```yaml
 
 env:
-  kind: custom_python
-  requirements: conda_yaml
-  conda_yaml:
-    file: requirements.txt
+  mgr:
+    kind: custom_python
+    config:
+      py_executable: /usr/bin/python
 ```

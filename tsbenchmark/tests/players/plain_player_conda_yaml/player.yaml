@@ -1,0 +1,10 @@
+env:
+  mgr:
+    kind: conda
+    config:
+      name: plain_player_requirements_txt
+  requirements:
+    kind: requirements_txt
+    config:
+      py_version: 3.8
+      file_name: requirements.txt
