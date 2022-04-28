@@ -43,4 +43,5 @@ jobs:
       shell: bash -l {0}
       run: |
         export TSB_CONDA_HOME=/usr/share/miniconda
+        export TSB_LOG_LEVEL=DEBUG
         pytest --cov=tsbenchmark --durations=30
