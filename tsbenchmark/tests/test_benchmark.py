@@ -37,6 +37,9 @@ def _conda_ready():
 need_conda = pytest.mark.skipif(not _conda_ready(),
                                 reason='The test case need conda to be installed and set env "TSB_CONDA_HOME"')
 
+need_private_pypi = pytest.mark.skipif(not os.getenv("TSB_PYPI") is None,
+                                       reason='The test case need a private pypi to install requirements"')
+
 
 def create_task():
     task_config_id = 694826
@@ -118,7 +121,9 @@ class TestRemoteCustomPythonBenchmark:
         self.lb.stop()
 
 
-class aTestRemoteCondaReqsTxtPlayerBenchmark:
+@need_private_pypi
+@need_conda
+class TestRemoteCondaReqsTxtPlayerBenchmark:
     def setup_class(self):
         # define players
         players = load_players([(HERE / "players" / "plain_player_requirements_txt").as_posix()])
@@ -178,7 +183,6 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
         callbacks = [ConsoleCallback()]
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
 
-        custom_py_executable = sys.executable
         lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
                             random_states=[8060], ts_tasks_config=[task0],
                             scheduler_exit_on_finish=True,
@@ -188,7 +192,6 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
 
     def test_run(self):
         self.lb.run()
-
         self.assert_bm_batch_succeed(self.lb)
 
     def teardown_class(self):
@@ -197,8 +200,7 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
 
 @need_conda
 class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
-
-    def setup_class(self):
+    def test_run_benchmark(self):
         # define players
         player = load_player((HERE / "players" / "plain_player_requirements_txt").as_posix())
         conda_home = get_conda_home()
@@ -219,7 +221,6 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
                             callbacks=callbacks)
         self.lb = lb
 
-    def test_run_benchmark(self):
         self.lb.run()
 
         # asserts virtual env
@@ -227,8 +228,6 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
 
         # bm batch succeed
         self.assert_bm_batch_succeed(self.lb)
-
-    def teardown_class(self):
         self.lb.stop()
 
 
@@ -269,8 +268,8 @@ if __name__ == '__main__':
     # t = TestLocalCondaReqsTxtBenchmark()
     # t.setup_class()
     # t.test_run_benchmark()
-    # t = TestRemoteCustomPythonBenchmark()
-    # t.setup_class()
-    # t.test_run_benchmark()
-    # t.teardown_class()
+    t = TestRemoteCustomPythonBenchmark()
+    t.setup_class()
+    t.test_run_benchmark()
+    t.teardown_class()
     #
