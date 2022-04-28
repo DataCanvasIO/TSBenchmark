@@ -1,5 +1,4 @@
 env:
   mgr:
     kind: custom_python
-  config:
-    py_executable: /us/bin/p
+
