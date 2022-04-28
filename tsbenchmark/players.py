@@ -30,12 +30,8 @@ class CondaVenvMRGConfig(BaseMRGConfig):
 
 
 class CustomPyMRGConfig(BaseMRGConfig):
-    def __init__(self, py_executable=None):
-        if py_executable is None:
-            self.py_executable = sys.executable
-        else:
-            assert Path(py_executable).exists(), "python executable should be exists"
-            self.py_executable = sys.executable
+    def __init__(self, py_executable):
+        self.py_executable = py_executable
 
 
 class BaseReqsConfig:
@@ -152,6 +148,7 @@ def load_player(folder):
             raise Exception(f"Unsupported env manager {env_mgr_kind}")
 
     elif env_mgr_kind == PythonEnv.KIND_CUSTOM_PYTHON:
+        env_mgr_config['py_executable'] = env_mgr_config.get('py_executable', sys.executable)
         mgr_config = CustomPyMRGConfig(**env_mgr_config)
         reqs_config = None
     else:
