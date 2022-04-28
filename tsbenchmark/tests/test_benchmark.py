@@ -266,6 +266,6 @@ def test_run_base_previous_batch():
 
 if __name__ == '__main__':
     pass
-    # t = TestLocalCondaReqsTxtBenchmark()
-    # t.setup_class()
-    # t.test_run_benchmark()
+    t = TestLocalCondaReqsTxtBenchmark()
+    t.setup_class()
+    t.test_run_benchmark()

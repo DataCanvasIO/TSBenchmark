@@ -249,7 +249,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         self._batch_app = self.create_batch_app(batch)
         self._batch_app.start()
 
-        self._handle_on_finish()
+        self._handle_on_finish()  # FIXME if exit_on_finish=False
 
     def stop(self):
         self._batch_app.stop()
