@@ -200,7 +200,7 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
 
 
 @need_conda
-class aTestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
+class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
 
     def setup_class(self):
         # define players

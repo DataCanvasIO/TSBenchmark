@@ -20,6 +20,7 @@ class BenchmarkRunner(threading.Thread):
         new_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(new_loop)
         self.benchmark.run()
+        print("BenchmarkRunner thread exited")
 
     def stop(self):
         self.benchmark.stop()
