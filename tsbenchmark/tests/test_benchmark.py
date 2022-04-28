@@ -12,6 +12,7 @@ from hypernets.tests.hyperctl.test_scheduler import assert_batch_finished
 from hypernets.utils import ssh_utils
 from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
+from tsbenchmark.players import load_player
 from tsbenchmark.tasks import TSTask
 from hypernets.tests.utils import ssh_utils_test
 
@@ -40,12 +41,7 @@ need_conda = pytest.mark.skipif(not _conda_ready(),
 def create_task():
     task_config_id = 694826
     task_config = tsbenchmark.tasks.get_task_config(task_config_id)
-
-    task = TSTask(task_config, random_state=8086, max_trails=5, reward_metric='rmse')
-    assert task.task == 'univariate-forecast' and task.dataset_id == 694826
-    assert task.get_train().shape[0] == 124 and task.get_test().shape[0] == 6
-    assert task.random_state == 8086
-    return task
+    return task_config
 
 
 class ConsoleCallback(BenchmarkCallback):
@@ -204,16 +200,20 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
 
     def setup_class(self):
         # define players
-        players = load_players([(HERE / "players" / "plain_player_requirements_txt").as_posix()])
+        player = load_player((HERE / "players" / "plain_player_requirements_txt").as_posix())
+        conda_home = get_conda_home()
+        self.env_dir_path = Path(conda_home) / "envs" / player.env.venv_config.name
+        if self.env_dir_path.exists():
+            print("Please remove the conda env")
+
         task0 = create_task()
-
         callbacks = [ConsoleCallback()]
-
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
-        lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
+        lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[player],
                             random_states=[8060], ts_tasks_config=[task0],
                             working_dir=batches_data_dir,
                             scheduler_exit_on_finish=True,
+                            scheduler_interval=1,
                             conda_home=get_conda_home(),
                             constraints={},
                             callbacks=callbacks)
@@ -221,10 +221,9 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
 
     def test_run_benchmark(self):
         self.lb.run()
-        # create virtual env
-        conda_home = get_conda_home()
-        env_dir_path = Path(conda_home) / "envs" / f"ts-{self.lb.players[0].name}"
-        assert env_dir_path.exists()
+
+        # asserts virtual env
+        assert self.env_dir_path.exists()
 
         # bm batch succeed
         self.assert_bm_batch_succeed(self.lb)
@@ -243,6 +242,7 @@ def create_local_benchmark():
                         random_states=[8060], ts_tasks_config=[task0],
                         working_dir=batches_data_dir,
                         scheduler_exit_on_finish=True,
+                        scheduler_interval=1,
                         constraints={}, callbacks=callbacks)
     return lb
 

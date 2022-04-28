@@ -296,7 +296,7 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
     def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
         local_requirements_txt_file = player.base_dir_path / player.env.requirements.file_name
         player_exec_file = player.abs_exec_file_path().as_posix()
-        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} --venv-name=ts-{player.name} --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} --requirements-txt-file={local_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
+        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} --venv-name={player.env.venv_config.name} --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} --requirements-txt-file={local_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
         return command
 
     def get_runpy_shell(self):
@@ -324,9 +324,9 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
             'machines': self.machines
         }
 
-    def make_run_requirements_requirements_txt_command(self, working_dir_path, player, player_exec_file):
+    def make_run_requirements_requirements_txt_command(self, working_dir_path, player, player_exec_file):  # FIXME
         remote_requirements_txt_file = (working_dir_path / "resources" / player.env.requirements.file_name).as_posix()
-        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind=conda  --conda-home={self.conda_home} --venv-name=ts-{player.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
+        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind=conda  --conda-home={self.conda_home} --venv-name={player.env.venv_config.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
         return command
 
     def get_runpy_shell(self):

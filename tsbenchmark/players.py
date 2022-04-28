@@ -113,6 +113,7 @@ class JobParams:
 
 
 def load_player(folder):
+    folder_path = Path(folder)
     config_file = Path(folder) / "player.yaml"
     if not config_file.exists():
         raise FileNotFoundError(config_file)
@@ -133,7 +134,9 @@ def load_player(folder):
     env_mgr_kind = env_mgr_dict['kind']
     env_mgr_config = env_mgr_dict.get('config', {})
 
+    player_name = folder_path.name
     if env_mgr_kind == PythonEnv.KIND_CONDA:
+        env_mgr_config['name'] = env_mgr_config.get('name', f'tbs-{player_name}')  # set default env name
         mgr_config = CondaVenvMRGConfig(**env_mgr_config)
         requirements_dict = env_dict.get('requirements')
         requirements_kind = requirements_dict['kind']
