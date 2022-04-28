@@ -200,7 +200,7 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
 
 
 @need_conda
-class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
+class aTestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
 
     def setup_class(self):
         # define players
@@ -266,6 +266,11 @@ def test_run_base_previous_batch():
 
 if __name__ == '__main__':
     pass
-    t = TestLocalCondaReqsTxtBenchmark()
-    t.setup_class()
-    t.test_run_benchmark()
+    # t = TestLocalCondaReqsTxtBenchmark()
+    # t.setup_class()
+    # t.test_run_benchmark()
+    # t = TestRemoteCustomPythonBenchmark()
+    # t.setup_class()
+    # t.test_run_benchmark()
+    # t.teardown_class()
+    #

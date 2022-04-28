@@ -152,7 +152,7 @@ def load_player(folder):
             raise Exception(f"Unsupported env manager {env_mgr_kind}")
 
     elif env_mgr_kind == PythonEnv.KIND_CUSTOM_PYTHON:
-        mgr_config = CustomPyMRGConfig()
+        mgr_config = CustomPyMRGConfig(**env_mgr_config)
         reqs_config = None
     else:
         raise Exception(f"Unsupported env manager {env_mgr_kind}")
