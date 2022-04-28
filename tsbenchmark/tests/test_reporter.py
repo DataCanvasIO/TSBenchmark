@@ -20,8 +20,8 @@ def create_tasks_new():
 
 def create_benchmark_cfg():
     benchmark_config = {'report.path': '/tmp/report_path',
-                        'name': 'hyperts_release_0.2.0',
-                        'desc': 'develop for pytest hyperts_release_0.2.0',
+                        'name': 'hyperts_release_0.4.0',
+                        'desc': 'develop for pytest hyperts_release_0.3.0',
                         'random_states': [8086],
                         'task_filter.tasks': ['univariate-forecast']
                         }
@@ -54,7 +54,7 @@ class ReporterCallback(BenchmarkCallback):
 
 
 def atest_benchmark_reporter():
-    # define players antasks
+    # define players
     players = load_players(['hyperts_dl_player', 'hyperts_stat_player'])
     task_list = [TSTask(tsbenchmark.tasks.get_task_config(t_id), random_state=8086, max_trails=1, reward_metric='rmse')
                  for
