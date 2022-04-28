@@ -218,7 +218,6 @@ class Analysis:
         self.report_calc_metric(results_datas, columns, players, report_dir, report_imgs_dir, 'mae', 'mean')
         self.report_calc_metric(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir, 'mae', 'std')
 
-        # Time cost report TODO
         self.report_calc_metric(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir, 'duration',
                                 'mean',
                                 title_text='MEAN duration')
@@ -232,7 +231,6 @@ class Analysis:
                                 'min',
                                 title_text='MIN duration')
 
-        # Others report TODO
 
     def report_calc_metric(self, results_datas, columns, players, report_dir, report_imgs_dir, metric, stat_type,
                            title_text=None):
@@ -341,8 +339,12 @@ class Reporter():
                 }
 
         data_df = data_df.append(data, ignore_index=True)
-        data_df[cols_data_tmp].to_csv(data_file, mode='a', index=False)  # todo
-        logger.info(f"save result to : {data_file}")
+        if os.path.exists(data_file):
+            data_df[cols_data_tmp].to_csv(data_file, mode='a', index=False, header=False)
+            logger.info(f"Save result to : {data_file}")
+        else:
+            data_df[cols_data_tmp].to_csv(data_file, mode='a', index=False)
+            logger.info(f"Append result to : {data_file}")
 
     def generate_report(self):
         logger.info('start generate report')
