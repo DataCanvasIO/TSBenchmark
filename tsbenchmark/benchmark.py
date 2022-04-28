@@ -249,7 +249,6 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         self._batch_app = self.create_batch_app(batch)
         self._batch_app.start()
 
-        self._batch_app.stop()  # release tcp port
         self._handle_on_finish()
 
     def stop(self):
