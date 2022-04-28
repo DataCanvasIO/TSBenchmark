@@ -119,7 +119,7 @@ class TestRemoteCustomPythonBenchmark:
             assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "plain_player_custom_python" / "player.yaml").as_posix())
 
     def teardown_class(self):
-        pass
+        self.lb.stop()
 
 
 class aTestRemoteCondaReqsTxtPlayerBenchmark:
@@ -228,6 +228,9 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
 
         # bm batch succeed
         self.assert_bm_batch_succeed(self.lb)
+
+    def teardown_class(self):
+        self.lb.stop()
 
 
 def create_local_benchmark():
