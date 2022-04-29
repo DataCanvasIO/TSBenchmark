@@ -37,7 +37,7 @@ def _conda_ready():
 need_conda = pytest.mark.skipif(not _conda_ready(),
                                 reason='The test case need conda to be installed and set env "TSB_CONDA_HOME"')
 
-need_private_pypi = pytest.mark.skipif(not os.getenv("TSB_PYPI") is None,
+need_private_pypi = pytest.mark.skipif(os.getenv("TSB_PYPI") is None,
                                        reason='The test case need a private pypi to install requirements"')
 
 
