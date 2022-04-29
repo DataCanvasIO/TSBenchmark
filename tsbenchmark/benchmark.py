@@ -157,9 +157,10 @@ class HyperctlBatchCallback(BatchCallback):
 
 class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
     def __init__(self, scheduler_exit_on_finish=False,
-                 scheduler_interval=5000, **kwargs):
+                 scheduler_interval=5000, server_host="localhost", **kwargs):
         self.scheduler_exit_on_finish = scheduler_exit_on_finish
         self.scheduler_interval = scheduler_interval
+        self.server_host = server_host
         super(BenchmarkBaseOnHyperctl, self).__init__(**kwargs)
 
         self._batch_app = None
