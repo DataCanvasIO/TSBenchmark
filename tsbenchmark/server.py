@@ -79,7 +79,7 @@ class TSTaskListHandler(BaseHandler):
 
 class BenchmarkBatchApplication(BatchApplication):
 
-    def __init__(self, benchmark, **kwargs):
+    def __init__(self, benchmark, **kwargs):  # TODO
         self.benchmark = benchmark
         super(BenchmarkBatchApplication, self).__init__(**kwargs)
 

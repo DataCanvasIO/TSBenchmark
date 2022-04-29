@@ -248,7 +248,7 @@ def create_local_benchmark(port):
     return lb
 
 
-def test_run_base_previous_batch():
+def atest_run_base_previous_batch():
     bc1 = create_local_benchmark(8064)
     bc1.run()
     bc1._batch_app._http_server.stop()
