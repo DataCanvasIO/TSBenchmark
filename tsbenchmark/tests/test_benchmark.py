@@ -135,7 +135,7 @@ class TestRemoteCondaReqsTxtPlayerBenchmark:
         print(machines)
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
         lb = RemoteSSHBenchmark(name='remote-benchmark', desc='desc', players=players,
-                                random_states=[8060], ts_tasks_config=[task0],
+                                random_states=[8061], ts_tasks_config=[task0],
                                 working_dir=batches_data_dir,
                                 scheduler_exit_on_finish=True,
                                 conda_home="~/miniconda3/",
@@ -185,7 +185,7 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
 
         lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
-                            random_states=[8060], ts_tasks_config=[task0],
+                            random_states=[8062], ts_tasks_config=[task0],
                             scheduler_exit_on_finish=True,
                             working_dir=batches_data_dir,
                             constraints={}, callbacks=callbacks)
@@ -214,7 +214,7 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
         callbacks = [ConsoleCallback()]
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
         lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[player],
-                            random_states=[8060], ts_tasks_config=[task0],
+                            random_states=[8063], ts_tasks_config=[task0],
                             working_dir=batches_data_dir,
                             scheduler_exit_on_finish=True,
                             scheduler_interval=1,
@@ -233,14 +233,14 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
         self.lb.stop()
 
 
-def create_local_benchmark():
+def create_local_benchmark(port):
     players = load_players(['plain_player'])
     task0 = create_task()
 
     callbacks = [ConsoleCallback()]
     batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
     lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
-                        random_states=[8060], ts_tasks_config=[task0],
+                        random_states=[port], ts_tasks_config=[task0],
                         working_dir=batches_data_dir,
                         scheduler_exit_on_finish=True,
                         scheduler_interval=1,
@@ -249,11 +249,11 @@ def create_local_benchmark():
 
 
 def test_run_base_previous_batch():
-    bc1 = create_local_benchmark()
+    bc1 = create_local_benchmark(8064)
     bc1.run()
     bc1._batch_app._http_server.stop()
 
-    bc2 = create_local_benchmark()
+    bc2 = create_local_benchmark(8065)
     bc2.run()
     bc2._batch_app._http_server.stop()
 
