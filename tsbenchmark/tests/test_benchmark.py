@@ -1,6 +1,5 @@
 import os
 import tempfile
-import sys
 from typing import Dict
 from pathlib import Path
 
@@ -40,6 +39,9 @@ need_conda = pytest.mark.skipif(not _conda_ready(),
 need_private_pypi = pytest.mark.skipif(os.getenv("TSB_PYPI") is None,
                                        reason='The test case need a private pypi to install requirements"')
 
+need_server_host = pytest.mark.skipif(os.getenv("TSB_SERVER_HOST") is None,
+                                      reason='The test case need to set env "TSB_SERVER_HOST"')
+
 
 def create_task():
     task_config_id = 694826
@@ -70,6 +72,7 @@ class ConsoleCallback(BenchmarkCallback):
 
 
 @ssh_utils_test.need_psw_auth_ssh
+@need_server_host
 class TestRemoteCustomPythonBenchmark:
     """Benchmark with constraints:
         - remote benchmark
@@ -88,7 +91,7 @@ class TestRemoteCustomPythonBenchmark:
                                 random_states=[8060], ts_tasks_config=[task0],
                                 working_dir=self.working_dir_path.as_posix(),
                                 scheduler_exit_on_finish=True,
-                                server_host=self.connection['hostname'], # external ip
+                                server_host=os.getenv('TSB_SERVER_HOST'),  # external ip
                                 constraints={}, callbacks=callbacks,
                                 machines=[self.connection])
         self.lb = lb

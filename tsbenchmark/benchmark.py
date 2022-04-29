@@ -264,6 +264,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
                                               scheduler_exit_on_finish=self.scheduler_exit_on_finish,
                                               scheduler_interval=self.scheduler_interval,
                                               scheduler_callbacks=scheduler_callbacks,
+                                              server_host=self.server_host,
                                               backend_type=self.get_backend_type(),
                                               backend_conf=self.get_backend_conf())
         return batch_app
