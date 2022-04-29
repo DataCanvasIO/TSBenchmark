@@ -123,6 +123,7 @@ class TestRemoteCustomPythonBenchmark:
 
 @need_private_pypi
 @need_conda
+@ssh_utils_test.need_psw_auth_ssh
 class TestRemoteCondaReqsTxtPlayerBenchmark:
     def setup_class(self):
         # define players
@@ -139,7 +140,7 @@ class TestRemoteCondaReqsTxtPlayerBenchmark:
                                 scheduler_exit_on_finish=True,
                                 conda_home="~/miniconda3/",
                                 constraints={}, callbacks=callbacks,
-                                machines=machines)
+                                machines=machines
         self.lb = lb
 
     def test_run_benchmark(self):
