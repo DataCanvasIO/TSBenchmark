@@ -199,6 +199,7 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
 
 
 @need_conda
+@need_private_pypi
 class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
     def test_run_benchmark(self):
         # define players
@@ -261,15 +262,3 @@ def test_run_base_previous_batch():
     assert ba1.name == ba2.name
     assert len(ba1.jobs) == len(ba2.jobs)
     assert set([_.name for _ in ba1.jobs]) == set([_.name for _ in ba2.jobs])
-
-
-if __name__ == '__main__':
-    pass
-    # t = TestLocalCondaReqsTxtBenchmark()
-    # t.setup_class()
-    # t.test_run_benchmark()
-    t = TestRemoteCustomPythonBenchmark()
-    t.setup_class()
-    t.test_run_benchmark()
-    t.teardown_class()
-    #
