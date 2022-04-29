@@ -73,7 +73,6 @@ class ConsoleCallback(BenchmarkCallback):
 class TestRemoteCustomPythonBenchmark:
     """Benchmark with constraints:
         - remote benchmark
-        - builtin players
         - custom python
     """
 
@@ -89,6 +88,7 @@ class TestRemoteCustomPythonBenchmark:
                                 random_states=[8060], ts_tasks_config=[task0],
                                 working_dir=self.working_dir_path.as_posix(),
                                 scheduler_exit_on_finish=True,
+                                server_host=self.connection['hostname'], # external ip
                                 constraints={}, callbacks=callbacks,
                                 machines=[self.connection])
         self.lb = lb
