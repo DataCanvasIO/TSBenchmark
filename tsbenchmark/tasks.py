@@ -62,6 +62,6 @@ def get_task_config(task_id) -> TSTaskConfig:
 
 def list_task_configs(tags=None, data_sizes=None, tasks=()):
     from tsbenchmark.tsloader import TSTaskLoader
-    data_path = (Path(HERE).parent.parent / "datas").absolute().as_posix()
+    data_path = (Path(PWD).parent.parent / "datas").absolute().as_posix()
     task_loader = TSTaskLoader(data_path)
     return task_loader.list()

@@ -90,8 +90,8 @@ class TestRemoteCustomPythonBenchmark:
         lb = RemoteSSHBenchmark(name=self.benchmark_name, desc='desc', players=players,
                                 random_states=[8060], ts_tasks_config=[task0],
                                 working_dir=self.working_dir_path.as_posix(),
-                                scheduler_exit_on_finish=True,
-                                server_host=os.getenv('TSB_SERVER_HOST'),  # external ip
+                                batch_app_init_kwargs=dict(server_host=os.getenv('TSB_SERVER_HOST'),
+                                                           scheduler_exit_on_finish=True),
                                 constraints={}, callbacks=callbacks,
                                 machines=[self.connection])
         self.lb = lb
@@ -140,7 +140,7 @@ class TestRemoteCondaReqsTxtPlayerBenchmark:
         lb = RemoteSSHBenchmark(name='remote-benchmark', desc='desc', players=players,
                                 random_states=[8061], ts_tasks_config=[task0],
                                 working_dir=batches_data_dir,
-                                scheduler_exit_on_finish=True,
+                                batch_app_init_kwargs=dict(scheduler_interval=1, scheduler_exit_on_finish=True),
                                 conda_home="~/miniconda3/",
                                 constraints={}, callbacks=callbacks,
                                 machines=machines)
@@ -189,7 +189,7 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
 
         lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
                             random_states=[8062], ts_tasks_config=[task0],
-                            scheduler_exit_on_finish=True,
+                            batch_app_init_kwargs=dict(scheduler_exit_on_finish=True),
                             working_dir=batches_data_dir,
                             constraints={}, callbacks=callbacks)
         self.lb = lb
@@ -219,8 +219,7 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
         lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[player],
                             random_states=[8063], ts_tasks_config=[task0],
                             working_dir=batches_data_dir,
-                            scheduler_exit_on_finish=True,
-                            scheduler_interval=1,
+                            batch_app_init_kwargs=dict(scheduler_interval=1, scheduler_exit_on_finish=True),
                             conda_home=get_conda_home(),
                             constraints={},
                             callbacks=callbacks)
@@ -245,8 +244,7 @@ def create_local_benchmark(port):
     lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
                         random_states=[port], ts_tasks_config=[task0],
                         working_dir=batches_data_dir,
-                        scheduler_exit_on_finish=True,
-                        scheduler_interval=1,
+                        batch_app_init_kwargs=dict(scheduler_interval=1, scheduler_exit_on_finish=True),
                         constraints={}, callbacks=callbacks)
     return lb
 

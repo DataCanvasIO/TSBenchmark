@@ -156,12 +156,10 @@ class HyperctlBatchCallback(BatchCallback):
 
 
 class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
-    def __init__(self, scheduler_exit_on_finish=False,
-                 scheduler_interval=5000, server_host="localhost", **kwargs):
-        self.scheduler_exit_on_finish = scheduler_exit_on_finish
-        self.scheduler_interval = scheduler_interval
-        self.server_host = server_host
-        super(BenchmarkBaseOnHyperctl, self).__init__(**kwargs)
+
+    def __init__(self, *args,  **kwargs):
+        self.batch_app_init_kwargs = kwargs.pop('batch_app_init_kwargs', {})  # use to init Hyperctl batch application
+        super(BenchmarkBaseOnHyperctl, self).__init__(*args, **kwargs)
 
         self._batch_app = None
 
@@ -260,13 +258,12 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
             scheduler_callbacks = [HyperctlBatchCallback(self)]
         else:
             scheduler_callbacks = None
-        batch_app = BenchmarkBatchApplication(benchmark=self, batch=batch,
-                                              scheduler_exit_on_finish=self.scheduler_exit_on_finish,
-                                              scheduler_interval=self.scheduler_interval,
-                                              scheduler_callbacks=scheduler_callbacks,
-                                              server_host=self.server_host,
-                                              backend_type=self.get_backend_type(),
-                                              backend_conf=self.get_backend_conf())
+        init_dict = dict(benchmark=self, batch=batch, scheduler_callbacks=scheduler_callbacks,
+                         backend_type=self.get_backend_type(), backend_conf=self.get_backend_conf())
+        copy_dict = self.batch_app_init_kwargs.copy()
+        copy_dict.update(init_dict)
+
+        batch_app = BenchmarkBatchApplication(**copy_dict)
         return batch_app
 
     @abc.abstractmethod
