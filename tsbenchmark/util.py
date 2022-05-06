@@ -1,5 +1,6 @@
 import os
 import requests
+from hyperts.utils import metrics
 
 
 class file_util:
@@ -75,3 +76,19 @@ class dict_util:
     @staticmethod
     def sub_dict(somedict, somekeys, default=None):
         return dict([(k, somedict.get(k, default)) for k in somekeys])
+
+
+def cal_task_metrics(y_pred, y_true, date_col_name, series_col_name, covariables, metrics_target, task_calc_score):
+    if series_col_name != None:
+        y_pred = y_pred[series_col_name]
+        y_true = y_true[series_col_name]
+
+    if date_col_name in y_pred.columns:
+        y_pred = y_pred.drop(columns=[date_col_name], axis=1)
+    if date_col_name in y_true.columns:
+        y_true = y_true.drop(columns=[date_col_name], axis=1)
+    if covariables != None:
+        y_true = y_true.drop(columns=[covariables], axis=1)
+    metrics_task = metrics.calc_score(y_true, y_pred,
+                                      metrics=metrics_target, task=task_calc_score)
+    return metrics_task

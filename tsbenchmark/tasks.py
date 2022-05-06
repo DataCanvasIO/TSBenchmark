@@ -1,4 +1,6 @@
 from pathlib import Path
+from tsbenchmark.util import cal_task_metrics
+import time
 
 PWD = Path(__file__).parent
 
@@ -29,6 +31,9 @@ class TSTask(TSTaskConfig):
         self.max_trails = max_trails
         self.reward_metric = reward_metric
         self.taskdata = task_config.taskdata
+        self.__start_time = time.time()
+        self.__end_time = None
+        self.__download_time = 0
         for k, v in task_config.__dict__.items():
             self.__dict__[k] = v
 
@@ -50,6 +55,23 @@ class TSTask(TSTaskConfig):
 
     def get_test(self):
         return self.taskdata.get_test()
+
+    def make_report_data(self, y_pred, *args):
+        self.__end_time = time.time()
+        default_metrics = ['smape', 'mape', 'rmse', 'mae']  # todo
+        target_metrics = default_metrics
+        task_metrics = cal_task_metrics(y_pred, self.get_test()[super.series_name], super.date_name,
+                                        super.series_name,
+                                        super.covariables_name, target_metrics, 'regression')
+
+        report_data = {
+            'duration': self.__end_time - self.__end_time - self.__download_time,
+            'y_predict': y_pred[super.series_name].to_json(orient='records')[1:-1].replace('},{', '} {'),
+            'y_real': self.get_test()[super.series_name].to_json(orient='records')[1:-1].replace('},{', '} {'),
+            'metrics': task_metrics,
+            'args': args
+        }
+        return report_data
 
 
 def get_task_config(task_id) -> TSTaskConfig:

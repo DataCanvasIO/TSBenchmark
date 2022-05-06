@@ -25,7 +25,6 @@ def _trail(Date_Col_Name, Series_Col_name, covariables, df_test, df_train, forma
 
     search_space = DLForecastSearchSpace(
         task=task, timestamp=Date_Col_Name,
-        # window=None, horizon=1,
         enable_deepar=True,
         enable_hybirdrnn=False,
         enable_lstnet=False,
@@ -53,5 +52,8 @@ def _trail(Date_Col_Name, Series_Col_name, covariables, df_test, df_train, forma
     X_test, y_test = model.split_X_y(df_test.copy())
     y_pred = model.predict(X_test)
     time2_end = time.time()
+    params = {}
+    params['run_kwargs']=exp.run_kwargs
+    params['report_best_trial_params'] = exp.report_best_trial_params()
 
-    return df_test, exp.run_kwargs, (time2_end - time2_start), y_pred
+    return df_test, params, (time2_end - time2_start), y_pred

@@ -1,7 +1,3 @@
-from typing import Dict
-
-from tsbenchmark.benchmark import LocalBenchmark, load_players
-from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.tasks import TSTask
 from tsbenchmark.reporter import Reporter
 from hypernets.utils import logging
@@ -14,12 +10,10 @@ from pathlib import Path
 import pytest
 
 from hypernets.hyperctl.appliation import BatchApplication
-from hypernets.hyperctl.batch import ShellJob
-from hypernets.tests.hyperctl.test_scheduler import assert_batch_finished
+
 from hypernets.utils import ssh_utils
 from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
-from tsbenchmark.players import load_player
 from tsbenchmark.tasks import TSTask
 from hypernets.tests.utils import ssh_utils_test
 
@@ -30,13 +24,24 @@ import tsbenchmark.tasks
 
 HERE = Path(__file__).parent
 
+
 def create_tasks_new():
     tasks = [TSTask(tsbenchmark.tasks.get_task_config(t_id), random_state=8086, max_trails=1, reward_metric='rmse') for
              t_id in [694826, 309496]]
     return tasks
 
 
-def create_benchmark_cfg():
+def create_benchmark_local_cfg():
+    benchmark_config = {'report.path': r'D:\文档\0 DAT\3 Benchmark\benchmark-output\hyperts',
+                        'name': 'report_local_1',
+                        'desc': 'report_local_1',
+                        'random_states': [8086],
+                        'task_filter.tasks': ['univariate-forecast']
+                        }
+    return benchmark_config
+
+
+def create_benchmark_remote_cfg():
     benchmark_config = {'report.path': '/tmp/report_path',
                         'name': 'report_remote',
                         'desc': 'report_remote',
@@ -79,7 +84,7 @@ def atest_benchmark_reporter():
                  t_id in [694826, 309496]]
 
     # Mock data for benchmark_config
-    benchmark_config = create_benchmark_cfg()
+    benchmark_config = create_benchmark_local_cfg()
     callbacks = [ReporterCallback(benchmark_config=benchmark_config)]
 
     lb = LocalBenchmark(name=benchmark_config['name'], desc=benchmark_config['desc'], players=players,
@@ -90,9 +95,10 @@ def atest_benchmark_reporter():
 
 
 def atest_reporter_generate():
-    benchmark_config = create_benchmark_cfg()
+    benchmark_config = create_benchmark_local_cfg()
     rc = ReporterCallback(benchmark_config=benchmark_config)
     rc.reporter.generate_report()
+
 
 def get_conda_home():
     return os.getenv("TSB_CONDA_HOME")
@@ -105,6 +111,7 @@ def _conda_ready():
     else:
         return False
 
+
 # export TSB_CONDA_HOME=/opt/miniconda3
 need_conda = pytest.mark.skipif(not _conda_ready(),
                                 reason='The test case need conda to be installed and set env "TSB_CONDA_HOME"')
@@ -115,10 +122,12 @@ need_private_pypi = pytest.mark.skipif(os.getenv("TSB_PYPI") is None,
 need_server_host = pytest.mark.skipif(os.getenv("TSB_SERVER_HOST") is None,
                                       reason='The test case need to set env "TSB_SERVER_HOST"')
 
+
 def create_task():
     task_config_id = 694826
     task_config = tsbenchmark.tasks.get_task_config(task_config_id)
     return task_config
+
 
 @ssh_utils_test.need_psw_auth_ssh
 @need_server_host
@@ -130,9 +139,10 @@ class TestRemoteCustomPythonBenchmark:
 
     def setup_class(self):
         self.connection = ssh_utils_test.load_ssh_psw_config()
-        players = load_players([(HERE / "players" / "hyperts_stat_player").as_posix(), (HERE / "players" / "hyperts_dl_player").as_posix()])
+        players = load_players([(HERE / "players" / "hyperts_stat_player").as_posix(),
+                                (HERE / "players" / "hyperts_dl_player").as_posix()])
         task0 = create_task()
-        benchmark_config = create_benchmark_cfg()
+        benchmark_config = create_benchmark_remote_cfg()
         rc = ReporterCallback(benchmark_config=benchmark_config)
         callbacks = [rc]
         self.working_dir_path = Path(tempfile.mkdtemp(prefix="benchmark-test-batches"))
