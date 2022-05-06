@@ -1,6 +1,6 @@
 import os
 import requests
-from hyperts.utils import metrics
+
 
 
 class file_util:
@@ -79,6 +79,7 @@ class dict_util:
 
 
 def cal_task_metrics(y_pred, y_true, date_col_name, series_col_name, covariables, metrics_target, task_calc_score):
+    from hyperts.utils import metrics
     if series_col_name != None:
         y_pred = y_pred[series_col_name]
         y_true = y_true[series_col_name]
