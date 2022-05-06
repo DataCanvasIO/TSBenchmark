@@ -78,13 +78,13 @@ class ReporterCallback(BenchmarkCallback):
 
 def atest_benchmark_reporter():
     # define players
-    players = load_players(['hyperts_dl_player', 'hyperts_stat_player'])
+    players = load_players([(HERE / "players" / "am_pyaf_player").as_posix()])
     task_list = [TSTask(tsbenchmark.tasks.get_task_config(t_id), random_state=8086, max_trails=1, reward_metric='rmse')
                  for
                  t_id in [694826, 309496]]
 
     # Mock data for benchmark_config
-    benchmark_config = create_benchmark_local_cfg()
+    benchmark_config = create_benchmark_remote_cfg()
     callbacks = [ReporterCallback(benchmark_config=benchmark_config)]
 
     lb = LocalBenchmark(name=benchmark_config['name'], desc=benchmark_config['desc'], players=players,
@@ -177,9 +177,6 @@ class TestRemoteCustomPythonBenchmark:
             assert ssh_utils.exists(client, job_working_dir_path.as_posix())
             # runpy.sh
             assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "runpy.sh").as_posix())
-            # # player
-            # assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "hyperts_dl_player" / "exec.py").as_posix())
-            # assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "hyperts_dl_player" / "player.yaml").as_posix())
 
     def teardown_class(self):
         self.lb.stop()
