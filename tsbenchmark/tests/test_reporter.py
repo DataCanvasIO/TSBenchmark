@@ -78,7 +78,7 @@ class ReporterCallback(BenchmarkCallback):
 
 def atest_benchmark_reporter():
     # define players
-    players = load_players([(HERE / "players" / "am_pyaf_player").as_posix()])
+    players = load_players([(HERE / "players" / "am_fedot_player").as_posix()])
     task_list = [TSTask(tsbenchmark.tasks.get_task_config(t_id), random_state=8086, max_trails=1, reward_metric='rmse')
                  for
                  t_id in [694826, 309496]]
