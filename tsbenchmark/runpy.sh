@@ -83,6 +83,12 @@ elif [ "$venv_kind" == "conda"   ]; then
     venv_dir="$conda_home/envs/$venv_name"
     py_exec="$venv_dir/bin/python"
 
+    # check conda executable
+    if [ ! -f $conda_exec ];then
+      echo "conda executable $conda_exec is not exists"  1>&2
+      exit -1
+    fi
+
     if [ -d $venv_dir ];then  # check env
       echo "venv dir $venv_dir already exists, skip to create"
     else
@@ -95,6 +101,10 @@ elif [ "$venv_kind" == "conda"   ]; then
         echo "env is not already exists, create it"
         # handle requirement.txt
         $conda_exec create -n $venv_name python=$requirements_txt_py_version -y
+        if [ ! -f $py_exec ];then
+          echo "python executable $py_exec is not exists, create virtual env failed."  1>&2
+          exit -1
+        fi
         pip_exec="$venv_dir/bin/pip"
         $pip_exec install tsbenchmark
         $pip_exec install -r $requirements_txt_file

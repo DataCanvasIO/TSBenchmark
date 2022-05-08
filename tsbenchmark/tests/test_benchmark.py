@@ -32,6 +32,10 @@ def _conda_ready():
         return False
 
 
+def get_custom_py_executable():
+    return os.getenv("TSB_CUSTOM_PY_EXECUTABLE")
+
+
 # export TSB_CONDA_HOME=/opt/miniconda3
 need_conda = pytest.mark.skipif(not _conda_ready(),
                                 reason='The test case need conda to be installed and set env "TSB_CONDA_HOME"')
@@ -41,6 +45,9 @@ need_private_pypi = pytest.mark.skipif(os.getenv("TSB_PYPI") is None,
 
 need_server_host = pytest.mark.skipif(os.getenv("TSB_SERVER_HOST") is None,
                                       reason='The test case need to set env "TSB_SERVER_HOST"')
+
+need_custom_py_executable = pytest.mark.skipif(get_custom_py_executable() is None,
+                                               reason='The test case need to set env "TSB_CUSTOM_PY_EXECUTABLE"')
 
 
 def create_task():
@@ -73,21 +80,28 @@ class ConsoleCallback(BenchmarkCallback):
 
 @ssh_utils_test.need_psw_auth_ssh
 @need_server_host
+@need_custom_py_executable
 class TestRemoteCustomPythonBenchmark:
-    """Benchmark with constraints:
+    """
+    Benchmark with constraints:
         - remote benchmark
         - custom python
+
+    Requirements in custom_python:
+        - hypernets
+        - tsbenchmark
     """
 
     def setup_class(self):
         self.connection = ssh_utils_test.load_ssh_psw_config()
-        players = load_players([(HERE / "players" / "plain_player_custom_python").as_posix()])
+        player = load_player((HERE / "players" / "plain_player_custom_python").as_posix())
+        player.env.venv_config.py_executable = get_custom_py_executable()
         task0 = create_task()
         callbacks = [ConsoleCallback()]
         self.working_dir_path = Path(tempfile.mkdtemp(prefix="benchmark-test-batches"))
         self.benchmark_name = 'remote-benchmark'
 
-        lb = RemoteSSHBenchmark(name=self.benchmark_name, desc='desc', players=players,
+        lb = RemoteSSHBenchmark(name=self.benchmark_name, desc='desc', players=[player],
                                 random_states=[8060], ts_tasks_config=[task0],
                                 working_dir=self.working_dir_path.as_posix(),
                                 scheduler_exit_on_finish=True,
@@ -141,7 +155,8 @@ class TestRemoteCondaReqsTxtPlayerBenchmark:
                                 random_states=[8061], ts_tasks_config=[task0],
                                 working_dir=batches_data_dir,
                                 scheduler_exit_on_finish=True,
-                                conda_home="~/miniconda3/",
+                                conda_home=get_conda_home(),
+                                server_host=os.getenv('TSB_SERVER_HOST'),  # external ip
                                 constraints={}, callbacks=callbacks,
                                 machines=machines)
         self.lb = lb
@@ -175,7 +190,6 @@ class BaseLocalBenchmark:
 class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
     """Benchmark with constraints:
         - local benchmark
-        - builtin players
         - custom python
     """
 
