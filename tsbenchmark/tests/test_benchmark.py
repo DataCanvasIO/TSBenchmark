@@ -141,7 +141,8 @@ class TestRemoteCondaReqsTxtPlayerBenchmark:
                                 random_states=[8061], ts_tasks_config=[task0],
                                 working_dir=batches_data_dir,
                                 scheduler_exit_on_finish=True,
-                                conda_home="~/miniconda3/",
+                                conda_home=get_conda_home(),
+                                server_host=os.getenv('TSB_SERVER_HOST'),  # external ip
                                 constraints={}, callbacks=callbacks,
                                 machines=machines)
         self.lb = lb
