@@ -323,8 +323,9 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
             'machines': self.machines
         }
 
-    def make_run_requirements_requirements_txt_command(self, working_dir_path, player, player_exec_file):  # FIXME
+    def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
         remote_requirements_txt_file = (working_dir_path / "resources" / player.env.requirements.file_name).as_posix()
+        player_exec_file = (working_dir_path / "resources" / player.name / player.exec_file)
         command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind=conda  --conda-home={self.conda_home} --venv-name={player.env.venv_config.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
         return command
 

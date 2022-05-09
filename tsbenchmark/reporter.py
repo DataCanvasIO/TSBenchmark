@@ -231,7 +231,6 @@ class Analysis:
                                 'min',
                                 title_text='MIN duration')
 
-
     def report_calc_metric(self, results_datas, columns, players, report_dir, report_imgs_dir, metric, stat_type,
                            title_text=None):
         columns_report = columns + players
@@ -318,8 +317,8 @@ class Reporter():
     def save_results(self, message, bm_task):
         # todo missing_rate periods cv cv_folds run_times init_params ensemble best_model_params run_kwargs industry frequency
         cols_data_tmp = ['task_id', 'round_no', 'player', 'dataset', 'shape', 'data_size', 'task', 'horizon',
-                         'reward_metric',
-                         'metrics', 'duration', 'random_state', 'y_predict', 'y_real']
+                         'reward_metric', 'metrics', 'duration', 'random_state', 'y_predict', 'y_real', 'key_params',
+                         'best_params']
         data_df = pd.DataFrame(columns=cols_data_tmp)
         data_file = self.path_maintainer.data_file(bm_task)
         data = {'task_id': bm_task.ts_task.id,
@@ -336,6 +335,8 @@ class Reporter():
                 'random_state': bm_task.ts_task.random_state,
                 'y_predict': message['y_predict'],
                 'y_real': message['y_real'],
+                'key_params': message['key_params'],
+                'best_params': message['best_params']
                 }
 
         data_df = data_df.append(data, ignore_index=True)

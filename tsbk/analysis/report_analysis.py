@@ -26,7 +26,7 @@ def get_filelist(dir, Filelist):
 
 def gen_comparison_report(params):
     logger.info('gen_comparison_report=======')
-    for task in params.ts_tasks_config:
+    for task in params.tasks:
         columns = ['dataset', 'shape', 'horizon']
         compare_reports_dirs = params.compare_reports_dirs(task)
 

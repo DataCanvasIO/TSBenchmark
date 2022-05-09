@@ -49,6 +49,10 @@ def trail_forecast(Date_Col_Name, Series_Col_name, covariables, df_test, df_trai
     y_pred = model.predict(df_test)
     time2_end = time.time()
 
-    return df_test, exp.run_kwargs, (time2_end - time2_start), y_pred
+    params = {}
+    params['run_kwargs'] = exp.run_kwargs
+    params['report_best_trial_params'] = exp.report_best_trial_params()
+
+    return df_test, params, (time2_end - time2_start), y_pred
 
 # run(types, data_sizes, trail)

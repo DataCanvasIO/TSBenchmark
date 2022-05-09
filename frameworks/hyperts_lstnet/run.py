@@ -1,26 +1,34 @@
 # Loading the package
 from utils.util import convertdf
 import time
+from hyperts.framework.search_space.macro_search_space import DLForecastSearchSpace
 
 task_trail = 'forecast'
 
 
 def trail(df_train, df_test, Date_Col_Name, Series_Col_name, forecast_length, format, task, metric, covariables,
-          max_trials, random_state,reward_metric):
+          max_trials, random_state, reward_metric):
     y_test, run_kwargs, time_cost, y_pred = _trail(Date_Col_Name, Series_Col_name, covariables,
-                                                   df_test, df_train, format, metric, task_trail,
-                                                   max_trials, random_state,reward_metric)
+                                                   df_test, df_train, format, metric, task,
+                                                   max_trials, random_state, reward_metric)
 
     return y_pred, run_kwargs
 
 
 def _trail(Date_Col_Name, Series_Col_name, covariables, df_test, df_train, format, metric, task, max_trials,
-           random_state,reward_metric):
+           random_state, reward_metric):
     df_train, df_test = convertdf(df_train, df_test, Date_Col_Name, Series_Col_name, covariables, format)
     time2_start = time.time()
     from hyperts.experiment import make_experiment
 
     train_df = df_train.copy(deep=True)
+
+    search_space = DLForecastSearchSpace(
+        task=task, timestamp=Date_Col_Name,
+        enable_deepar=False,
+        enable_hybirdrnn=False,
+        enable_lstnet=True,
+    )
 
     exp = make_experiment(train_df,
                           mode='dl',
@@ -36,7 +44,8 @@ def _trail(Date_Col_Name, Series_Col_name, covariables, df_test, df_train, forma
                           early_stopping_rounds=30,
                           early_stopping_time_limit=0,
                           random_state=random_state,
-                          dl_gpu_usage_strategy=1
+                          dl_gpu_usage_strategy=1,
+                          search_space=search_space
                           )
 
     model = exp.run()
@@ -45,7 +54,7 @@ def _trail(Date_Col_Name, Series_Col_name, covariables, df_test, df_train, forma
     time2_end = time.time()
 
     params = {}
-    params['run_kwargs']=exp.run_kwargs
+    params['run_kwargs'] = exp.run_kwargs
     params['report_best_trial_params'] = exp.report_best_trial_params()
 
     return df_test, params, (time2_end - time2_start), y_pred

@@ -1,4 +1,7 @@
 from pathlib import Path
+from tsbenchmark.util import cal_task_metrics
+import time
+import json
 
 PWD = Path(__file__).parent
 
@@ -29,6 +32,11 @@ class TSTask(TSTaskConfig):
         self.max_trails = max_trails
         self.reward_metric = reward_metric
         self.taskdata = task_config.taskdata
+        self.__start_time = time.time()
+        self.__end_time = None
+        self.__download_time = 0
+        self.__train = None
+        self.__test = None
         for k, v in task_config.__dict__.items():
             self.__dict__[k] = v
 
@@ -46,10 +54,48 @@ class TSTask(TSTaskConfig):
         return self.taskdata.get_train(), self.taskdata.get_test()
 
     def get_train(self):
-        return self.taskdata.get_train()
+        if self.__train is None:
+            self.__train = self.taskdata.get_train()
+        return self.__train
 
     def get_test(self):
-        return self.taskdata.get_test()
+        if self.__test is None:
+            self.__test = self.taskdata.get_test()
+        return self.__test
+
+    def make_report_data(self, y_pred, key_params='', best_params=''):
+        """Prepare report data.
+
+        Args:
+            y_pred: pandas dataframe, required, The predicted values by the players.
+            key_params: str, optional, The params which user want to save to the report datas.
+            best_params: str, optional, The best model's params, for automl, there are many models will be trained.
+                         If user want to save the best params, user may assign the best_params.
+
+        Returns:
+            The report data which can be call by tsb.api.report_task.
+        ------------------------------------------------------------------------------------------------------------
+        Description:
+            When develop a new play locally, this method will help user validate the predicted and params.
+
+        """
+        # todo validate
+        self.__end_time = time.time()
+        default_metrics = ['smape', 'mape', 'rmse', 'mae']  # todo
+        target_metrics = default_metrics
+        task_metrics = cal_task_metrics(y_pred, self.get_test()[self.series_name], self.date_name,
+                                        self.series_name,
+                                        self.covariables_name, target_metrics, 'regression')
+
+        report_data = {
+            'duration': self.__end_time - self.__end_time - self.__download_time,
+            'y_predict': y_pred[self.series_name].to_json(orient='records')[1:-1].replace('},{', '} {'),
+            'y_real': self.get_test()[self.series_name].to_json(orient='records')[1:-1].replace('},{', '} {'),
+            'metrics': task_metrics,
+            'key_params': key_params,
+            'best_params': best_params
+        }
+        return report_data
 
 
 def get_task_config(task_id) -> TSTaskConfig:
