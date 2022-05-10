@@ -296,3 +296,23 @@ class TestRunBasePreviousBatch:
     def teardown_class(self):
         self.bc2._batch_app._http_server.stop()
 
+
+def create_tasks():
+    t1 = tsbenchmark.tasks.get_task_config(694826)
+    t2 = tsbenchmark.tasks.get_task_config(890686)
+    return [t1, t2]
+
+
+def test_2_tasks():
+    player = load_test_player('plain_player_custom_python')
+    tasks = create_tasks()
+
+    callbacks = [ConsoleCallback()]
+    batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
+    lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[player],
+                        random_states=[8086], ts_tasks_config=tasks,
+                        working_dir=batches_data_dir,
+                        batch_app_init_kwargs=dict(scheduler_interval=1, scheduler_exit_on_finish=True,
+                                                   server_port=8898),
+                        constraints={}, callbacks=callbacks)
+    lb.run()

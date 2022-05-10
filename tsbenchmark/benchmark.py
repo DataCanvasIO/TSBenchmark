@@ -152,7 +152,8 @@ class HyperctlBatchCallback(BatchCallback):
         pass
 
     def on_finish(self, batch, elapsed: float):
-        pass
+        for callback in self.bm.callbacks:
+            callback.on_finish(self)
 
 
 class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
@@ -220,10 +221,6 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         for callback in self.callbacks:
             callback.on_start(self)
 
-    def _handle_on_finish(self):
-        for callback in self.callbacks:
-            callback.on_finish(self)
-
     def run(self):
         self._handle_on_start()  # callback start
         self._tasks = []
@@ -247,8 +244,6 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 
         self._batch_app = self.create_batch_app(batch)
         self._batch_app.start()
-
-        self._handle_on_finish()  # FIXME if exit_on_finish=False
 
     def stop(self):
         self._batch_app.stop()
