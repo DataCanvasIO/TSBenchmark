@@ -57,7 +57,8 @@ class TestAPI:
 
         lb = LocalBenchmark(name='name', desc='desc', players=players,
                             random_states=[random_state], ts_tasks_config=[task_config],
-                            constraints={}, scheduler_exit_on_finish=False,
+                            batch_app_init_kwargs=dict(scheduler_exit_on_finish=False),
+                            constraints={},
                             callbacks=[PlainCallback()])
 
         self.runner = BenchmarkRunner(lb)
