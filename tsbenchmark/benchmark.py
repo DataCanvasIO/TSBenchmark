@@ -283,14 +283,14 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
         player_exec_file_path = bm_task.player.abs_exec_file_path()
         player_exec_file = player_exec_file_path.as_posix()
 
-        custom_py_executable = bm_task.player.env.venv_config.py_executable
+        custom_py_executable = bm_task.player.env.venv.py_executable
         command = f"/bin/sh -x {self.get_runpy_shell()}  --venv-kind={PythonEnv.KIND_CUSTOM_PYTHON} --custom-py-executable={custom_py_executable} --python-script={player_exec_file}"
         return command
 
     def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
         local_requirements_txt_file = player.base_dir_path / player.env.requirements.file_name
         player_exec_file = player.abs_exec_file_path().as_posix()
-        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} --venv-name={player.env.venv_config.name} --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} --requirements-txt-file={local_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
+        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} --venv-name={player.env.venv.name} --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} --requirements-txt-file={local_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
         return command
 
     def get_runpy_shell(self):
@@ -321,7 +321,7 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
     def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
         remote_requirements_txt_file = (working_dir_path / "resources" / player.env.requirements.file_name).as_posix()
         player_exec_file = (working_dir_path / "resources" / player.name / player.exec_file)
-        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind=conda  --conda-home={self.conda_home} --venv-name={player.env.venv_config.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
+        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind=conda  --conda-home={self.conda_home} --venv-name={player.env.venv.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
         return command
 
     def get_runpy_shell(self):
@@ -335,7 +335,7 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
         player = bm_task.player
         working_dir_path = batch.data_dir_path() / name
         remote_player_exec_file = (working_dir_path / "resources" / player.name / player.exec_file).as_posix()
-        custom_py_executable = bm_task.player.env.venv_config.py_executable
+        custom_py_executable = bm_task.player.env.venv.py_executable
         command = f"/bin/sh -x {self.get_runpy_shell()}  --venv-kind={PythonEnv.KIND_CUSTOM_PYTHON} --custom-py-executable={custom_py_executable} --python-script={remote_player_exec_file}"
         return command
 

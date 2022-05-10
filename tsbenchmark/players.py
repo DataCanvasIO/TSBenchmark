@@ -53,8 +53,8 @@ class ReqsCondaYamlConfig(BaseReqsConfig):
 
 class PythonEnv:
 
-    def __init__(self, venv_config: BaseMRGConfig, requirements: BaseReqsConfig):
-        self.venv_config = venv_config
+    def __init__(self, venv: BaseMRGConfig, requirements: BaseReqsConfig):
+        self.venv = venv
         self.requirements = requirements
 
     KIND_CUSTOM_PYTHON = 'custom_python'
@@ -65,12 +65,12 @@ class PythonEnv:
 
     @property
     def venv_kind(self):
-        if isinstance(self.venv_config,  CondaVenvMRGConfig):
+        if isinstance(self.venv, CondaVenvMRGConfig):
             return PythonEnv.KIND_CONDA
-        elif isinstance(self.venv_config,  CustomPyMRGConfig):
+        elif isinstance(self.venv, CustomPyMRGConfig):
             return PythonEnv.KIND_CUSTOM_PYTHON
         else:
-            raise ValueError(f"unknown venv manager {self.venv_config}")
+            raise ValueError(f"unknown venv manager {self.venv}")
 
     @property
     def reqs_kind(self):
@@ -79,7 +79,7 @@ class PythonEnv:
         elif isinstance(self.requirements,  ReqsCondaYamlConfig):
             return PythonEnv.REQUIREMENTS_CONDA_YAML
         else:
-            raise ValueError(f"unknown requirements config {self.venv_config}")
+            raise ValueError(f"unknown requirements config {self.venv}")
 
 
 class Player:
@@ -130,9 +130,9 @@ def load_player(folder):
     # PythonEnv(**play_dict['env'])
     env_dict = play_dict['env']
 
-    env_mgr_dict = env_dict.get('mgr')
-    env_mgr_kind = env_mgr_dict['kind']
-    env_mgr_config = env_mgr_dict.get('config', {})
+    env_venv_dict = env_dict.get('venv')
+    env_mgr_kind = env_venv_dict['kind']
+    env_mgr_config = env_venv_dict.get('config', {})
 
     player_name = folder_path.name
     if env_mgr_kind == PythonEnv.KIND_CONDA:
@@ -157,7 +157,7 @@ def load_player(folder):
     else:
         raise Exception(f"Unsupported env manager {env_mgr_kind}")
 
-    play_dict['env'] = PythonEnv(venv_config=mgr_config, requirements=reqs_config)
+    play_dict['env'] = PythonEnv(venv=mgr_config, requirements=reqs_config)
     play_dict['base_dir'] = Path(folder).absolute().as_posix()
     return Player(**play_dict)
 
