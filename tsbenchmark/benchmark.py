@@ -1,5 +1,6 @@
 import abc
 import os
+import random
 from pathlib import Path
 import yaml, os
 from typing import List
@@ -340,39 +341,82 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
         return command
 
 
-def load(config_file):
+def load_benchmark(config_file: str):
     config_dict = load_yaml(config_file)
     name = config_dict['name']
-    desc = config_dict['desc']
-    kind = config_dict.get('kind', 'local')  # benchmark kind
+    desc = config_dict.get('desc', '')
+    kind = config_dict.get('kind', 'local')
+    assert kind in ['local', 'remote']
+
+    # select datasets and tasks
+    datasets_config = config_dict.get('datasets', {})
+    datasets_config_cache_path = config_dict.get('cache_path', "~/.cache/tsbenchmark/datasets")  # TODO
+    datasets_filter_config = datasets_config.get('filter', {})
+    datasets_filter_tasks = datasets_filter_config.get('tasks')
+    if datasets_filter_tasks is not None and len(datasets_filter_tasks) > 0: # TODO
+        datasets_filter_tasks = datasets_filter_tasks[0]
+
+    datasets_filter_data_sizes = datasets_filter_config.get('data_sizes')
+    if datasets_filter_data_sizes is not None and len(datasets_filter_data_sizes) > 0: # TODO
+        datasets_filter_data_sizes = datasets_filter_data_sizes[0]
+
+    datasets_filter_data_ids = datasets_filter_config.get('ids')
+
+    selected_task_ids = tsbenchmark.tasks.list_task_configs(type=datasets_filter_tasks,
+                                                            data_size=datasets_filter_data_sizes,
+                                                            ids=datasets_filter_data_ids)
+    assert selected_task_ids is not None and len(selected_task_ids) > 0, "no task selected"
 
     # load players
     players_name_or_path = config_dict.get('players')
     players = load_players(players_name_or_path)
+    assert players is not None and len(players) > 0, "no players selected"
 
-    # select tasks
-    tasks_ids = config_dict.get('tasks')  # Optional
-    task_filter = config_dict.get('task_filter')
-    if tasks_ids is None:
-        if task_filter is None:
-            # select all tasks
-            tasks = tsbenchmark.tasks.list_task_configs()  # TODO to ids
-        else:
-            # filter task
-            tasks = tsbenchmark.tasks.list_task_configs(**task_filter)
-    else:
-        tasks = tasks_ids
+    # random_states
+    random_states = config_dict.get('random_states')
+    if random_states is None or len(random_states) < 1:
+        n_random_states = config_dict.get('n_random_states', 3)
+        random_states = [random.Random().randint(1000, 10000) for i in range(n_random_states)]
 
+    # constraints
     constraints = config_dict.get('constraints')
-    report = config_dict['report']  # TODO add a callback
+
+    # report
+    report = config_dict.get('report', {})
+    report_path = report.get('path', '~/benchmark-output/hyperts')
+    task_types = list(set(tsbenchmark.tasks.get_task_config(t).task for t in selected_task_ids))
+
+    from tsbenchmark.tests.test_reporter import ReporterCallback  # TODO remove from tests
+    benchmark_config = {
+        'report.path': report_path,
+        'name': name,
+        'desc': desc,
+        'random_states': random_states,
+        'task_filter.tasks': task_types
+     }
+    callbacks = [ReporterCallback(benchmark_config=benchmark_config)]
+
+    # batch_application_config
+    batch_application_config = config_dict.get('batch_application_config', {})
+
+    # working_dir
+    working_dir = config_dict.get('working_dir', "~/tsbenchmark-data")
+
+    # venvs
+    conda_home = config_dict.get('venv', {}).get('conda', {}).get('home')
+
+    init_kwargs = dict(name=name, desc=desc, players=players, callbacks=callbacks,
+                       batch_app_init_kwargs=batch_application_config,
+                       working_dir=working_dir, random_states=random_states,
+                       conda_home=conda_home,
+                       tasks=selected_task_ids, constraints=constraints)
 
     if kind == 'local':
-        benchmark = LocalBenchmark(name=name, desc=desc, players=players, tasks=tasks, constraints=constraints)
+        benchmark = LocalBenchmark(**init_kwargs)
         return benchmark
     elif kind == 'remote':
         machines = config_dict['machines']
-        benchmark = RemoteSSHBenchmark(name=name, desc=desc, players=players,
-                                       ts_tasks=tasks, constraints=constraints, machines=machines)
+        benchmark = RemoteSSHBenchmark(**init_kwargs, machines=machines)
         return benchmark
     else:
         raise RuntimeError(f"Unseen kind {kind}")

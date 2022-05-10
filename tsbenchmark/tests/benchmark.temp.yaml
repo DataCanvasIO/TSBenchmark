@@ -1,13 +1,13 @@
-name: 'hyperts_release_0.1.0'
-desc: 'hyperts V0.1.0 release benchmark on 20220321'
+name: str, required
+desc: str, optional
 
-kind: remote
+kind: str, optional, one of remote,local; default is `local`
 
 players:
-  - hyperts_dl  # 内置players
+  - hyperts_dl
   - ./sourcecode/hyperts_stat/
 
-tasks:  # 与task_filter比优先级更高
+tasks:
   - 1
   - 2
   - 3
@@ -19,8 +19,8 @@ task_filter:
   data_sizes:
     - small
 
-rounds_per_framework: 5
 random_states: [ 23163,4,5318,9527,33179 ]
+n_random_states: int, optional, default is 3
 
 constraints:
   time_limit: 2h
@@ -32,13 +32,11 @@ report:
 datasets:
   cache_path: ~/.cache/tsbenchmark/datasets
 
-scheduler:
-    interval: 1
-    exit_on_finish: True
-
-server:
-  port: 8060
-  host: localhost
+batch_application_config:
+  server_port: 8060
+  server_host: localhost
+  scheduler_interval: 1
+  scheduler_exit_on_finish: True
 
 working_dir: /tmp/tsbenchmark-hyperctl
 
@@ -47,6 +45,6 @@ machines:
     username: hyperctl
     password: hyperctl
 
-envmgr:
-  conda:
-    home: ~/miniconda3/
+venv: dict,optional
+  conda: dict,optional
+    home: str, optional, it is required if the players use conda to prepare python env

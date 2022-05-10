@@ -1,0 +1,37 @@
+name: 'hyperts_release_0.1.0'
+desc: 'hyperts V0.1.0 release benchmark on 20220321'
+
+kind: local
+
+players:
+  - hyperts_dl_player
+  - tsbenchmark/tests/players/plain_player_requirements_txt
+
+datasets:
+  cache_path: ~/.cache/tsbenchmark/datasets
+  filter:
+    tasks:
+      - univariate-forecast
+      - multivariate-forecast
+
+random_states: [ 23163,4,5318,9527,33179 ]
+
+constraints:
+  time_limit: 2h
+  trials: 10
+
+report:
+  path: ~/benchmark-output/hyperts
+
+
+batch_application_config:
+  server_port: 8060
+  server_host: localhost
+  scheduler_interval: 1
+  scheduler_exit_on_finish: True
+
+working_dir: /tmp/tsbenchmark-hyperctl
+
+venv:
+  conda:
+    home: ~/miniconda3/

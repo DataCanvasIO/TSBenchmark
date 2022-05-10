@@ -124,10 +124,8 @@ def load_player(folder):
 
     play_dict = yaml.load(content, Loader=yaml.CLoader)
 
-    # exec_file, env: EnvSpec
-    play_dict['exec_file'] = "exec.py"  # TODO load exec.py from config
+    play_dict['exec_file'] = "exec.py"
 
-    # PythonEnv(**play_dict['env'])
     env_dict = play_dict['env']
 
     env_venv_dict = env_dict.get('venv')

@@ -10,7 +10,7 @@ from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.batch import ShellJob
 from hypernets.tests.hyperctl.test_scheduler import assert_batch_finished
 from hypernets.utils import ssh_utils
-from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
+from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark, load_benchmark
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.players import load_player
 from tsbenchmark.tasks import TSTask
@@ -19,7 +19,7 @@ from hypernets.tests.utils import ssh_utils_test
 import tsbenchmark.tasks
 from tsbenchmark.tests.players import load_test_player
 
-HERE = Path(__file__).parent
+PWD = Path(__file__).parent
 
 
 def get_conda_home():
@@ -99,7 +99,7 @@ class TestRemoteCustomPythonBenchmark:
 
     def setup_class(self):
         self.connection = ssh_utils_test.load_ssh_psw_config()
-        player = load_player((HERE / "players" / "plain_player_custom_python").as_posix())
+        player = load_player((PWD / "players" / "plain_player_custom_python").as_posix())
         player.env.venv.py_executable = get_custom_py_executable()
         task0 = create_task()
         callbacks = [ConsoleCallback()]
@@ -150,7 +150,7 @@ class TestRemoteCustomPythonBenchmark:
 class TestRemoteCondaReqsTxtPlayerBenchmark:
     def setup_class(self):
         # define players
-        players = load_players([(HERE / "players" / "plain_player_requirements_txt").as_posix()])
+        players = load_players([(PWD / "players" / "plain_player_requirements_txt").as_posix()])
         task0 = create_task()
 
         callbacks = [ConsoleCallback()]
@@ -354,3 +354,34 @@ def test_2_tasks():
                                                    server_port=8898),
                         constraints={}, callbacks=callbacks)
     lb.run()
+
+
+class TestLoadBenchmark:
+
+    def assert_benchmark(self, benchmark):
+        assert benchmark.desc == "'hyperts V0.1.0 release benchmark on 20220321'"
+        assert len(benchmark.random_states) == 4
+        assert benchmark.conda_home == "~/miniconda3/"
+        assert benchmark.batch_app.scheduler.interval == 1
+        assert benchmark.batch_app.scheduler.exit_on_finish == True
+        assert benchmark.batch_app.http_server.port == 8060
+        assert benchmark.batch_app.http_server.host == "localhost"
+        assert benchmark.working_dir == "/tmp/tsbenchmark-hyperctl"
+        assert benchmark.conda_home == "~/miniconda3/"
+
+        assert set([p.name for p in benchmark.players]) == {'hyperts_dl', 'plain_player_requirements_txt'}
+        assert len(benchmark.tasks()) > 0
+
+    def test_load_local(self):
+        local_benchmark_example = PWD / "benchmark_example_local.yaml"
+        benchmark = load_benchmark(local_benchmark_example.as_posix())
+        assert benchmark.name == "local"
+        assert isinstance(benchmark, LocalBenchmark)
+        self.assert_benchmark(benchmark)
+
+    def atest_load_remote(self):
+        local_benchmark_example = PWD / "benchmark_example_remote.yaml"
+        benchmark = load_benchmark(local_benchmark_example.as_posix())
+        assert benchmark.name == "local"
+        assert isinstance(benchmark, LocalBenchmark)
+        self.assert_benchmark(benchmark)
