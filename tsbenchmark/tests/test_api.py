@@ -7,7 +7,9 @@ import tsbenchmark.tasks
 from tsbenchmark import api
 from tsbenchmark.benchmark import LocalBenchmark, load_players, Benchmark
 from tsbenchmark.callbacks import BenchmarkCallback
+from tsbenchmark.players import load_player
 from tsbenchmark.tasks import TSTask
+from tsbenchmark.tests.players import load_test_player
 
 
 class BenchmarkRunner(threading.Thread):
@@ -52,10 +54,11 @@ class TestAPI:
         os.environ['HYPERCTL_JOB_NAME'] = self.bm_task_id
         os.environ['HYPERCTL_SERVER_PORTAL'] = self.api_server_url
 
-        players = load_players(['plain_player'])
+        player = load_test_player("plain_player_requirements_txt")
+
         task_config = tsbenchmark.tasks.get_task_config(task_config_id)
 
-        lb = LocalBenchmark(name='name', desc='desc', players=players,
+        lb = LocalBenchmark(name='name', desc='desc', players=[player],
                             random_states=[random_state], ts_tasks_config=[task_config],
                             batch_app_init_kwargs=dict(scheduler_exit_on_finish=False),
                             constraints={},

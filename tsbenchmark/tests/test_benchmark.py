@@ -16,6 +16,7 @@ from tsbenchmark.tasks import TSTask
 from hypernets.tests.utils import ssh_utils_test
 
 import tsbenchmark.tasks
+from tsbenchmark.tests.players import load_test_player
 
 HERE = Path(__file__).parent
 
@@ -201,13 +202,13 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
 
     def setup_class(self):
         # define players
-        players = load_players(['plain_player'])
+        player = load_test_player('plain_player_requirements_txt')
         task0 = create_task()
 
         callbacks = [ConsoleCallback()]
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
 
-        lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
+        lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[player],
                             random_states=[DEFAULT_RANDOM_STATE], ts_tasks_config=[task0],
                             batch_app_init_kwargs=dict(scheduler_exit_on_finish=True, server_port=8062),
                             working_dir=batches_data_dir,
@@ -227,7 +228,7 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
 class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
     def test_run_benchmark(self):
         # define players
-        player = load_player((HERE / "players" / "plain_player_requirements_txt").as_posix())
+        player = load_test_player('plain_player_requirements_txt')
         conda_home = get_conda_home()
         self.env_dir_path = Path(conda_home) / "envs" / player.env.venv_config.name
         if self.env_dir_path.exists():
@@ -256,33 +257,42 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
         self.lb.stop()
 
 
-def create_local_benchmark(port):
-    players = load_players(['plain_player'])
-    task0 = create_task()
+class TestRunBasePreviousBatch:
 
-    callbacks = [ConsoleCallback()]
-    batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
-    lb = LocalBenchmark(name='local-benchmark', desc='desc', players=players,
-                        random_states=[DEFAULT_RANDOM_STATE], ts_tasks_config=[task0],
-                        working_dir=batches_data_dir,
-                        batch_app_init_kwargs=dict(scheduler_interval=1, scheduler_exit_on_finish=True,
-                                                   server_port=port),
-                        constraints={}, callbacks=callbacks)
-    return lb
+    @staticmethod
+    def create_local_benchmark(port):
+        player = load_test_player('plain_player_requirements_txt')
+        task0 = create_task()
 
+        callbacks = [ConsoleCallback()]
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
+        lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[player],
+                            random_states=[DEFAULT_RANDOM_STATE], ts_tasks_config=[task0],
+                            working_dir=batches_data_dir,
+                            batch_app_init_kwargs=dict(scheduler_interval=1, scheduler_exit_on_finish=True,
+                                                       server_port=port),
+                            constraints={}, callbacks=callbacks)
+        return lb
 
-def atest_run_base_previous_batch():
-    bc1 = create_local_benchmark(8064)
-    bc1.run()
-    bc1._batch_app._http_server.stop()
+    def setup_class(self):
+        base_bc = self.create_local_benchmark(8064)
+        base_bc.run()
+        base_bc._batch_app._http_server.stop()
+        self.base_bc = base_bc
 
-    bc2 = create_local_benchmark(8065)
-    bc2.run()
-    bc2._batch_app._http_server.stop()
+        bc2 = self.create_local_benchmark(8065)
+        self.bc2 = bc2
 
-    ba1 = bc1._batch_app.batch
-    ba2 = bc2._batch_app.batch
+    def test_run_base_previous_batch(self):
+        bc2 = self.bc2
+        bc2.run()
+        ba1 = self.base_bc._batch_app.batch
+        ba2 = bc2._batch_app.batch
 
-    assert ba1.name == ba2.name
-    assert len(ba1.jobs) == len(ba2.jobs)
-    assert set([_.name for _ in ba1.jobs]) == set([_.name for _ in ba2.jobs])
+        assert ba1.name == ba2.name
+        assert len(ba1.jobs) == len(ba2.jobs)
+        assert set([_.name for _ in ba1.jobs]) == set([_.name for _ in ba2.jobs])
+
+    def teardown_class(self):
+        self.bc2._batch_app._http_server.stop()
+

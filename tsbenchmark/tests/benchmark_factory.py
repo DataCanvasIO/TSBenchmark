@@ -4,6 +4,7 @@ from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchma
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.datasets import TSDataset
 from tsbenchmark.tasks import TSTask, TSTaskConfig
+from tsbenchmark.tests.players import load_test_player
 
 
 class NetworkTrafficMockDataset(TSDataset):
@@ -60,13 +61,10 @@ class ConsoleCallback(BenchmarkCallback):
 
 def create_minimal_local_benchmark():
     # define players
-    players = load_players(['plain_player'])
+    player = load_test_player("plain_player_requirements_txt")
     task0 = create_task()
-
     callbacks = [ConsoleCallback()]
-
-    lb = LocalBenchmark(name='name', desc='desc', players=players,
+    lb = LocalBenchmark(name='name', desc='desc', players=[player],
                         random_states=[8086], ts_tasks_config=[task0], scheduler_exit_on_finish=True,
                         constraints={}, callbacks=callbacks)
     return lb
-
