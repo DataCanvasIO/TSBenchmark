@@ -7,17 +7,6 @@ players:
   - hyperts_dl
   - ./sourcecode/hyperts_stat/
 
-tasks:
-  - 1
-  - 2
-  - 3
-
-task_filter:
-  tasks:
-    - univariate-forecast
-    - multivariate-forecast
-  data_sizes:
-    - small
 
 random_states: [ 23163,4,5318,9527,33179 ]
 n_random_states: int, optional, default is 3
@@ -31,6 +20,16 @@ report:
 
 datasets:
   cache_path: ~/.cache/tsbenchmark/datasets
+  filter:
+    tasks:
+      - univariate-forecast
+      - multivariate-forecast
+    data_sizes:
+      - small
+    ids:
+      - 1
+      - 2
+      - 3
 
 batch_application_config:
   server_port: 8060

@@ -84,7 +84,6 @@ class Benchmark(metaclass=abc.ABCMeta):
         else:
             self.conda_home = conda_home
 
-
         self._tasks = None
 
     def tasks(self):
@@ -353,12 +352,8 @@ def load_benchmark(config_file: str):
     datasets_config_cache_path = config_dict.get('cache_path', "~/.cache/tsbenchmark/datasets")  # TODO
     datasets_filter_config = datasets_config.get('filter', {})
     datasets_filter_tasks = datasets_filter_config.get('tasks')
-    if datasets_filter_tasks is not None and len(datasets_filter_tasks) > 0: # TODO
-        datasets_filter_tasks = datasets_filter_tasks[0]
 
     datasets_filter_data_sizes = datasets_filter_config.get('data_sizes')
-    if datasets_filter_data_sizes is not None and len(datasets_filter_data_sizes) > 0: # TODO
-        datasets_filter_data_sizes = datasets_filter_data_sizes[0]
 
     datasets_filter_data_ids = datasets_filter_config.get('ids')
 
@@ -392,7 +387,7 @@ def load_benchmark(config_file: str):
         'name': name,
         'desc': desc,
         'random_states': random_states,
-        'task_filter.tasks': task_types
+        'task_filter.tasks': task_types  # TODO user specify
      }
     callbacks = [ReporterCallback(benchmark_config=benchmark_config)]
 
@@ -409,7 +404,7 @@ def load_benchmark(config_file: str):
                        batch_app_init_kwargs=batch_application_config,
                        working_dir=working_dir, random_states=random_states,
                        conda_home=conda_home,
-                       tasks=selected_task_ids, constraints=constraints)
+                       ts_tasks_config=selected_task_ids, constraints=constraints)
 
     if kind == 'local':
         benchmark = LocalBenchmark(**init_kwargs)

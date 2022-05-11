@@ -1,4 +1,4 @@
-name: 'hyperts_release_0.1.0'
+name: 'benchmark_example_local'
 desc: 'hyperts V0.1.0 release benchmark on 20220321'
 
 kind: local
@@ -9,10 +9,6 @@ players:
 
 datasets:
   cache_path: ~/.cache/tsbenchmark/datasets
-  filter:
-    tasks:
-      - univariate-forecast
-      - multivariate-forecast
 
 random_states: [ 23163,4,5318,9527,33179 ]
 
