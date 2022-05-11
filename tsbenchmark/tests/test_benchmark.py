@@ -369,7 +369,7 @@ class TestLoadBenchmark:
 
         assert batch_app_init_kwargs['server_port'] == 8060
         assert batch_app_init_kwargs['server_host'] == "localhost"
-
+        assert benchmark.task_constraints == {"trials": 10, "reward_metric": "rmse"}
         assert benchmark.working_dir == "/tmp/tsbenchmark-hyperctl"
         assert benchmark.conda_home == "~/miniconda3/"
 

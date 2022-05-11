@@ -13,9 +13,9 @@ datasets:
 n_random_states: 5
 
 constraints:
-  time_limit: 2h
   task:
     trials: 10
+    reward_metric: rmse
 
 report:
   path:  ~/benchmark-output/hyperts

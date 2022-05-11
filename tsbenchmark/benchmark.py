@@ -61,14 +61,14 @@ class EnvMGR:
 class Benchmark(metaclass=abc.ABCMeta):
 
     def __init__(self, name, desc, players, ts_tasks_config: List[TSTaskConfig], random_states: List[int],
-                 constraints, conda_home=None, working_dir=None, callbacks: List[BenchmarkCallback] = None):
+                 task_constraints, conda_home=None, working_dir=None, callbacks: List[BenchmarkCallback] = None):
 
         self.name = name
         self.desc = desc
         self.players: List[Player] = players
         self.ts_tasks_config = ts_tasks_config
         self.random_states = random_states
-        self.constraints = constraints
+        self.task_constraints = {} if task_constraints is None else task_constraints
         self.callbacks = callbacks if callbacks is not None else []
 
         if working_dir is None:
@@ -184,9 +184,8 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         player: Player = bm_task.player
         random_state = bm_task.ts_task.random_state
         name = f'{player.name}_{task_id}_{random_state}'
-        # TODO handle max_trials and reward_metric
         job_params = JobParams(bm_task_id=bm_task.id, task_config_id=task_id,
-                               random_state=random_state, max_trails=3, reward_metric='rmse')
+                               random_state=random_state,  **self.task_constraints)
 
         # TODO support conda yaml
         # TODO support windows
@@ -374,7 +373,7 @@ def load_benchmark(config_file: str):
         random_states = [random.Random().randint(1000, 10000) for i in range(n_random_states)]
 
     # constraints
-    constraints = config_dict.get('constraints')
+    task_constraints = config_dict.get('constraints', {}).get('task')
 
     # report
     report = config_dict.get('report', {})
@@ -404,7 +403,7 @@ def load_benchmark(config_file: str):
                        batch_app_init_kwargs=batch_application_config,
                        working_dir=working_dir, random_states=random_states,
                        conda_home=conda_home,
-                       ts_tasks_config=selected_task_ids, constraints=constraints)
+                       ts_tasks_config=selected_task_ids, task_constraints=task_constraints)
 
     if kind == 'local':
         benchmark = LocalBenchmark(**init_kwargs)
