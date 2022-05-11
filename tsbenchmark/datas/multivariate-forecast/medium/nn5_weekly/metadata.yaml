@@ -1,12 +1,11 @@
 name: nn5_weekly
 metric: rmse
-series_name: datetime
-date_name: date
+date_name: datetime
 horizon: 8
 dtformat: '%Y-%m-%d'
 task: multivariate-forecast
-shape:  (105, 112)
-label:  Regular time series
+shape: (105, 112)
+label: Regular time series
 frequency: Week
 industry: finance
 source_type: monash

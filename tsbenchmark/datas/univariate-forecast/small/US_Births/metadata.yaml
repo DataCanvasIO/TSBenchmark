@@ -2,8 +2,6 @@ name: US Births Dataset
 metric: rmse
 date_name: date
 series_name: value
-#covariables_name: wd,dofw_1,dofw_2,dofw_3,dofw_4,dofw_5,dofw_6,type_Additional,type_Bridge,type_Event,type_Holiday,type_Transfer,type_Work Day
-#target_col_name: others
 horizon: 365
 dtformat: '%Y-%m-%d'
 task: univariate-forecast
