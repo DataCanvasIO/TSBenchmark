@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def save_metrics(metadata, metrics, time_cost, data_size,
-                 run_kwargs, result_file_path, framework, round_no, random_state):
+                 run_kwargs, result_file_path, framework, round_no, random_state, reward_metric):
     # metadata['missing_rate'] TODO
     # metadata['periods'] TODO
     # 'cv' TODO
@@ -42,7 +42,7 @@ def save_metrics(metadata, metrics, time_cost, data_size,
             'frequency': metadata['frequency'],
             'task': metadata['task'],
             'horizon': metadata['forecast_len'],
-            'metric': metadata['metric'],
+            'metric': reward_metric,
             'metric_score': round(metrics[metadata['metric']], 6),
             'metrics_scores': metrics,
             'duration': round(time_cost, 1),

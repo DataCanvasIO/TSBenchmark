@@ -135,7 +135,7 @@ class BenchmarkLocal(BenchmarkBase):
                                          metrics_target, task_calc_score)
 
                     save_metrics(metadata, metrics, time_cost, data_size,
-                                 run_kwargs, data_results_file, framework, round_no, random_state)
+                                 run_kwargs, data_results_file, framework, round_no, random_state, self.params.reward_metric)
                 except Exception:
                     traceback.print_exc()
                     logger.error('train error on {}'.format(train_file_path))
