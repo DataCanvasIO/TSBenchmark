@@ -2,6 +2,7 @@ from pathlib import Path
 from tsbenchmark.util import cal_task_metrics
 import time
 import json
+import pandas as pd
 
 PWD = Path(__file__).parent
 
@@ -63,7 +64,7 @@ class TSTask(TSTaskConfig):
             self.__test = self.taskdata.get_test()
         return self.__test
 
-    def make_report_data(self, y_pred, key_params='', best_params=''):
+    def make_report_data(self, y_pred: pd.DataFrame, key_params='', best_params=''):
         """Prepare report data.
 
         Args:

@@ -1,16 +1,16 @@
-launch_name: 'test_ampyaf'
+launch_name: 'hyperts_single_deep_1'
 launch_desc: 'hyperts V0.1.0 release benchmark on 20220321'
 benchmark_type: 'benchmark' # benchmark
-frameworks: [ 'hyperts_arima'  ] #  'hyperts_dl','hyperts_stat','navie', 'hyperts_stat'
+frameworks: [ 'hyperts_arima','hyperts_prophet','hyperts_var','hyperts_deepar','hyperts_hybirdrnn','hyperts_lstnet' ] #  'hyperts_dl','hyperts_stat','navie', 'hyperts_stat'
 tasks: [ 'univariate-forecast', 'multivariate-forecast' ] #  'univariate-forecast','multivariate-forecast'
 data_sizes: [ 'small' ] # 'small','medium','large'
 #white_list: [ 'nn5_weekly' ]
-reward_metric: 'rmse'
-random_states: [ 23163,4,5318 ]
+reward_metric: 'smape'
+#random_states: [ 23163,4,5318 ]
 
 env: dev
 data_path: D:\workspace\DAT\benchmark\hyperts\data\benchmark
 report_path: D:\文档\0 DAT\3 Benchmark\benchmark-output\hyperts
 max_trials: 1
 time_limit: 3600
-rounds_per_framework: 3
+rounds_per_framework: 1

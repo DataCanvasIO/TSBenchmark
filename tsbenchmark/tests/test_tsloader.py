@@ -9,9 +9,9 @@ dataloader = tsbenchmark.tsloader.TSDataSetLoader(data_path)
 
 class Test_TSDataSetLoader():
     def test_list(self):
-        assert len(dataloader.list()) == 4
+        assert len(dataloader.list()) == 3
 
-        assert len(dataloader.list(type='univariate-forecast')) == 3
+        assert len(dataloader.list(type='univariate-forecast')) == 2
 
         assert len(dataloader.list(data_size='medium')) == 1
 
@@ -38,9 +38,9 @@ taskdataloader = tsbenchmark.tsloader.TSTaskDataLoader(data_path)
 
 class Test_TSTaskDataLoader():
     def test_list(self):
-        assert len(taskdataloader.list()) == 8
+        assert len(taskdataloader.list()) == 3
 
-        assert len(taskdataloader.list(type='univariate-forecast')) == 7
+        assert len(taskdataloader.list(type='univariate-forecast')) == 2
 
         assert len(taskdataloader.list(data_size='medium')) == 1
 
@@ -60,8 +60,8 @@ taskloader = TSTaskLoader(data_path)
 
 class Test_TSTaskLoader():
     def test_config_list(self):
-        assert len(taskloader.list()) == 8
-        assert len(taskloader.list(type='univariate-forecast')) == 7
+        assert len(taskloader.list()) == 3
+        assert len(taskloader.list(type='univariate-forecast')) == 2
         assert len(taskloader.list(data_size='medium')) == 1
 
     def test_config_exists(self):
