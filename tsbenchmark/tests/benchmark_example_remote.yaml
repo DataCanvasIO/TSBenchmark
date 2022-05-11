@@ -1,0 +1,39 @@
+name: 'benchmark_example_remote'
+desc: 'hyperts V0.1.0 release benchmark on 20220321'
+
+kind: remote
+
+players:
+  - hyperts_dl_player
+  - tsbenchmark/tests/players/plain_player_requirements_txt
+
+datasets:
+  cache_path: ~/.cache/tsbenchmark/datasets
+
+n_random_states: 5
+
+constraints:
+  task:
+    trials: 10
+    reward_metric: rmse
+
+report:
+  path:  ~/benchmark-output/hyperts
+
+
+batch_application_config:
+  server_port: 8060
+  server_host: localhost
+  scheduler_interval: 1
+  scheduler_exit_on_finish: True
+
+working_dir: /tmp/tsbenchmark-hyperctl
+
+machines:
+  - hostname: host1
+    username: hyperctl
+    password: hyperctl
+
+venv:
+  conda:
+    home: ~/miniconda3/

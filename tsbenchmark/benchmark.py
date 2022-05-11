@@ -1,5 +1,6 @@
 import abc
 import os
+import random
 from pathlib import Path
 import yaml, os
 from typing import List
@@ -60,14 +61,14 @@ class EnvMGR:
 class Benchmark(metaclass=abc.ABCMeta):
 
     def __init__(self, name, desc, players, ts_tasks_config: List[TSTaskConfig], random_states: List[int],
-                 constraints, conda_home=None, working_dir=None, callbacks: List[BenchmarkCallback] = None):
+                 task_constraints=None, conda_home=None, working_dir=None, callbacks: List[BenchmarkCallback]=None):
 
         self.name = name
         self.desc = desc
         self.players: List[Player] = players
         self.ts_tasks_config = ts_tasks_config
         self.random_states = random_states
-        self.constraints = constraints
+        self.task_constraints = {} if task_constraints is None else task_constraints
         self.callbacks = callbacks if callbacks is not None else []
 
         if working_dir is None:
@@ -82,7 +83,6 @@ class Benchmark(metaclass=abc.ABCMeta):
                 raise ValueError(f"'conda_home' can not be None because of some player using conda virtual env.")
         else:
             self.conda_home = conda_home
-
 
         self._tasks = None
 
@@ -152,7 +152,8 @@ class HyperctlBatchCallback(BatchCallback):
         pass
 
     def on_finish(self, batch, elapsed: float):
-        pass
+        for callback in self.bm.callbacks:
+            callback.on_finish(self)
 
 
 class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
@@ -183,9 +184,8 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         player: Player = bm_task.player
         random_state = bm_task.ts_task.random_state
         name = f'{player.name}_{task_id}_{random_state}'
-        # TODO handle max_trials and reward_metric
         job_params = JobParams(bm_task_id=bm_task.id, task_config_id=task_id,
-                               random_state=random_state, max_trails=3, reward_metric='rmse')
+                               random_state=random_state,  **self.task_constraints)
 
         # TODO support conda yaml
         # TODO support windows
@@ -220,10 +220,6 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         for callback in self.callbacks:
             callback.on_start(self)
 
-    def _handle_on_finish(self):
-        for callback in self.callbacks:
-            callback.on_finish(self)
-
     def run(self):
         self._handle_on_start()  # callback start
         self._tasks = []
@@ -247,8 +243,6 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 
         self._batch_app = self.create_batch_app(batch)
         self._batch_app.start()
-
-        self._handle_on_finish()  # FIXME if exit_on_finish=False
 
     def stop(self):
         self._batch_app.stop()
@@ -288,14 +282,14 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
         player_exec_file_path = bm_task.player.abs_exec_file_path()
         player_exec_file = player_exec_file_path.as_posix()
 
-        custom_py_executable = bm_task.player.env.venv_config.py_executable
+        custom_py_executable = bm_task.player.env.venv.py_executable
         command = f"/bin/sh -x {self.get_runpy_shell()}  --venv-kind={PythonEnv.KIND_CUSTOM_PYTHON} --custom-py-executable={custom_py_executable} --python-script={player_exec_file}"
         return command
 
     def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
         local_requirements_txt_file = player.base_dir_path / player.env.requirements.file_name
         player_exec_file = player.abs_exec_file_path().as_posix()
-        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} --venv-name={player.env.venv_config.name} --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} --requirements-txt-file={local_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
+        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} --venv-name={player.env.venv.name} --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} --requirements-txt-file={local_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
         return command
 
     def get_runpy_shell(self):
@@ -326,7 +320,7 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
     def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
         remote_requirements_txt_file = (working_dir_path / "resources" / player.env.requirements.file_name).as_posix()
         player_exec_file = (working_dir_path / "resources" / player.name / player.exec_file)
-        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind=conda  --conda-home={self.conda_home} --venv-name={player.env.venv_config.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
+        command = f"/bin/sh -x {self.get_runpy_shell()} --venv-kind=conda  --conda-home={self.conda_home} --venv-name={player.env.venv.name} --requirements-kind=requirements_txt --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version} --python-script={player_exec_file}"
         return command
 
     def get_runpy_shell(self):
@@ -340,44 +334,83 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
         player = bm_task.player
         working_dir_path = batch.data_dir_path() / name
         remote_player_exec_file = (working_dir_path / "resources" / player.name / player.exec_file).as_posix()
-        custom_py_executable = bm_task.player.env.venv_config.py_executable
+        custom_py_executable = bm_task.player.env.venv.py_executable
         command = f"/bin/sh -x {self.get_runpy_shell()}  --venv-kind={PythonEnv.KIND_CUSTOM_PYTHON} --custom-py-executable={custom_py_executable} --python-script={remote_player_exec_file}"
         return command
 
 
-def load(config_file):
+def load_benchmark(config_file: str):
     config_dict = load_yaml(config_file)
     name = config_dict['name']
-    desc = config_dict['desc']
-    kind = config_dict.get('kind', 'local')  # benchmark kind
+    desc = config_dict.get('desc', '')
+    kind = config_dict.get('kind', 'local')
+    assert kind in ['local', 'remote']
+
+    # select datasets and tasks
+    datasets_config = config_dict.get('datasets', {})
+    datasets_config_cache_path = config_dict.get('cache_path', "~/.cache/tsbenchmark/datasets")  # TODO
+    datasets_filter_config = datasets_config.get('filter', {})
+    datasets_filter_tasks = datasets_filter_config.get('tasks')
+
+    datasets_filter_data_sizes = datasets_filter_config.get('data_sizes')
+
+    datasets_filter_data_ids = datasets_filter_config.get('ids')
+
+    selected_task_ids = tsbenchmark.tasks.list_task_configs(type=datasets_filter_tasks,
+                                                            data_size=datasets_filter_data_sizes,
+                                                            ids=datasets_filter_data_ids)
+    assert selected_task_ids is not None and len(selected_task_ids) > 0, "no task selected"
 
     # load players
     players_name_or_path = config_dict.get('players')
     players = load_players(players_name_or_path)
+    assert players is not None and len(players) > 0, "no players selected"
 
-    # select tasks
-    tasks_ids = config_dict.get('tasks')  # Optional
-    task_filter = config_dict.get('task_filter')
-    if tasks_ids is None:
-        if task_filter is None:
-            # select all tasks
-            tasks = tsbenchmark.tasks.list_task_configs()  # TODO to ids
-        else:
-            # filter task
-            tasks = tsbenchmark.tasks.list_task_configs(**task_filter)
-    else:
-        tasks = tasks_ids
+    # random_states
+    random_states = config_dict.get('random_states')
+    if random_states is None or len(random_states) < 1:
+        n_random_states = config_dict.get('n_random_states', 3)
+        random_states = [random.Random().randint(1000, 10000) for i in range(n_random_states)]
 
-    constraints = config_dict.get('constraints')
-    report = config_dict['report']  # TODO add a callback
+    # constraints
+    task_constraints = config_dict.get('constraints', {}).get('task')
+
+    # report
+    report = config_dict.get('report', {})
+    report_path = report.get('path', '~/benchmark-output/hyperts')
+    task_types = list(set(tsbenchmark.tasks.get_task_config(t).task for t in selected_task_ids))
+
+    from tsbenchmark.tests.test_reporter import ReporterCallback  # TODO remove from tests
+    benchmark_config = {
+        'report.path': report_path,
+        'name': name,
+        'desc': desc,
+        'random_states': random_states,
+        'task_filter.tasks': task_types  # TODO user specify
+     }
+    callbacks = [ReporterCallback(benchmark_config=benchmark_config)]
+
+    # batch_application_config
+    batch_application_config = config_dict.get('batch_application_config', {})
+
+    # working_dir
+    working_dir = config_dict.get('working_dir', "~/tsbenchmark-data")
+
+    # venvs
+    conda_home = config_dict.get('venv', {}).get('conda', {}).get('home')
+
+    init_kwargs = dict(name=name, desc=desc, players=players, callbacks=callbacks,
+                       batch_app_init_kwargs=batch_application_config,
+                       working_dir=working_dir, random_states=random_states,
+                       conda_home=conda_home,
+                       ts_tasks_config=selected_task_ids, task_constraints=task_constraints)
 
     if kind == 'local':
-        benchmark = LocalBenchmark(name=name, desc=desc, players=players, tasks=tasks, constraints=constraints)
+        benchmark = LocalBenchmark(**init_kwargs)
         return benchmark
     elif kind == 'remote':
         machines = config_dict['machines']
-        benchmark = RemoteSSHBenchmark(name=name, desc=desc, players=players,
-                                       ts_tasks=tasks, constraints=constraints, machines=machines)
+        benchmark = RemoteSSHBenchmark(**init_kwargs, machines=machines)
         return benchmark
     else:
         raise RuntimeError(f"Unseen kind {kind}")

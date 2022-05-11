@@ -1,0 +1,35 @@
+name: 'benchmark_example_local'
+desc: 'hyperts V0.1.0 release benchmark on 20220321'
+
+kind: local
+
+working_dir: /tmp/tsbenchmark-hyperctl
+
+players:
+  - hyperts_dl_player
+  - tsbenchmark/tests/players/plain_player_requirements_txt
+
+datasets:
+  cache_path: ~/.cache/tsbenchmark/datasets
+
+random_states: [ 23163,4,5318,9527,33179 ]
+
+constraints:
+  task:
+    trials: 10
+    reward_metric: rmse
+
+report:
+  path: ~/benchmark-output/hyperts
+
+
+batch_application_config:
+  server_port: 8060
+  server_host: localhost
+  scheduler_interval: 1
+  scheduler_exit_on_finish: True
+
+
+venv:
+  conda:
+    home: ~/miniconda3/

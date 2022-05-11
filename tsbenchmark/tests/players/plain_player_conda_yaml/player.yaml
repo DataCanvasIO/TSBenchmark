@@ -1,5 +1,5 @@
 env:
-  mgr:
+  venv:
     kind: conda
     config:
       name: plain_player_requirements_txt

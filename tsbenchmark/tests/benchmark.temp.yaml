@@ -1,0 +1,49 @@
+name: str, required
+desc: str, optional
+
+kind: str, optional, one of remote,local; default is `local`
+
+players:
+  - hyperts_dl
+  - ./sourcecode/hyperts_stat/
+
+
+random_states: [ 23163,4,5318,9527,33179 ]
+n_random_states: int, optional, default is 3
+
+constraints:
+  time_limit: 2h
+  trials: 10
+
+report:
+  path:  ~/benchmark-output/hyperts
+
+datasets:
+  cache_path: ~/.cache/tsbenchmark/datasets
+  filter:
+    tasks:
+      - univariate-forecast
+      - multivariate-forecast
+    data_sizes:
+      - small
+    ids:
+      - 1
+      - 2
+      - 3
+
+batch_application_config:
+  server_port: 8060
+  server_host: localhost
+  scheduler_interval: 1
+  scheduler_exit_on_finish: True
+
+working_dir: /tmp/tsbenchmark-hyperctl
+
+machines:
+  - hostname: host1
+    username: hyperctl
+    password: hyperctl
+
+venv: dict,optional
+  conda: dict,optional
+    home: str, optional, it is required if the players use conda to prepare python env
