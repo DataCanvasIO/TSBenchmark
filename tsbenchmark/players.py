@@ -53,8 +53,8 @@ class ReqsCondaYamlConfig(BaseReqsConfig):
 
 class PythonEnv:
 
-    def __init__(self, venv_config: BaseMRGConfig, requirements: BaseReqsConfig):
-        self.venv_config = venv_config
+    def __init__(self, venv: BaseMRGConfig, requirements: BaseReqsConfig):
+        self.venv = venv
         self.requirements = requirements
 
     KIND_CUSTOM_PYTHON = 'custom_python'
@@ -65,12 +65,12 @@ class PythonEnv:
 
     @property
     def venv_kind(self):
-        if isinstance(self.venv_config,  CondaVenvMRGConfig):
+        if isinstance(self.venv, CondaVenvMRGConfig):
             return PythonEnv.KIND_CONDA
-        elif isinstance(self.venv_config,  CustomPyMRGConfig):
+        elif isinstance(self.venv, CustomPyMRGConfig):
             return PythonEnv.KIND_CUSTOM_PYTHON
         else:
-            raise ValueError(f"unknown venv manager {self.venv_config}")
+            raise ValueError(f"unknown venv manager {self.venv}")
 
     @property
     def reqs_kind(self):
@@ -79,7 +79,7 @@ class PythonEnv:
         elif isinstance(self.requirements,  ReqsCondaYamlConfig):
             return PythonEnv.REQUIREMENTS_CONDA_YAML
         else:
-            raise ValueError(f"unknown requirements config {self.venv_config}")
+            raise ValueError(f"unknown requirements config {self.venv}")
 
 
 class Player:
@@ -101,7 +101,7 @@ class Player:
 
 
 class JobParams:
-    def __init__(self, bm_task_id, task_config_id,  random_state,  max_trails, reward_metric, **kwargs):
+    def __init__(self, bm_task_id, task_config_id,  random_state,  max_trails=None, reward_metric=None, **kwargs):
         self.bm_task_id = bm_task_id
         self.task_config_id = task_config_id
         self.random_state = random_state
@@ -114,6 +114,7 @@ class JobParams:
 
 def load_player(folder):
     folder_path = Path(folder)
+
     config_file = Path(folder) / "player.yaml"
     if not config_file.exists():
         raise FileNotFoundError(config_file)
@@ -124,15 +125,13 @@ def load_player(folder):
 
     play_dict = yaml.load(content, Loader=yaml.CLoader)
 
-    # exec_file, env: EnvSpec
-    play_dict['exec_file'] = "exec.py"  # TODO load exec.py from config
+    play_dict['exec_file'] = "exec.py"
 
-    # PythonEnv(**play_dict['env'])
     env_dict = play_dict['env']
 
-    env_mgr_dict = env_dict.get('mgr')
-    env_mgr_kind = env_mgr_dict['kind']
-    env_mgr_config = env_mgr_dict.get('config', {})
+    env_venv_dict = env_dict.get('venv')
+    env_mgr_kind = env_venv_dict['kind']
+    env_mgr_config = env_venv_dict.get('config', {})
 
     player_name = folder_path.name
     if env_mgr_kind == PythonEnv.KIND_CONDA:
@@ -157,7 +156,7 @@ def load_player(folder):
     else:
         raise Exception(f"Unsupported env manager {env_mgr_kind}")
 
-    play_dict['env'] = PythonEnv(venv_config=mgr_config, requirements=reqs_config)
+    play_dict['env'] = PythonEnv(venv=mgr_config, requirements=reqs_config)
     play_dict['base_dir'] = Path(folder).absolute().as_posix()
     return Player(**play_dict)
 

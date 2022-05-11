@@ -1,39 +1,14 @@
 from typing import Dict
 
+import tsbenchmark
 from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.datasets import TSDataset
 from tsbenchmark.tasks import TSTask, TSTaskConfig
+from tsbenchmark.tests.players import load_test_player
+import sys,tempfile
 
-
-class NetworkTrafficMockDataset(TSDataset):
-    """Test dataset"""
-
-    def __init__(self):
-        super(NetworkTrafficMockDataset, self).__init__(0, 'network_traffic', None)
-
-    def get_train(self):
-        from hyperts.datasets.base import load_network_traffic
-        df = load_network_traffic()
-        return df
-
-    def get_test(self):
-        return self.get_train()
-
-    def get_data(self):
-        return self.get_train(), self.get_test()
-
-
-def create_task():
-    dataset = NetworkTrafficMockDataset()
-
-    config = TSTaskConfig(taskconfig_id=0, dataset_id=0, taskdata=dataset, date_name='TimeStamp', task='multivariate-forecast',
-                          horizon=7, series_name='Var_1',
-                          covariables_name=['HourSin', 'WeekCos', 'CBWD'], dtformat='%Y-%m-%d')
-    # t = TSTask(task_config=config, random_state=8086, max_trails=3, reward_metric='rmse')
-    # setattr(t, 'id', 0)  # TODO remove
-    # return t
-    return config
+DEFAULT_RANDOM_STATE = 8086
 
 
 class ConsoleCallback(BenchmarkCallback):
@@ -58,15 +33,38 @@ class ConsoleCallback(BenchmarkCallback):
         print('on_finish')
 
 
+def create_task():
+    task_config_id = 694826
+    task_config = tsbenchmark.tasks.get_task_config(task_config_id)
+    return task_config
+
+
 def create_minimal_local_benchmark():
     # define players
-    players = load_players(['plain_player'])
+    player = load_test_player("plain_player_requirements_txt")
     task0 = create_task()
-
     callbacks = [ConsoleCallback()]
-
-    lb = LocalBenchmark(name='name', desc='desc', players=players,
+    lb = LocalBenchmark(name='name', desc='desc', players=[player],
                         random_states=[8086], ts_tasks_config=[task0], scheduler_exit_on_finish=True,
                         constraints={}, callbacks=callbacks)
     return lb
 
+
+def load_plain_player_custom_python():
+    player = load_test_player('plain_player_custom_python')
+    player.env.venv.py_executable = sys.executable
+    return player
+
+
+def create_local_benchmark(callbacks=None):
+    player = load_plain_player_custom_python()
+    task0 = create_task()
+
+    batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
+
+    lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[player],
+                        random_states=[DEFAULT_RANDOM_STATE], ts_tasks_config=[task0],
+                        batch_app_init_kwargs=dict(scheduler_exit_on_finish=True, server_port=8060),
+                        working_dir=batches_data_dir,
+                        task_constraints={}, callbacks=callbacks)
+    return lb
