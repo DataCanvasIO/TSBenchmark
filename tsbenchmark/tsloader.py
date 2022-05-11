@@ -70,10 +70,6 @@ class TSDataSetDesc:
 def _get_metadata(meta_file_path):
     f = open(meta_file_path, 'r', encoding='utf-8')
     metadata = yaml.load(f.read(), Loader=yaml.FullLoader)
-    metadata['series_name'] = metadata['series_name'].split(
-        ",") if 'series_name' in metadata else None
-    metadata['covariables_name'] = metadata['covariables_name'].split(
-        ",") if 'covariables_name' in metadata else None
     f.close()
     return metadata
 
@@ -100,6 +96,7 @@ class TSDataSetLoader(DataSetLoader):
             df = df[df['data_size'] == data_size]
         if type is not None:
             df = df[df['type'] == type]
+        df = df[df['format'] != 'tsf'] # todo support in the future.
         return df['id'].values
 
     def exists(self, dataset_id):
@@ -124,6 +121,26 @@ class TSDataSetLoader(DataSetLoader):
         metadata = _get_metadata(self.dataset_desc.meta_file_path(dataset_id))
         metadata['data_size'] = self.dataset_desc.data_size(dataset_id)
         metadata['shape'] = self.dataset_desc.data_shape(dataset_id)
+
+        metadata['series_name'] = metadata['series_name'].split(
+            ",") if 'series_name' in metadata else None
+        metadata['covariables_name'] = metadata['covariables_name'].split(
+            ",") if 'covariables_name' in metadata else None
+
+        columns = list(self.load_test(dataset_id).columns.values)
+        columns.remove(metadata['date_name'])
+
+        if metadata['series_name'] is None and metadata['covariables_name'] is None:
+            metadata['series_name'] = columns
+        elif metadata['series_name'] is None:
+            for col in metadata['covariables_name']:
+                columns.remove(col)
+            metadata['series_name'] = columns
+        elif metadata['covariables_name'] is None:
+            if len(columns) != len(metadata['series_name']):
+                for col in metadata['series_name']:
+                    columns.remove(col)
+                metadata['covariables_name'] = columns
         return metadata
 
     def _download_if_not_cached(self, dataset_id):
@@ -170,6 +187,7 @@ class TSTaskDataLoader():
             df = df[df['data_size'] == data_size]
         if type is not None:
             df = df[df['type'] == type]
+        df = df[df['format'] != 'tsf']  # todo support in the future.
 
         taskdata_list = []
 

@@ -9,9 +9,9 @@ dataloader = tsbenchmark.tsloader.TSDataSetLoader(data_path)
 
 class Test_TSDataSetLoader():
     def test_list(self):
-        assert len(dataloader.list()) == 4
+        assert len(dataloader.list()) == 3
 
-        assert len(dataloader.list(type='univariate-forecast')) == 3
+        assert len(dataloader.list(type='univariate-forecast')) == 2
 
         assert len(dataloader.list(data_size='medium')) == 1
 
