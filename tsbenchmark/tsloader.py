@@ -5,12 +5,13 @@ from hypernets.utils import logging
 import pandas as pd
 import yaml
 from tsbenchmark.tasks import TSTaskConfig
-from tsbenchmark.util import download_util, file_util
+from tsbenchmark.util import download_util, file_util, df_util
 
 logging.set_level('DEBUG')  # TODO
 logger = logging.getLogger(__name__)
 
-BASE_URL = 'http://raz9e5klq.hb-bkt.clouddn.com/datas'
+# BASE_URL = 'http://raz9e5klq.hb-bkt.clouddn.com/datas'
+BASE_URL = 'https://tsbenchmark.s3.amazonaws.com/datas'
 DESC_URL = f'{BASE_URL}/dataset_desc.csv'
 
 
@@ -92,11 +93,9 @@ class TSDataSetLoader(DataSetLoader):
 
     def list(self, type=None, data_size=None):
         df = self.dataset_desc.dataset_desc
-        if data_size is not None:
-            df = df[df['data_size'] == data_size]
-        if type is not None:
-            df = df[df['type'] == type]
-        df = df[df['format'] != 'tsf'] # todo support in the future.
+        df = df_util.filter(df, 'data_size', data_size)
+        df = df_util.filter(df, 'type', type)
+        df = df[df['format'] != 'tsf']  # todo support in the future.
         return df['id'].values
 
     def exists(self, dataset_id):
@@ -183,10 +182,8 @@ class TSTaskDataLoader():
 
     def list(self, type=None, data_size=None):
         df = self.dataset_loader.dataset_desc.dataset_desc
-        if data_size is not None:
-            df = df[df['data_size'] == data_size]
-        if type is not None:
-            df = df[df['type'] == type]
+        df = df_util.filter(df, 'data_size', data_size)
+        df = df_util.filter(df, 'type', type)
         df = df[df['format'] != 'tsf']  # todo support in the future.
 
         taskdata_list = []

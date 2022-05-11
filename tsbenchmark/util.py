@@ -2,7 +2,6 @@ import os
 import requests
 
 
-
 class file_util:
     @staticmethod
     def get_dir_path(dir_path):
@@ -76,6 +75,17 @@ class dict_util:
     @staticmethod
     def sub_dict(somedict, somekeys, default=None):
         return dict([(k, somedict.get(k, default)) for k in somekeys])
+
+
+class df_util:
+    @staticmethod
+    def filter(df, filter_key, filter_value):
+        if filter_key is not None and filter_value is not None:
+            if isinstance(filter_value, list):
+                df = df[df[filter_key].isin(filter_value)]
+            else:
+                df = df[df[filter_key] == filter_value]
+        return df
 
 
 def cal_task_metrics(y_pred, y_true, date_col_name, series_col_name, covariables, metrics_target, task_calc_score):

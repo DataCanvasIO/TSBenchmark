@@ -25,10 +25,9 @@ def main():
     X_test, y_test = model.split_X_y(task.get_test().copy())
     y_pred = model.predict(X_test)
 
-    tsb.api.report_task(
-        report_data=task.make_report_data(y_pred, key_params=json.dumps(exp.run_kwargs),
-                                          best_params=exp.report_best_trial_params().to_json()))
-
+    report_data = tsb.api.make_report_data(task, y_pred, key_params=json.dumps(exp.run_kwargs),
+                        best_params=exp.report_best_trial_params().to_json())
+    tsb.api.report_task(report_data)
 
 if __name__ == "__main__":
     main()

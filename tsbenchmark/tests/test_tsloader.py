@@ -42,6 +42,13 @@ class Test_TSTaskDataLoader():
 
         assert len(taskdataloader.list(type='univariate-forecast')) == 2
 
+        assert len(taskdataloader.list(type=['univariate-forecast', 'multivariate-forecast'])) == 3
+
+        assert len(taskdataloader.list(data_size=['medium', 'small'])) == 3
+
+        assert len(taskdataloader.list(type=['univariate-forecast', 'multivariate-forecast'],
+                                       data_size=['small'])) == 2
+
         assert len(taskdataloader.list(data_size='medium')) == 1
 
     def test_exists(self):

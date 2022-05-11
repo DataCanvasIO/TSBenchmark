@@ -1,18 +1,12 @@
 import tsbenchmark as tsb
 import tsbenchmark.api
 from autots import AutoTS
-import pandas as pd
 
 
 def main():
     # task = tsb.api.get_task()
-
-    from tsbenchmark.tsloader import TSTaskLoader
-    from tsbenchmark.tasks import TSTask
-    data_path = '/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas1'
-    taskloader = TSTaskLoader(data_path)
-    task_config = taskloader.load(890686)
-    task = TSTask(task_config, random_state=9527, max_trails=1, reward_metric='rmse')
+    task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas2',
+                                  dataset_id=890686, random_state=9527, max_trails=1, reward_metric='rmse')
 
     train_df = task.get_train().copy(deep=True)
     metric_weighting = {task.reward_metric + '_weighting': 5}
@@ -36,8 +30,9 @@ def main():
     )
     df_forecast = model.predict().forecast
 
-    tsb.api.report_task(
-        report_data=task.make_report_data(df_forecast))
+    report_data = tsb.api.make_report_data(task, df_forecast)
+
+    tsb.api.report_task(report_data)
 
 
 if __name__ == "__main__":

@@ -1,10 +1,9 @@
 from tsbenchmark.tasks import TSTask
-from tsbenchmark.reporter import Reporter
+from tsbenchmark.callbacks import ReporterCallback
 from hypernets.utils import logging
 
 import os
 import tempfile
-from typing import Dict
 from pathlib import Path
 
 import pytest
@@ -49,31 +48,6 @@ def create_benchmark_remote_cfg():
                         'task_filter.tasks': ['univariate-forecast']
                         }
     return benchmark_config
-
-
-class ReporterCallback(BenchmarkCallback):
-    def __init__(self, benchmark_config):
-        self.reporter = Reporter(benchmark_config)
-
-    def on_start(self, bm):
-        print('on_start')
-
-    def on_task_start(self, bm, bm_task):
-        print('on_task_start')
-
-    def on_task_finish(self, bm, bm_task, elapsed: float):
-        print('on_task_finish')
-
-    def on_task_message(self, bm, bm_task, message: Dict):
-        self.reporter.save_results(message, bm_task)
-        print('on_task_message')
-
-    def on_task_break(self, bm, bm_task, elapsed: float):
-        print('on_task_break')
-
-    def on_finish(self, bm):
-        self.reporter.generate_report()
-        print('on_finish')
 
 
 def atest_benchmark_reporter():

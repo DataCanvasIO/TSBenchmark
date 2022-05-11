@@ -16,8 +16,10 @@ def main():
     df_forecast = lEngine.forecast(iInputDS=train_df, iHorizon=task.get_test().shape[0])
     y_pred = df_forecast[[f'{s}_Forecast' for s in task.series_name]].tail(task.get_test().shape[0])
     y_pred.columns = task.series_name
-    tsb.api.report_task(
-        report_data=task.make_report_data(y_pred))
+
+    report_data = tsb.api.make_report_data(task, y_pred)
+
+    tsb.api.report_task(report_data)
 
 
 if __name__ == "__main__":

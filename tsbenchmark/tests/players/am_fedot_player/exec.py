@@ -7,14 +7,9 @@ from fedot.core.data.data_split import train_test_data_setup
 import pandas as pd
 
 def main():
-    task = tsb.api.get_task()
-
-    # from tsbenchmark.tsloader import TSTaskLoader
-    # from tsbenchmark.tasks import TSTask
-    # data_path = '/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas'
-    # taskloader = TSTaskLoader(data_path)
-    # task_config = taskloader.load(694826)
-    # task = TSTask(task_config, random_state=9527, max_trails=1, reward_metric='rmse')
+    # task = tsb.api.get_task()
+    task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas2',
+                                  dataset_id=694826, random_state=9527, max_trails=1, reward_metric='rmse')
 
     train_df = task.get_train().copy(deep=True)
     test_df = task.get_test().copy(deep=True)
@@ -29,8 +24,9 @@ def main():
     chain = model.fit(features=train_data)
     forecast = model.predict(features=test_data)
     df_forecast = pd.DataFrame(forecast.reshape(-1,1),columns=[task.series_name])
-    tsb.api.report_task(
-        report_data=task.make_report_data(df_forecast))
+
+    report_data = tsb.api.make_report_data(task, df_forecast)
+    tsb.api.report_task(report_data)
 
 
 if __name__ == "__main__":
