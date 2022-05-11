@@ -101,7 +101,7 @@ class Player:
 
 
 class JobParams:
-    def __init__(self, bm_task_id, task_config_id,  random_state,  max_trails, reward_metric, **kwargs):
+    def __init__(self, bm_task_id, task_config_id,  random_state,  max_trails=None, reward_metric=None, **kwargs):
         self.bm_task_id = bm_task_id
         self.task_config_id = task_config_id
         self.random_state = random_state
@@ -114,6 +114,7 @@ class JobParams:
 
 def load_player(folder):
     folder_path = Path(folder)
+
     config_file = Path(folder) / "player.yaml"
     if not config_file.exists():
         raise FileNotFoundError(config_file)

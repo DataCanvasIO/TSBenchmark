@@ -61,7 +61,7 @@ class EnvMGR:
 class Benchmark(metaclass=abc.ABCMeta):
 
     def __init__(self, name, desc, players, ts_tasks_config: List[TSTaskConfig], random_states: List[int],
-                 task_constraints, conda_home=None, working_dir=None, callbacks: List[BenchmarkCallback] = None):
+                 task_constraints=None, conda_home=None, working_dir=None, callbacks: List[BenchmarkCallback]=None):
 
         self.name = name
         self.desc = desc

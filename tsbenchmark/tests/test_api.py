@@ -9,6 +9,7 @@ from tsbenchmark.benchmark import LocalBenchmark, load_players, Benchmark
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.players import load_player
 from tsbenchmark.tasks import TSTask
+from tsbenchmark.tests.benchmark_factory import create_local_benchmark
 from tsbenchmark.tests.players import load_test_player
 
 
@@ -41,28 +42,17 @@ class PlainCallback(BenchmarkCallback):
 class TestAPI:
 
     def setup_class(self):
-        player_name = 'plain_player'
 
-        self.task_config_id = 694826
+        lb = create_local_benchmark(callbacks=[PlainCallback()])
+
+        player_name = lb.players[0].name
+        self.task_config_id = lb.ts_tasks_config[0].id
         self.random_state = 8086
         self.api_server_url = 'http://localhost:8060'
         self.bm_task_id = f'{player_name}_{self.task_config_id}_{self.random_state}'
 
-        task_config_id = self.task_config_id
-        random_state = self.random_state
-
         os.environ['HYPERCTL_JOB_NAME'] = self.bm_task_id
         os.environ['HYPERCTL_SERVER_PORTAL'] = self.api_server_url
-
-        player = load_test_player("plain_player_requirements_txt")
-
-        task_config = tsbenchmark.tasks.get_task_config(task_config_id)
-
-        lb = LocalBenchmark(name='name', desc='desc', players=[player],
-                            random_states=[random_state], ts_tasks_config=[task_config],
-                            batch_app_init_kwargs=dict(scheduler_exit_on_finish=False),
-                            constraints={},
-                            callbacks=[PlainCallback()])
 
         self.runner = BenchmarkRunner(lb)
         self.runner.start()  # run benchmark in backend
