@@ -11,6 +11,12 @@ players:
 
 datasets:
   cache_path: ~/.cache/tsbenchmark/datasets
+  filter:
+    tasks:
+      - univariate-forecast
+      - multivariate-forecast
+    data_sizes:
+      - small
 
 random_states: [ 23163,4,5318,9527,33179 ]
 
