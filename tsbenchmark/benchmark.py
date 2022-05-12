@@ -348,7 +348,7 @@ def load_benchmark(config_file: str):
 
     # select datasets and tasks
     datasets_config = config_dict.get('datasets', {})
-    datasets_config_cache_path = config_dict.get('cache_path', "~/.cache/tsbenchmark/datasets")  # TODO
+    # datasets_config_cache_path = config_dict.get('cache_path', "~/.cache/tsbenchmark/datasets")
     datasets_filter_config = datasets_config.get('filter', {})
     datasets_filter_tasks = datasets_filter_config.get('tasks')
 
@@ -382,7 +382,7 @@ def load_benchmark(config_file: str):
     report = config_dict.get('report', {})
     report_enable = report.get('enable', True)
     if report_enable is True:
-        report_path = report.get('path', '~/benchmark-output/hyperts')
+        report_path = Path(report.get('path', '~/benchmark-output/hyperts')).expanduser().as_posix()
         # task_types = list(set(tsbenchmark.tasks.get_task_config(t).task for t in selected_task_ids))
         from tsbenchmark.tests.test_reporter import ReporterCallback  # TODO remove from tests
         benchmark_config = {
@@ -400,7 +400,7 @@ def load_benchmark(config_file: str):
     batch_application_config = config_dict.get('batch_application_config', {})
 
     # working_dir
-    working_dir = config_dict.get('working_dir', "~/tsbenchmark-data")
+    working_dir = Path(config_dict.get('working_dir', "~/tsbenchmark-data")).expanduser().as_posix()
 
     # venvs
     conda_home = config_dict.get('venv', {}).get('conda', {}).get('home')
