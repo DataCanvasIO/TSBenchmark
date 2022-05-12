@@ -15,7 +15,7 @@ from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchma
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.tasks import TSTask
 from hypernets.tests.utils import ssh_utils_test
-
+from tsbenchmark.players import load_player
 logging.set_level('DEBUG')  # TODO
 logger = logging.getLogger(__name__)
 
@@ -102,6 +102,12 @@ def create_task():
     task_config = tsbenchmark.tasks.get_task_config(task_config_id)
     return task_config
 
+def get_custom_py_executable():
+    return os.getenv("TSB_CUSTOM_PY_EXECUTABLE")
+
+from tsbenchmark.tsloader import TSTaskLoader
+data_path = os.path.join(os.path.dirname(os.path.dirname(tsbenchmark.__file__)), 'datas')
+task_loader = TSTaskLoader(data_path)
 
 @ssh_utils_test.need_psw_auth_ssh
 @need_server_host
@@ -113,21 +119,29 @@ class TestRemoteCustomPythonBenchmark:
 
     def setup_class(self):
         self.connection = ssh_utils_test.load_ssh_psw_config()
-        players = load_players([(HERE / "players" / "hyperts_stat_player").as_posix(),
-                                (HERE / "players" / "hyperts_dl_player").as_posix()])
-        task0 = create_task()
+
         benchmark_config = create_benchmark_remote_cfg()
         rc = ReporterCallback(benchmark_config=benchmark_config)
         callbacks = [rc]
+
+        player = load_player((HERE / "players" / "hyperts_stat_player").as_posix())
+
+        task_arr = [task_loader.load(id) for id in task_loader.list()]
+
+        # task0 = create_task()
+        # task_loader.load(task_id)
+
         self.working_dir_path = Path(tempfile.mkdtemp(prefix="benchmark-test-batches"))
         self.benchmark_name = 'remote-benchmark'
 
-        lb = RemoteSSHBenchmark(name=self.benchmark_name, desc='desc', players=players,
-                                random_states=[8086], ts_tasks_config=[task0],
+
+        lb = RemoteSSHBenchmark(name=self.benchmark_name, desc='desc', players=[player],
+                                random_states=[8086,8087], ts_tasks_config=task_arr,
                                 working_dir=self.working_dir_path.as_posix(),
-                                scheduler_exit_on_finish=True,
-                                server_host=os.getenv('TSB_SERVER_HOST'),  # external ip
-                                constraints={}, callbacks=callbacks,
+                                batch_app_init_kwargs=dict(server_host=os.getenv('TSB_SERVER_HOST'),
+                                                           server_port=8060,
+                                                           scheduler_exit_on_finish=True),
+                                task_constraints={}, callbacks=callbacks,
                                 machines=[self.connection])
         self.lb = lb
 
@@ -139,7 +153,6 @@ class TestRemoteCustomPythonBenchmark:
         assert batch_path.exists()
         batch_app: BatchApplication = self.lb._batch_app
         jobs = batch_app.batch.jobs
-        assert len(jobs) == 2
         job = jobs[0]
         # job succeed
         assert (batch_path / f"{job.name}.succeed").exists()

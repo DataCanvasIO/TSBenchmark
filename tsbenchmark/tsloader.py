@@ -6,22 +6,23 @@ import pandas as pd
 import yaml
 from tsbenchmark.tasks import TSTaskConfig
 from tsbenchmark.util import download_util, file_util, df_util
+from tsbenchmark import consts
 
 logging.set_level('DEBUG')  # TODO
 logger = logging.getLogger(__name__)
 
-# BASE_URL = 'http://raz9e5klq.hb-bkt.clouddn.com/datas'
-BASE_URL = 'https://tsbenchmark.s3.amazonaws.com/datas'
-DESC_URL = f'{BASE_URL}/dataset_desc.csv'
+
+# BASE_URL = 'https://tsbenchmark.s3.amazonaws.com/datas'  # TODO
+# DESC_URL = f'{BASE_URL}/dataset_desc.csv'
 
 
 class TSDataSetDesc:
-    def __init__(self, data_path):
+    def __init__(self, data_path, data_source):
         self.data_path = data_path
 
         if not os.path.exists(self._desc_file()):
             logger.info('Downloading dataset_desc.csv from remote.')
-            download_util.download(self._desc_file(), DESC_URL)
+            download_util.download(self._desc_file(), f'{data_source}/dataset_desc.csv')
             logger.info('Finish download dataset_desc.csv.')
         self.dataset_desc = pd.read_csv(self._desc_file())
         self.dataset_desc_local = None
@@ -87,9 +88,11 @@ def _to_dataset(taskdata_id):
 
 
 class TSDataSetLoader(DataSetLoader):
-    def __init__(self, data_path):
+    def __init__(self, data_path, data_source=None):
         self.data_path = data_path
-        self.dataset_desc = TSDataSetDesc(data_path)
+        self.data_source = consts.DATASETS_SOURCE_MAP[
+            consts.DATASETS_SOURCE_DEFAULT] if data_source is None else data_source
+        self.dataset_desc = TSDataSetDesc(data_path, self.data_source)
 
     def list(self, type=None, data_size=None):
         df = self.dataset_desc.dataset_desc
@@ -154,7 +157,7 @@ class TSDataSetLoader(DataSetLoader):
 
             # 2. Download tmp zip file from cloud.
             tmp_path = file_util.get_dir_path(os.path.join(self.data_path, 'tmp'))
-            url = f"{BASE_URL}/{task_type}/{data_size}/{name}.zip"
+            url = f"{self.data_source}/{task_type}/{data_size}/{name}.zip"
             import uuid
             file_name = str(uuid.uuid1()) + '.zip'
             file_tmp = os.path.join(tmp_path, file_name)
@@ -176,9 +179,9 @@ class TSDataSetLoader(DataSetLoader):
 
 
 class TSTaskDataLoader():
-    def __init__(self, data_path):
+    def __init__(self, data_path, data_source=None):
         self.data_path = data_path
-        self.dataset_loader = TSDataSetLoader(data_path)
+        self.dataset_loader = TSDataSetLoader(data_path, data_source)
 
     def list(self, type=None, data_size=None):
         df = self.dataset_loader.dataset_desc.dataset_desc
@@ -228,9 +231,9 @@ class TSTaskDataLoader():
 
 
 class TSTaskLoader(TaskLoader):
-    def __init__(self, data_path):
+    def __init__(self, data_path, data_source=None):
         self.data_path = data_path
-        self.taskdata_loader = TSTaskDataLoader(data_path)
+        self.taskdata_loader = TSTaskDataLoader(data_path, data_source)
 
     def list(self, type=None, data_size=None):
         return self.taskdata_loader.list(type, data_size)

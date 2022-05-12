@@ -25,9 +25,7 @@ def main():
     forecast = model.predict(features=test_data)
     df_forecast = pd.DataFrame(forecast.reshape(-1,1),columns=[task.series_name])
 
-    report_data = tsb.api.make_report_data(task, df_forecast)
-    tsb.api.report_task(report_data)
-
+    tsb.api.send_report_data(task, df_forecast)
 
 if __name__ == "__main__":
     main()

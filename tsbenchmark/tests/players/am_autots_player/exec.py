@@ -30,9 +30,7 @@ def main():
     )
     df_forecast = model.predict().forecast
 
-    report_data = tsb.api.make_report_data(task, df_forecast)
-
-    tsb.api.report_task(report_data)
+    tsb.api.send_report_data(task, df_forecast)
 
 
 if __name__ == "__main__":
