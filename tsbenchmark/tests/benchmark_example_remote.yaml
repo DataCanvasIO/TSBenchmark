@@ -8,7 +8,13 @@ players:
   - tsbenchmark/tests/players/plain_player_requirements_txt
 
 datasets:
-  cache_path: ~/.cache/tsbenchmark/datasets
+  filter:
+    tasks:
+      - univariate-forecast
+      - multivariate-forecast
+    data_sizes:
+      - small
+
 
 n_random_states: 5
 

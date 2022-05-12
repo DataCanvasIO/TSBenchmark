@@ -1,7 +1,7 @@
 from pathlib import Path
 import time
 
-PWD = Path(__file__).parent
+from tsbenchmark.consts import DEFAULT_CACHE_PATH
 
 
 class TSTaskConfig:
@@ -62,20 +62,26 @@ class TSTask(TSTaskConfig):
         return self.__test
 
 
-def get_task_config(task_id) -> TSTaskConfig:
+def get_task_config(task_id, cache_path=None) -> TSTaskConfig:
+    if cache_path is None:
+        cache_path = DEFAULT_CACHE_PATH
+
     from tsbenchmark.tsloader import TSTaskLoader
-    data_path = (PWD / "datas").absolute().as_posix()
-    task_loader = TSTaskLoader(data_path)
+    task_loader = TSTaskLoader(cache_path)
     task_config: TSTaskConfig = task_loader.load(task_id)
     return task_config
 
 
 def list_task_configs(*args, **kwargs):
+    if 'cache_path' in kwargs:
+        cache_path = kwargs.pop("cache_path")
+    else:
+        cache_path = DEFAULT_CACHE_PATH
+
     from tsbenchmark.tsloader import TSTaskLoader
     dataset_ids = kwargs.pop('ids')
 
-    data_path = (Path(PWD).parent.parent / "datas").absolute().as_posix()
-    task_loader = TSTaskLoader(data_path)
+    task_loader = TSTaskLoader(cache_path)
     tasks = task_loader.list(*args, **kwargs)
     if dataset_ids is not None and len(dataset_ids) > 0:
         ret_tasks = list(filter(lambda t: get_task_config(t).dataset_id in dataset_ids, tasks))
