@@ -402,6 +402,7 @@ def test_2_tasks():
     asyncio.get_event_loop().stop()  # release res
     asyncio.get_event_loop().close()
 
+
 class TestLoadBenchmark:
 
     def assert_benchmark(self, benchmark):

@@ -348,7 +348,7 @@ def load_benchmark(config_file: str):
 
     # select datasets and tasks
     datasets_config = config_dict.get('datasets', {})
-    datasets_config_cache_path = config_dict.get('cache_path', "~/.cache/tsbenchmark/datasets")  # TODO
+    # datasets_config_cache_path = config_dict.get('cache_path', "~/.cache/tsbenchmark/datasets")
     datasets_filter_config = datasets_config.get('filter', {})
     datasets_filter_tasks = datasets_filter_config.get('tasks')
 
@@ -360,6 +360,9 @@ def load_benchmark(config_file: str):
                                                             data_size=datasets_filter_data_sizes,
                                                             ids=datasets_filter_data_ids)
     assert selected_task_ids is not None and len(selected_task_ids) > 0, "no task selected"
+
+    # load tasks
+    task_configs = [tsbenchmark.tasks.get_task_config(tid) for tid in selected_task_ids]
 
     # load players
     players_name_or_path = config_dict.get('players')
@@ -377,24 +380,27 @@ def load_benchmark(config_file: str):
 
     # report
     report = config_dict.get('report', {})
-    report_path = report.get('path', '~/benchmark-output/hyperts')
-    task_types = list(set(tsbenchmark.tasks.get_task_config(t).task for t in selected_task_ids))
-
-    from tsbenchmark.tests.test_reporter import ReporterCallback  # TODO remove from tests
-    benchmark_config = {
-        'report.path': report_path,
-        'name': name,
-        'desc': desc,
-        'random_states': random_states,
-        'task_filter.tasks': task_types  # TODO user specify
-     }
-    callbacks = [ReporterCallback(benchmark_config=benchmark_config)]
+    report_enable = report.get('enable', True)
+    if report_enable is True:
+        report_path = Path(report.get('path', '~/benchmark-output/hyperts')).expanduser().as_posix()
+        # task_types = list(set(tsbenchmark.tasks.get_task_config(t).task for t in selected_task_ids))
+        from tsbenchmark.tests.test_reporter import ReporterCallback  # TODO remove from tests
+        benchmark_config = {
+            'report.path': report_path,
+            'name': name,
+            'desc': desc,
+            'random_states': random_states,
+            'task_filter.tasks': datasets_filter_tasks
+         }
+        callbacks = [ReporterCallback(benchmark_config=benchmark_config)]
+    else:
+        callbacks = None
 
     # batch_application_config
     batch_application_config = config_dict.get('batch_application_config', {})
 
     # working_dir
-    working_dir = config_dict.get('working_dir', "~/tsbenchmark-data")
+    working_dir = Path(config_dict.get('working_dir', "~/tsbenchmark-data")).expanduser().as_posix()
 
     # venvs
     conda_home = config_dict.get('venv', {}).get('conda', {}).get('home')
@@ -403,7 +409,7 @@ def load_benchmark(config_file: str):
                        batch_app_init_kwargs=batch_application_config,
                        working_dir=working_dir, random_states=random_states,
                        conda_home=conda_home,
-                       ts_tasks_config=selected_task_ids, task_constraints=task_constraints)
+                       ts_tasks_config=task_configs, task_constraints=task_constraints)
 
     if kind == 'local':
         benchmark = LocalBenchmark(**init_kwargs)
