@@ -19,7 +19,6 @@ report:
   path:  ~/benchmark-output/hyperts
 
 datasets:
-  cache_path: ~/.cache/tsbenchmark/datasets
   filter:
     tasks:
       - univariate-forecast
