@@ -184,8 +184,10 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         player: Player = bm_task.player
         random_state = bm_task.ts_task.random_state
         name = f'{player.name}_{task_id}_{random_state}'
+
         job_params = JobParams(bm_task_id=bm_task.id, task_config_id=task_id,
-                               random_state=random_state,  **self.task_constraints)
+                               random_state=random_state, max_trails=bm_task.ts_task.max_trails,
+                               reward_metric=bm_task.ts_task.reward_metric)
 
         # TODO support conda yaml
         # TODO support windows
@@ -200,8 +202,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
             command = self.make_run_custom_pythonenv_command(bm_task, batch, name)
         elif player.env.venv_kind == PythonEnv.KIND_CONDA:
             if player.env.reqs_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT:
-                command = self.make_run_requirements_requirements_txt_command(working_dir_path,
-                                                                              player)  # TODO
+                command = self.make_run_requirements_requirements_txt_command(working_dir_path, player)  # TODO
             else:
                 raise NotImplemented
         else:
@@ -227,14 +228,21 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         # create batch app
         batches_data_dir = self.get_batches_data_dir()
 
-        # backend_conf = BackendConf(type = 'local', conf = {})
         from hypernets.utils import common
         batch_name = self.name
         batch: Batch = Batch(batch_name, batches_data_dir)
         for ts_task_config in self.ts_tasks_config:
             for player in players:
+                # check the player whether support the task type
+                player: Player = player
+                if player.tasks is not None:
+                    if ts_task_config.task not in player.tasks:
+                        logger.debug(f"skip {ts_task_config.id} for {player.name}"
+                                     f" because of not supported this task type.")
+                        continue
+
                 for random_state in self.random_states:
-                    ts_task = TSTask(ts_task_config, random_state, 3, 'rmse')   # TODO replace max_trials and reward metric
+                    ts_task = TSTask(ts_task_config, random_state, **self.task_constraints)
                     self._tasks.append(BenchmarkTask(ts_task, player))
 
         # generate Hyperctl Jobs
