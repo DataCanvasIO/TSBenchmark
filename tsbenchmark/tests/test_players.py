@@ -1,6 +1,10 @@
+import sys
+
 from tsbenchmark.benchmark import load_players, Player, LocalBenchmark
 from tsbenchmark.players import load_player, PythonEnv
 from pathlib import Path
+
+from tsbenchmark.tests.players import load_test_player
 
 HERE = Path(__file__).parent
 
@@ -25,6 +29,14 @@ class TestLoadPlayer:
         assert plain_player.name == 'plain_player_custom_python'
         env = plain_player.env
         assert env.venv_kind == 'custom_python'
+
+    def test_load_plain_player_univariate(self):
+        player = load_test_player("plain_player_univariate")
+        assert player.name == 'plain_player_univariate'
+        env = player.env
+        assert env.venv_kind == 'custom_python'
+        assert env.venv.py_executable == sys.executable
+        assert set(player.tasks) == {"univariate-forecast", "multivariate-forecast"}
 
     def test_load_external_reqs_txt_player(self):
         plain_player_dir = (HERE / "players" / "plain_player_requirements_txt").as_posix()
