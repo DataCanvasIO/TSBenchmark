@@ -7,9 +7,9 @@ from fedot.core.data.data_split import train_test_data_setup
 import pandas as pd
 
 def main():
-    # task = tsb.api.get_task()
-    task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas2',
-                                  dataset_id=694826, random_state=9527, max_trails=1, reward_metric='rmse')
+    task = tsb.api.get_task()
+    # task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas2',
+    #                               dataset_id=694826, random_state=9527, max_trails=1, reward_metric='rmse')
 
     train_df = task.get_train().copy(deep=True)
     test_df = task.get_test().copy(deep=True)

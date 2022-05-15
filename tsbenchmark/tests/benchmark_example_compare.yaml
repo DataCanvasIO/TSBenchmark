@@ -1,0 +1,10 @@
+name: 'benchmark_example_self'
+desc: 'benchmark_example_self'
+report_paths: [ '/home/newbei/benchmark-output/hyperts/benchmark_example_product_3','/home/newbei/benchmark-output/hyperts/benchmark_example_product_4' ]
+players:
+  - hyperts_dl_player
+tasks:
+  - univariate-forecast
+report:
+  path: ~/benchmark-output/hyperts
+

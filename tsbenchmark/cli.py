@@ -4,6 +4,7 @@ import argparse
 from hypernets.utils import logging
 from hypernets.utils import logging as hyn_logging
 from tsbenchmark.benchmark import load_benchmark
+from tsbenchmark.reporter import load_compare_reporter
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +39,7 @@ def main():
 
     def setup_compare_parser(operation_parser):
         exec_parser = operation_parser.add_parser("compare", help="compare benchmark reports")
-        exec_parser.add_argument("reports_dir", help="reports dir, 2 items to compare", nargs="+", type=str,
-                                 default=None)
+        exec_parser.add_argument("-c", "--config", help="compare yaml config file", default=None, required=True)
 
     parser = argparse.ArgumentParser(prog="tsb",
                                      description='tsb command is used to manage benchmarks', add_help=True)
@@ -65,9 +65,9 @@ def main():
         benchmark = load_benchmark(kwargs.get('config'))
         benchmark.run()
     elif operation == 'compare':
-        print(kwargs)
-        reports_dir = kwargs.get('reports_dir')
-        assert isinstance(reports_dir, list)  # TODO add compare
+        reporter = load_compare_reporter(kwargs.get('config'))
+        reporter.run_compare()
+
     else:
         parser.print_help()
         # raise ValueError(f"unknown job operation: {operation} ")

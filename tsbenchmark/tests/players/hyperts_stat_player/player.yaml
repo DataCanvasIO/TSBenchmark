@@ -2,4 +2,4 @@ env:
   venv:
     kind: custom_python
     config:
-      py_executable: /home/hegang/anaconda3/envs/benchmark-ts/bin/python
+      py_executable: /mnt/nfsroot/hegang/programs/anaconda3/envs/tsb-hyperts/bin/python

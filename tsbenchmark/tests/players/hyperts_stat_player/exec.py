@@ -3,6 +3,7 @@ import tsbenchmark.api
 
 def main():
     task = tsb.api.get_task()
+    print("task.reward_metric:",task.reward_metric) # todo
     # task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas2',
     #                               dataset_id=890686, random_state=9527, max_trails=1, reward_metric='rmse')
 

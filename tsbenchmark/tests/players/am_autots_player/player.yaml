@@ -1,5 +1,5 @@
 env:
-  mgr:
+  venv:
     kind: custom_python
-#    config:
-#      py_executable: /home/newbei/programs/anaconda3/envs/fedot/bin/python
+    config:
+      py_executable: /mnt/nfsroot/hegang/programs/anaconda3/envs/tsb-autots/bin/python
