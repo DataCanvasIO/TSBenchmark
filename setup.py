@@ -82,9 +82,9 @@ setup(
         'tsbenchmark': ['*.sh', 'datas/*', 'datas/multivariate-forecast/medium/nn5_weekly/*', 'datas/univariate-forecast/small/Air_Passengers/*', 'datas/univariate-forecast/small/US_Births/*'],
     },
     entry_points={
-        # 'console_scripts': [
-        #     'hyperctl = hypernets.hyperctl.cli:main',
-        # ]
+        'console_scripts': [
+            'tsb = tsbenchmark.cli:main',
+        ]
     },
     zip_safe=False,
     include_package_data=True,

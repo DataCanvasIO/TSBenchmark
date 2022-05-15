@@ -19,6 +19,5 @@ def main():
 
     tsb.api.send_report_data(task, y_pred)
 
-
 if __name__ == "__main__":
     main()
