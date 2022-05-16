@@ -1,10 +1,12 @@
 import tsbenchmark as tsb
 import tsbenchmark.api
-import json
-
 
 def main():
     task = tsb.api.get_task()
+    print("task.reward_metric:",task.reward_metric) # todo
+    # task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas2',
+    #                               dataset_id=890686, random_state=9527, max_trails=1, reward_metric='rmse')
+
     from hyperts.experiment import make_experiment
     train_df = task.get_train().copy(deep=True)
     exp = make_experiment(train_df,
@@ -25,9 +27,8 @@ def main():
     X_test, y_test = model.split_X_y(task.get_test().copy())
     y_pred = model.predict(X_test)
 
-    report_data = tsb.api.make_report_data(task, y_pred, key_params=json.dumps(exp.run_kwargs),
-                        best_params=exp.report_best_trial_params().to_json())
-    tsb.api.report_task(report_data)
+    tsb.api.send_report_data(task, y_pred, best_params=exp.report_best_trial_params().to_json())
+
 
 if __name__ == "__main__":
     main()

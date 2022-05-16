@@ -29,21 +29,19 @@ class ReporterCallback(BenchmarkCallback):
         self.reporter = Reporter(benchmark_config)
 
     def on_start(self, bm):
-        print('on_start')
+        pass
 
     def on_task_start(self, bm, bm_task):
-        print('on_task_start')
+        pass
 
     def on_task_finish(self, bm, bm_task, elapsed: float):
-        print('on_task_finish')
+        pass
 
     def on_task_message(self, bm, bm_task, message: Dict):
         self.reporter.save_results(message, bm_task)
-        print('on_task_message')
 
     def on_task_break(self, bm, bm_task, elapsed: float):
-        print('on_task_break')
+        pass
 
     def on_finish(self, bm):
         self.reporter.generate_report()
-        print('on_finish')

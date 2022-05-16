@@ -30,7 +30,8 @@ datasets:
       - 1
       - 2
       - 3
-
+  source:
+      - AWS
 batch_application_config:
   server_port: 8060
   server_host: localhost

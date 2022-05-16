@@ -5,6 +5,7 @@ import requests
 class file_util:
     @staticmethod
     def get_dir_path(dir_path):
+        dir_path = os.path.expanduser(dir_path)
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         return dir_path
@@ -89,7 +90,7 @@ class df_util:
 
 
 def cal_task_metrics(y_pred, y_true, date_col_name, series_col_name, covariables, metrics_target, task_calc_score):
-    from hyperts.utils import metrics
+    from tsbenchmark import metrics
     if series_col_name != None:
         y_pred = y_pred[series_col_name]
         y_true = y_true[series_col_name]

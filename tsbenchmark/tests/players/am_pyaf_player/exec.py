@@ -17,10 +17,7 @@ def main():
     y_pred = df_forecast[[f'{s}_Forecast' for s in task.series_name]].tail(task.get_test().shape[0])
     y_pred.columns = task.series_name
 
-    report_data = tsb.api.make_report_data(task, y_pred)
-
-    tsb.api.report_task(report_data)
-
+    tsb.api.send_report_data(task, y_pred)
 
 if __name__ == "__main__":
     main()

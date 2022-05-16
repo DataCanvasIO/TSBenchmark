@@ -74,8 +74,8 @@ def report_task(report_data: Dict, bm_task_id=None, api_server_uri=None):
     utils.post_request(report_url, json.dumps(request_dict))
 
 
-def make_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_params=''):
-    """Prepare report data.
+def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_params=''):
+    """Send report data.
 
           Args:
               y_pred: pandas dataframe, required, The predicted values by the players.
@@ -84,9 +84,11 @@ def make_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
                            If user want to save the best params, user may assign the best_params.
 
           Returns:
-              The report data which can be call by tsb.api.report_task.
+
           ------------------------------------------------------------------------------------------------------------
           Description:
+              1. Prepare the data which can be call be tsb.api.report_task.
+              2. Call method report_task, send the report data to the Master Server.
               When develop a new play locally, this method will help user validate the predicted and params.
 
           """
@@ -106,7 +108,8 @@ def make_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
         'key_params': key_params,
         'best_params': best_params
     }
-    return report_data
+
+    report_task(report_data)
 
 
 def _get_api_server_api(api_server_uri=None):

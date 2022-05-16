@@ -1,5 +1,6 @@
 import os
 from tsbenchmark.util import file_util, dict_util
+from hypernets.hyperctl.utils import load_yaml
 import pandas as pd
 from hypernets.utils import logging
 import traceback
@@ -70,8 +71,11 @@ class PathMaintainer:
 
 class Painter:
     def get_steps_colors(self, values):
-        values = 1 / values
         _range = np.max(values) - np.min(values)
+        if _range == 0:
+            _range = 1
+        else:
+            values = 1 / values
         _values = (values - np.min(values)) / _range
         colors_data = plt.cm.Wistia(_values)
         return colors_data
@@ -162,7 +166,6 @@ class Analysis:
         self.path_maintainer = PathMaintainer(benchmark_config['report.path'], benchmark_config['name'])
 
     def gen_comparison_report(self, params):
-        logger.info('gen_comparison_report=======')
         for task in params.ts_tasks_config:
             columns = ['dataset', 'shape', 'horizon']
             compare_reports_dirs = params.compare_reports_dirs(task)
@@ -385,3 +388,54 @@ class Reporter():
         self.painter.paint_table(df_report, title_cols=columns, title_text=title_text, fontsize=6,
                                  result_path=png_path)
         logger.info('report figure generated: {}'.format(png_path))
+
+
+class CompareReporter():
+    def __init__(self, config_dict):
+        self.config_dict = config_dict
+        self.painter = Painter()
+        self.reports = [os.path.basename(p) for p in config_dict['report_paths']]
+
+    def run_compare(self):
+        logger.info(f'Begin generate compare report {self.config_dict["name"]}')
+        columns = ['dataset', 'shape', 'horizon']
+        for task in self.config_dict['tasks']:
+            compare_reports_dirs = self.compare_reports_dirs(task)
+
+            report_files = [os.listdir(crd) for crd in compare_reports_dirs]
+            report_names = set(report_files[0] + report_files[1])
+            report_names.remove('imgs')
+
+            for player in self.config_dict['players']:
+                compare_player_dir = self.compare_player_dir(task, player)
+                for report_name in report_names:
+                    try:
+                        dfs = [pd.read_csv(os.path.join(report_dir, report_name)) for report_dir in
+                               compare_reports_dirs]
+                        df = pd.concat([dfs[0][columns], dfs[0][[player]], dfs[1][[player]]], axis=1)
+                        df.columns = columns + self.reports
+                        df.to_csv(os.path.join(compare_player_dir, report_name), index=False)
+                        png_path = os.path.join(self.compare_imgs_dir(task, player), report_name[:-3] + 'png')
+                        self.painter.paint_table(df, title_cols=columns,
+                                                 title_text=player + ' ' + report_name[7:-4].replace('_', ' '),
+                                                 fontsize=6,
+                                                 result_path=png_path)
+                    except:
+                        traceback.print_exc()
+                        logger.error('{png_path} generate error')
+        logger.info(f'Finish generate compare report in {self.config_dict["report"]["path"]}')
+        
+    def compare_reports_dirs(self, task):
+        return [os.path.join(report_path, task, 'report') for report_path in self.config_dict['report_paths']]
+
+    def compare_player_dir(self, task, player):
+        return file_util.get_dir_path(
+            os.path.join(self.config_dict['report']['path'], self.config_dict['name'], task, player))
+
+    def compare_imgs_dir(self, task, player):
+        return file_util.get_dir_path(os.path.join(self.compare_player_dir(task, player), 'imgs'))
+
+
+def load_compare_reporter(config_file: str):
+    config_dict = load_yaml(config_file)
+    return CompareReporter(config_dict)
