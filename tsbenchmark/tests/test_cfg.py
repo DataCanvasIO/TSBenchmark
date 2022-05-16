@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 
 from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark
@@ -44,6 +45,9 @@ class TestLoadBenchmark:
         self.assert_benchmark(benchmark)
 
     def test_run_local(self):
+        import asyncio
+        asyncio.set_event_loop(asyncio.new_event_loop())
+
         local_benchmark_example = PWD / "benchmark_local_no_report.yaml"
         benchmark = load_benchmark(local_benchmark_example.as_posix())
         assert benchmark.name == "benchmark_example_local_no_report"
@@ -58,3 +62,8 @@ class TestLoadBenchmark:
         assert random_states_path.exists()
         from hypernets.hyperctl.utils import load_json
         assert set(load_json(random_states_path)) == set(benchmark.random_states)
+
+    @classmethod
+    def teardown_class(cls):
+        asyncio.get_event_loop().stop()  # release res
+        asyncio.get_event_loop().close()
