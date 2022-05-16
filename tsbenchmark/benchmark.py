@@ -14,6 +14,7 @@ from hypernets.hyperctl.server import create_hyperctl_handlers
 from hypernets.hyperctl.utils import load_yaml
 from hypernets.utils import logging
 from tsbenchmark.callbacks import BenchmarkCallback
+from tsbenchmark.consts import DEFAULT_WORKING_DIR
 from tsbenchmark.players import Player, load_players, JobParams, PythonEnv
 from tsbenchmark.server import BenchmarkBatchApplication
 import tsbenchmark.tasks
@@ -68,11 +69,17 @@ class Benchmark(metaclass=abc.ABCMeta):
         self.players: List[Player] = players
         self.ts_tasks_config = ts_tasks_config
         self.random_states = random_states
-        self.task_constraints = {} if task_constraints is None else task_constraints
+        preset_task_constraints = {
+            'max_trials': 10,
+            'reward_metric': 'rmse'
+        }
+        user_task_constraints = {} if task_constraints is None else task_constraints
+        preset_task_constraints.update(user_task_constraints)
+        self.task_constraints = preset_task_constraints
         self.callbacks = callbacks if callbacks is not None else []
 
         if working_dir is None:
-            self.working_dir = Path("~/tsbenchmark-working-dir").expanduser().absolute().as_posix()
+            self.working_dir = DEFAULT_WORKING_DIR
         else:
             self.working_dir = Path(working_dir).absolute().as_posix()
 

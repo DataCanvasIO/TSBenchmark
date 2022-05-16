@@ -20,7 +20,7 @@ n_random_states: 5
 
 constraints:
   task:
-    trials: 10
+    max_trials: 10
     reward_metric: rmse
   filter:
     tasks:

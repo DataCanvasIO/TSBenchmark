@@ -21,7 +21,7 @@ random_states: [ 23163,4,5318,9527,33179 ]
 
 constraints:
   task:
-    trials: 10
+    max_trials: 10
     reward_metric: rmse
 
 report:
