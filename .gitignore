@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 .idea/
+/tsbenchmark/tests/benchmark_example_product.yaml

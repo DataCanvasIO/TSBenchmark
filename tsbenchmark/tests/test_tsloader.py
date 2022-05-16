@@ -3,7 +3,7 @@ import tsbenchmark
 from tsbenchmark.tsloader import TSDataSetLoader, TSTaskLoader
 from tsbenchmark.tasks import TSTask
 
-data_path = os.path.join(os.path.dirname(os.path.dirname(tsbenchmark.__file__)), 'datas2')
+data_path = os.path.join(os.path.dirname(os.path.dirname(tsbenchmark.__file__)), 'datas')
 dataloader = tsbenchmark.tsloader.TSDataSetLoader(data_path)
 
 
@@ -80,9 +80,23 @@ class Test_TSTaskLoader():
         assert task_config.task == 'univariate-forecast' and task_config.dataset_id == 694826
         assert task_config.taskdata.get_train().shape[0] == 124 and task_config.taskdata.get_test().shape[0] == 6
 
+        task_config = taskloader.load(890686)
+        assert task_config.task == 'multivariate-forecast' and task_config.dataset_id == 890686
+        assert task_config.taskdata.get_train().shape[1] == 112 and task_config.taskdata.get_test().shape[0] == 8
+        assert task_config.series_name is None
+
     def test_task_load(self):
         task_config = taskloader.load(694826)
         task = TSTask(task_config, random_state=9527, max_trials=5, reward_metric='rmse')
         assert task.task == 'univariate-forecast' and task.dataset_id == 694826
         assert task.get_train().shape[0] == 124 and task.get_test().shape[0] == 6
         assert task.random_state == 9527
+
+        task_config = taskloader.load(890686)
+        task = TSTask(task_config, random_state=9527, max_trials=5, reward_metric='rmse')
+        assert task.task == 'multivariate-forecast' and task.dataset_id == 890686
+        assert task.taskdata.get_train().shape[1] == 112 and task.taskdata.get_test().shape[0] == 8
+        assert task.series_name is None
+
+        task.ready()
+        assert task.series_name is not None and len(task.series_name) == 111

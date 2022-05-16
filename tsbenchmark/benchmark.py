@@ -184,7 +184,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         name = f'{player.name}_{task_id}_{random_state}'
 
         job_params = JobParams(bm_task_id=bm_task.id, task_config_id=task_id,
-                               random_state=random_state, max_trails=bm_task.ts_task.max_trails,
+                               random_state=random_state, max_trials=bm_task.ts_task.max_trials,
                                reward_metric=bm_task.ts_task.reward_metric)
 
         # TODO support conda yaml
@@ -239,7 +239,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
                         continue
 
                 for random_state in self.random_states:
-                    ts_task = TSTask(ts_task_config, random_state, **self.task_constraints)
+                    ts_task = TSTask(ts_task_config, random_state=random_state, **self.task_constraints)
                     self._tasks.append(BenchmarkTask(ts_task, player))
 
         # generate Hyperctl Jobs

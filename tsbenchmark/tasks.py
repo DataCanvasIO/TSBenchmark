@@ -4,7 +4,7 @@ import time
 from tsbenchmark.consts import DEFAULT_CACHE_PATH
 
 
-class TSTaskConfig:
+class TSTaskConfig(object):
 
     def __init__(self, taskconfig_id, dataset_id, taskdata, date_name, task, horizon, data_size, shape, series_name,
                  covariables_name,
@@ -22,21 +22,52 @@ class TSTaskConfig:
         self.dtformat = dtformat
 
 
-class TSTask(TSTaskConfig):
+class TSTask(object):
+    """ Player will get the data and metadata from the TSTask then run algorithm for compete.
+    Attributes:
+        dataset_id: str, not None.
+            The unique identification id.
+        date_name: str, not None.
+            The name of the date column.
+        task: str, not None.
+            The type of forecast. In time series task, it could be 'univariate-forecast' or 'multivariate-forecast'.
+        horizon: int, not None.
+            Number of periods of data to forecast ahead.
+        shape: str, not None.
+            The dataset shape from the train dataframe. The result from pandas.DataFrame.shape().
+        series_name: str or arr.
+            The names of the series columns.
+            For 'univariate-forecast' task, it should not be None.For 'multivariate-forecast' task, it should be None.
+            In the task from tsbenchmark.api.get_task() or tsbenchmark.api.get_local_task or called function TSTask.ready,
+            series_name should not be None.
 
-    def __init__(self, task_config, random_state, max_trials, reward_metric, id=None):
-        self.id = None
-        self.random_state = random_state
-        self.max_trails = max_trials
-        self.reward_metric = reward_metric
-        self.taskdata = task_config.taskdata
-        self.start_time = time.time()
-        self.end_time = None
-        self.download_time = 0
-        self.__train = None
-        self.__test = None
+        covariables_name: str or arr, may be None.
+            The names of the covariables columns.
+            It should be get after called function TSTask.ready(), or from task from tsbenchmark.api.get_task() or tsbenchmark.api.get_local_task.
+
+        dtformat: str, not None.
+            The format of the date column.
+
+    Methods:
+        get_train, get_test
+    """
+    def __init__(self, task_config, **kwargs):
         for k, v in task_config.__dict__.items():
             self.__dict__[k] = v
+
+        if "random_state" in kwargs:
+            self.random_state = kwargs.pop("random_state")
+        if "max_trials" in kwargs:
+            self.max_trials = kwargs.pop("max_trials")
+        if "reward_metric" in kwargs:
+            self.reward_metric = kwargs.pop("reward_metric")
+
+        self.start_time = time.time()
+        self.download_time = 0
+        self.end_time = None
+
+        self.__train = None
+        self.__test = None
 
     def to_dict(self):
         return {
@@ -60,6 +91,24 @@ class TSTask(TSTaskConfig):
         if self.__test is None:
             self.__test = self.taskdata.get_test()
         return self.__test
+
+    def ready(self):
+        if self.series_name is not None and self.covariables_name is not None:
+            return
+
+        columns = list(self.get_test().columns.values)
+        columns.remove(self.date_name)
+        if self.series_name is None and self.covariables_name is None:
+            self.series_name = columns
+        elif self.series_name is None:
+            for col in self.covariables_name:
+                columns.remove(col)
+            self.series_name = columns
+        elif self.covariables_name is None:
+            if len(columns) != len(self.series_name):
+                for col in self.series_name:
+                    columns.remove(col)
+                self.covariables_name = columns
 
 
 def get_task_config(task_id, cache_path=None) -> TSTaskConfig:
