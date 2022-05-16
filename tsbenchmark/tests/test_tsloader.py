@@ -93,7 +93,7 @@ class Test_TSTaskLoader():
         assert task.random_state == 9527
 
         task_config = taskloader.load(890686)
-        task = TSTask(task_config, random_state=9527, max_trails=5, reward_metric='rmse')
+        task = TSTask(task_config, random_state=9527, max_trials=5, reward_metric='rmse')
         assert task.task == 'multivariate-forecast' and task.dataset_id == 890686
         assert task.taskdata.get_train().shape[1] == 112 and task.taskdata.get_test().shape[0] == 8
         assert task.series_name is None

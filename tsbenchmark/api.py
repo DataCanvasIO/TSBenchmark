@@ -27,23 +27,23 @@ def get_task():
 
     # task_id = hyperctl_job_params['task_id']
     # random_state = hyperctl_job_params['random_state']
-    # max_trails = hyperctl_job_params['max_trails']
+    # max_trials = hyperctl_job_params['max_trials']
     # reward_metric = hyperctl_job_params['reward_metric']
 
     task_config = tasks.get_task_config(job_params.task_config_id)
 
     t = TSTask(task_config=task_config, random_state=job_params.random_state,
-               max_trials=job_params.max_trails, reward_metric=job_params.reward_metric)
+               max_trials=job_params.max_trials, reward_metric=job_params.reward_metric)
     return t
 
 
-def get_local_task(data_path, dataset_id, random_state, max_trails, reward_metric):
+def get_local_task(data_path, dataset_id, random_state, max_trials, reward_metric):
     from tsbenchmark.tsloader import TSTaskLoader
     from tsbenchmark.tasks import TSTask
     data_path = data_path
     task_loader = TSTaskLoader(data_path)
     task_config = task_loader.load(dataset_id)
-    task = TSTask(task_config, random_state=random_state, max_trails=max_trails, reward_metric=reward_metric)
+    task = TSTask(task_config, random_state=random_state, max_trials=max_trials, reward_metric=reward_metric)
     task.ready()
     return task
 

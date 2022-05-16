@@ -57,8 +57,8 @@ class TSTask(object):
 
         if "random_state" in kwargs:
             self.random_state = kwargs.pop("random_state")
-        if "max_trails" in kwargs:
-            self.max_trails = kwargs.pop("max_trails")
+        if "max_trials" in kwargs:
+            self.max_trials = kwargs.pop("max_trials")
         if "reward_metric" in kwargs:
             self.reward_metric = kwargs.pop("reward_metric")
 

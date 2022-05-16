@@ -102,11 +102,11 @@ class Player:
 
 
 class JobParams:
-    def __init__(self, bm_task_id, task_config_id,  random_state,  max_trails=None, reward_metric=None, **kwargs):
+    def __init__(self, bm_task_id, task_config_id,  random_state,  max_trials=None, reward_metric=None, **kwargs):
         self.bm_task_id = bm_task_id
         self.task_config_id = task_config_id
         self.random_state = random_state
-        self.max_trails = max_trails
+        self.max_trials = max_trials
         self.reward_metric = reward_metric
 
     def to_dict(self):
