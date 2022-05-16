@@ -12,8 +12,9 @@ random_states: [ 23163,4,5318,9527,33179 ]
 n_random_states: int, optional, default is 3
 
 constraints:
-  time_limit: 2h
-  trials: 10
+  task:
+    max_trials: 10, default is 10
+    reward_metric: rmse, default is rmse
 
 report:
   path:  ~/benchmark-output/hyperts

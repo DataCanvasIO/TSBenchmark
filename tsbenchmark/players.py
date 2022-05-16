@@ -83,12 +83,13 @@ class PythonEnv:
 
 
 class Player:
-    def __init__(self, base_dir, exec_file: str, env: PythonEnv):
+    def __init__(self, base_dir, exec_file: str, env: PythonEnv, tasks=None):
         self.base_dir = base_dir
         self.base_dir_path = Path(base_dir)
 
         self.env: PythonEnv = env
         self.exec_file = exec_file
+        self.tasks = tasks  # default is None, mean support all task type
 
         assert self.abs_exec_file_path().exists(), "exec_file not exists"
 

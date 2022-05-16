@@ -14,6 +14,7 @@ from hypernets.hyperctl.server import create_hyperctl_handlers
 from hypernets.hyperctl.utils import load_yaml
 from hypernets.utils import logging
 from tsbenchmark.callbacks import BenchmarkCallback
+from tsbenchmark.consts import DEFAULT_WORKING_DIR
 from tsbenchmark.players import Player, load_players, JobParams, PythonEnv
 from tsbenchmark.server import BenchmarkBatchApplication
 import tsbenchmark.tasks
@@ -233,6 +234,14 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         batch: Batch = Batch(batch_name, batches_data_dir)
         for ts_task_config in self.ts_tasks_config:
             for player in players:
+                # check the player whether support the task type
+                player: Player = player
+                if player.tasks is not None:
+                    if ts_task_config.task not in player.tasks:
+                        logger.debug(f"skip {ts_task_config.id} for {player.name}"
+                                     f" because of not supported this task type.")
+                        continue
+
                 for random_state in self.random_states:
                     ts_task = TSTask(ts_task_config, random_state=random_state, max_trails=3, reward_metric='rmse')   # TODO replace max_trials and reward metric
                     self._tasks.append(BenchmarkTask(ts_task, player))
