@@ -17,7 +17,7 @@ constraints:
     reward_metric: rmse, default is rmse
 
 report:
-  path:  ~/benchmark-output/hyperts
+  path:  ~/benchmark-output/hyperts, str, default is `{workding}/report`
 
 datasets:
   filter:

@@ -5,7 +5,7 @@ import time
 
 import tsbenchmark.tasks
 from tsbenchmark import api
-from tsbenchmark.benchmark import LocalBenchmark, load_players, Benchmark
+from tsbenchmark.benchmark import LocalBenchmark, Benchmark
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.players import load_player
 from tsbenchmark.tasks import TSTask

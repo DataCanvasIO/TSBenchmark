@@ -1,6 +1,7 @@
 import sys
 
-from tsbenchmark.benchmark import load_players, Player, LocalBenchmark
+from tsbenchmark.benchmark import Player, LocalBenchmark
+from tsbenchmark.cfg import _load_players
 from tsbenchmark.players import load_player, PythonEnv
 from pathlib import Path
 
@@ -17,7 +18,7 @@ class TestLoadPlayer:
         assert env.venv_kind == 'custom_python'
 
     def test_load_builtin_players(self):
-        players = load_players(['plain_player'])
+        players = _load_players(['plain_player'])
         assert len(players) == 1
         plain_player: Player = players[0]
         self.assert_palin_player(plain_player)

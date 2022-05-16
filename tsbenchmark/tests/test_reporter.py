@@ -11,7 +11,7 @@ import pytest
 from hypernets.hyperctl.appliation import BatchApplication
 
 from hypernets.utils import ssh_utils
-from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
+from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.tasks import TSTask
 from hypernets.tests.utils import ssh_utils_test
