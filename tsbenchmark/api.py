@@ -34,6 +34,7 @@ def get_task():
 
     t = TSTask(task_config=task_config, random_state=job_params.random_state,
                max_trails=job_params.max_trails, reward_metric=job_params.reward_metric)
+    t.ready()
     return t
 
 
@@ -41,9 +42,10 @@ def get_local_task(data_path, dataset_id, random_state, max_trails, reward_metri
     from tsbenchmark.tsloader import TSTaskLoader
     from tsbenchmark.tasks import TSTask
     data_path = data_path
-    taskloader = TSTaskLoader(data_path)
-    task_config = taskloader.load(dataset_id)
+    task_loader = TSTaskLoader(data_path)
+    task_config = task_loader.load(dataset_id)
     task = TSTask(task_config, random_state=random_state, max_trails=max_trails, reward_metric=reward_metric)
+    task.ready()
     return task
 
 

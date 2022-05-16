@@ -234,7 +234,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         for ts_task_config in self.ts_tasks_config:
             for player in players:
                 for random_state in self.random_states:
-                    ts_task = TSTask(ts_task_config, random_state, 3, 'rmse')   # TODO replace max_trials and reward metric
+                    ts_task = TSTask(ts_task_config, random_state=random_state, max_trails=3, reward_metric='rmse')   # TODO replace max_trials and reward metric
                     self._tasks.append(BenchmarkTask(ts_task, player))
 
         # generate Hyperctl Jobs

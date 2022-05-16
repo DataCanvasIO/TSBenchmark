@@ -131,18 +131,6 @@ class TSDataSetLoader(DataSetLoader):
 
         columns = list(self.load_test(dataset_id).columns.values)
         columns.remove(metadata['date_name'])
-
-        if metadata['series_name'] is None and metadata['covariables_name'] is None:
-            metadata['series_name'] = columns
-        elif metadata['series_name'] is None:
-            for col in metadata['covariables_name']:
-                columns.remove(col)
-            metadata['series_name'] = columns
-        elif metadata['covariables_name'] is None:
-            if len(columns) != len(metadata['series_name']):
-                for col in metadata['series_name']:
-                    columns.remove(col)
-                metadata['covariables_name'] = columns
         return metadata
 
     def _download_if_not_cached(self, dataset_id):
