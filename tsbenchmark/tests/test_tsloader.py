@@ -82,7 +82,7 @@ class Test_TSTaskLoader():
 
     def test_task_load(self):
         task_config = taskloader.load(694826)
-        task = TSTask(task_config, random_state=9527, max_trails=5, reward_metric='rmse')
+        task = TSTask(task_config, random_state=9527, max_trials=5, reward_metric='rmse')
         assert task.task == 'univariate-forecast' and task.dataset_id == 694826
         assert task.get_train().shape[0] == 124 and task.get_test().shape[0] == 6
         assert task.random_state == 9527

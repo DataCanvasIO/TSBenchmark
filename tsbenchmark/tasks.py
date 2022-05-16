@@ -24,10 +24,10 @@ class TSTaskConfig:
 
 class TSTask(TSTaskConfig):
 
-    def __init__(self, task_config, random_state, max_trails, reward_metric, id=None):
+    def __init__(self, task_config, random_state, max_trials, reward_metric, id=None):
         self.id = None
         self.random_state = random_state
-        self.max_trails = max_trails
+        self.max_trails = max_trials
         self.reward_metric = reward_metric
         self.taskdata = task_config.taskdata
         self.start_time = time.time()

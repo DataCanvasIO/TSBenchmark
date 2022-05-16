@@ -33,7 +33,7 @@ def get_task():
     task_config = tasks.get_task_config(job_params.task_config_id)
 
     t = TSTask(task_config=task_config, random_state=job_params.random_state,
-               max_trails=job_params.max_trails, reward_metric=job_params.reward_metric)
+               max_trials=job_params.max_trails, reward_metric=job_params.reward_metric)
     return t
 
 
