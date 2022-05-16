@@ -1,0 +1,33 @@
+name: 'benchmark_example_local_no_report'
+desc: 'hyperts V0.1.0 release benchmark on 20220321'
+
+kind: local
+
+working_dir: /tmp/tsbenchmark-hyperctl
+
+players:
+  - tsbenchmark/tests/players/plain_player
+
+datasets:
+  filter:
+    tasks:
+      - univariate-forecast
+      - multivariate-forecast
+    data_sizes:
+      - small
+
+random_states: [ 23163, 23164 ]
+
+constraints:
+  task:
+    max_trials: 10
+    reward_metric: rmse
+
+report:
+  enable: false
+
+batch_application_config:
+  server_port: 8060
+  server_host: localhost
+  scheduler_interval: 1
+  scheduler_exit_on_finish: True

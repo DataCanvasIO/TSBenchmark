@@ -12,8 +12,9 @@ from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.batch import ShellJob
 from hypernets.tests.hyperctl.test_scheduler import assert_batch_finished
 from hypernets.utils import ssh_utils
-from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark, load_benchmark
+from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
+from tsbenchmark.cfg import load_benchmark, _load_players
 from tsbenchmark.players import load_player
 from tsbenchmark.tasks import TSTask
 from hypernets.tests.utils import ssh_utils_test
@@ -261,7 +262,7 @@ class TestRemoteCondaReqsTxtPlayerBenchmark:
         asyncio.set_event_loop(asyncio.new_event_loop())
 
         # define players
-        players = load_players([(PWD / "players" / "plain_player_requirements_txt").as_posix()])
+        players = _load_players([(PWD / "players" / "plain_player_requirements_txt").as_posix()])
         task0 = create_task()
 
         callbacks = [ConsoleCallback()]
@@ -401,39 +402,3 @@ def test_2_tasks():
     lb.run()
     asyncio.get_event_loop().stop()  # release res
     asyncio.get_event_loop().close()
-
-
-class TestLoadBenchmark:
-
-    def assert_benchmark(self, benchmark):
-        assert benchmark.desc == "hyperts V0.1.0 release benchmark on 20220321"
-        assert len(benchmark.random_states) == 5
-        assert benchmark.conda_home == "~/miniconda3/"
-        batch_app_init_kwargs = benchmark.batch_app_init_kwargs
-
-        assert batch_app_init_kwargs['scheduler_interval'] == 1
-        assert batch_app_init_kwargs['scheduler_exit_on_finish'] == True
-
-        assert batch_app_init_kwargs['server_port'] == 8060
-        assert batch_app_init_kwargs['server_host'] == "localhost"
-        assert benchmark.task_constraints == {"max_trials": 10, "reward_metric": "rmse"}
-        assert benchmark.working_dir == "/tmp/tsbenchmark-hyperctl"
-        assert benchmark.conda_home == "~/miniconda3/"
-
-        assert set([p.name for p in benchmark.players]) == {'hyperts_dl_player', 'plain_player_requirements_txt'}
-        assert len(benchmark.ts_tasks_config) > 0
-
-    def test_load_local(self):
-        local_benchmark_example = PWD / "benchmark_example_local.yaml"
-        benchmark = load_benchmark(local_benchmark_example.as_posix())
-        assert benchmark.name == "benchmark_example_local"
-        assert isinstance(benchmark, LocalBenchmark)
-        self.assert_benchmark(benchmark)
-
-    def test_load_remote(self):
-        local_benchmark_example = PWD / "benchmark_example_remote.yaml"
-        benchmark = load_benchmark(local_benchmark_example.as_posix())
-        assert benchmark.name == "benchmark_example_remote"
-        assert isinstance(benchmark, RemoteSSHBenchmark)
-        assert len(benchmark.machines) > 0
-        self.assert_benchmark(benchmark)

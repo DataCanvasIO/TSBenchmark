@@ -1,7 +1,7 @@
 from typing import Dict
 
 import tsbenchmark
-from tsbenchmark.benchmark import LocalBenchmark, load_players, RemoteSSHBenchmark
+from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.datasets import TSDataset
 from tsbenchmark.tasks import TSTask, TSTaskConfig
