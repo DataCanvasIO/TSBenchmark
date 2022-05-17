@@ -2,8 +2,6 @@ import os
 import requests
 import zipfile
 
-import util
-
 
 class file_util:
     @staticmethod
@@ -244,7 +242,7 @@ class data_package_util:
         md5_values = ''
         for i in range(len(files_path)):
             file_path = files_path[i]
-            md5_values += util.md5_util.get_md5(file_path) + '  ' + os.path.basename(file_path)
+            md5_values += md5_util.get_md5(file_path) + '  ' + os.path.basename(file_path)
             if i != len(files_path) - 1:
                 md5_values += '\n'
 
