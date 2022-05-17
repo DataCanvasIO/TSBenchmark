@@ -60,13 +60,14 @@ class Benchmark(metaclass=abc.ABCMeta):
         self.players: List[Player] = players
         self.ts_tasks_config = ts_tasks_config
         self.random_states = random_states
-        preset_task_constraints = {
-            'max_trials': 10,
-            'reward_metric': 'rmse'
-        }
-        user_task_constraints = {} if task_constraints is None else task_constraints
-        preset_task_constraints.update(user_task_constraints)
-        self.task_constraints = preset_task_constraints
+        # preset_task_constraints = {
+        #     'max_trials': 10,
+        #     'reward_metric': 'rmse'
+        # }
+        # user_task_constraints = {} if task_constraints is None else task_constraints
+        # preset_task_constraints.update(user_task_constraints)
+        # self.task_constraints = preset_task_constraints
+        self.task_constraints = {} if task_constraints is None else task_constraints
         self.callbacks = callbacks if callbacks is not None else []
 
         if working_dir is None:

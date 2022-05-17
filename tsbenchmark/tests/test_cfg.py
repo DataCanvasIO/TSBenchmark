@@ -44,6 +44,13 @@ class TestLoadBenchmark:
         assert len(benchmark.machines) > 0
         self.assert_benchmark(benchmark)
 
+
+class TestCopyCfgCallback:
+
+    @classmethod
+    def setup_class(cls):
+        pass
+
     def test_run_local(self):
         import asyncio
         asyncio.set_event_loop(asyncio.new_event_loop())
@@ -62,6 +69,11 @@ class TestLoadBenchmark:
         assert random_states_path.exists()
         from hypernets.hyperctl.utils import load_json
         assert set(load_json(random_states_path)) == set(benchmark.random_states)
+
+        # assert max_trials and random_state is in benchmark tasks
+        bm_tasks = benchmark.tasks()
+        assert set([bt.ts_task.random_state for bt in bm_tasks]) == {23163, 23164}
+        assert set([bt.ts_task.max_trials for bt in bm_tasks]) == {10}
 
     @classmethod
     def teardown_class(cls):
