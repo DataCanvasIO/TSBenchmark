@@ -287,15 +287,6 @@ class TestRemoteCondaReqsTxtPlayerBenchmark:
         asyncio.get_event_loop().close()
 
 
-class TestRemoteCondaReqsTxtExternalPlayerBenchmark:
-
-    def setup_class(self):
-        pass
-
-    def test_run_benchmark(self):
-        pass
-
-
 @need_conda
 @need_private_pypi
 class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
@@ -326,6 +317,42 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
 
         # asserts virtual env
         assert self.env_dir_path.exists()
+
+        # bm batch succeed
+        self.assert_bm_batch_succeed(self.lb)
+        self.lb.stop()
+
+    @classmethod
+    def teardown_class(cls):
+        asyncio.get_event_loop().stop()  # release res
+        asyncio.get_event_loop().close()
+
+
+@need_conda
+@need_private_pypi
+class TestLocalCondaReqsCondaYamlBenchmark(BaseLocalBenchmark):
+    def test_run_benchmark(self):
+        asyncio.set_event_loop(asyncio.new_event_loop())
+
+        # define players
+        player = load_test_player('plain_player_conda_yaml')
+        conda_home = get_conda_home()
+
+        callbacks = [ConsoleCallback()]
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
+        lb = LocalBenchmark(name='TestLocalCondaReqsCondaYamlBenchmark', desc='desc', players=[player],
+                            random_states=[DEFAULT_RANDOM_STATE], ts_tasks_config=[create_task()],
+                            working_dir=batches_data_dir,
+                            batch_app_init_kwargs=dict(scheduler_interval=1, scheduler_exit_on_finish=True,
+                                                       server_port=8063),
+                            conda_home=get_conda_home(),
+                            callbacks=callbacks)
+        self.lb = lb
+
+        self.lb.run()
+
+        # asserts virtual env
+        # assert self.env_dir_path.exists()
 
         # bm batch succeed
         self.assert_bm_batch_succeed(self.lb)
