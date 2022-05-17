@@ -173,9 +173,15 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         random_state = bm_task.ts_task.random_state
         name = f'{player.name}_{task_id}_{random_state}'
 
+        def safe_getattr(obj, attr_name):
+            if hasattr(obj, attr_name):
+                return getattr(obj, attr_name)
+            else:
+                return None
+
         job_params = JobParams(bm_task_id=bm_task.id, task_config_id=task_id,
-                               random_state=random_state, max_trials=bm_task.ts_task.max_trials,
-                               reward_metric=bm_task.ts_task.reward_metric)
+                               random_state=random_state, max_trials=safe_getattr(bm_task.ts_task, 'max_trials'),
+                               reward_metric=safe_getattr(bm_task.ts_task, 'reward_metric'))
 
         # TODO support windows
         working_dir_path = batch.data_dir_path() / name

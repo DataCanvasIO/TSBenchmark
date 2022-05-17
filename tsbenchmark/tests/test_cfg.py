@@ -3,6 +3,7 @@ from pathlib import Path
 
 from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark
 from tsbenchmark.cfg import load_benchmark, CopyCfgCallback
+import tempfile
 
 PWD = Path(__file__).parent
 
@@ -21,7 +22,8 @@ class TestLoadBenchmark:
         assert batch_app_init_kwargs['server_port'] == 8060
         assert batch_app_init_kwargs['server_host'] == "localhost"
         assert benchmark.task_constraints == {"max_trials": 10, "reward_metric": "rmse"}
-        assert benchmark.working_dir == "/tmp/tsbenchmark-hyperctl"
+
+        assert Path(benchmark.working_dir).name.startswith("benchmark-working-dir")
         assert benchmark.conda_home == "~/miniconda3/"
 
         assert set([p.name for p in benchmark.players]) == {'hyperts_dl_player', 'plain_player_requirements_txt'}
@@ -31,14 +33,16 @@ class TestLoadBenchmark:
 
     def test_load_local(self):
         local_benchmark_example = PWD / "benchmark_example_local.yaml"
-        benchmark = load_benchmark(local_benchmark_example.as_posix())
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
+        benchmark = load_benchmark(local_benchmark_example.as_posix(), working_dir=batches_data_dir)
         assert benchmark.name == "benchmark_example_local"
         assert isinstance(benchmark, LocalBenchmark)
         self.assert_benchmark(benchmark)
 
     def test_load_remote(self):
         local_benchmark_example = PWD / "benchmark_example_remote.yaml"
-        benchmark = load_benchmark(local_benchmark_example.as_posix())
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
+        benchmark = load_benchmark(local_benchmark_example.as_posix(), working_dir=batches_data_dir)
         assert benchmark.name == "benchmark_example_remote"
         assert isinstance(benchmark, RemoteSSHBenchmark)
         assert len(benchmark.machines) > 0
@@ -56,7 +60,8 @@ class TestCopyCfgCallback:
         asyncio.set_event_loop(asyncio.new_event_loop())
 
         local_benchmark_example = PWD / "benchmark_local_no_report.yaml"
-        benchmark = load_benchmark(local_benchmark_example.as_posix())
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
+        benchmark = load_benchmark(local_benchmark_example.as_posix(), working_dir=batches_data_dir)
         assert benchmark.name == "benchmark_example_local_no_report"
         assert isinstance(benchmark, LocalBenchmark)
         benchmark.run()

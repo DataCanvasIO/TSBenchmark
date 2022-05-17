@@ -76,12 +76,16 @@ class CopyCfgCallback(BenchmarkCallback):
             json.dump(bm.random_states, f)
 
 
-def load_benchmark(config_file: str):
+def load_benchmark(config_file: str, working_dir=None):
     config_dict = load_yaml(config_file)
     name = config_dict['name']
     desc = config_dict.get('desc', '')
     kind = config_dict.get('kind', 'local')
     assert kind in ['local', 'remote']
+
+    # working_dir
+    if working_dir is None:
+        working_dir = Path(config_dict.get('working_dir', "~/tsbenchmark-data")).expanduser().as_posix()
 
     # select datasets and tasks
     datasets_config = config_dict.get('datasets', {})
@@ -137,9 +141,6 @@ def load_benchmark(config_file: str):
 
     # batch_application_config
     batch_application_config = config_dict.get('batch_application_config', {})
-
-    # working_dir
-    working_dir = Path(config_dict.get('working_dir', "~/tsbenchmark-data")).expanduser().as_posix()
 
     # venvs
     conda_home = config_dict.get('venv', {}).get('conda', {}).get('home')
