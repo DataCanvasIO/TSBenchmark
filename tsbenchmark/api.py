@@ -14,6 +14,7 @@ from hypernets.hyperctl import utils
 from hypernets.utils import logging as hyn_logging
 from tsbenchmark.players import JobParams
 from tsbenchmark.tasks import TSTask
+from tsbenchmark.consts import DEFAULT_REPORT_METRICS
 
 hyn_logging.set_level(hyn_logging.DEBUG)
 
@@ -45,6 +46,7 @@ def get_local_task(data_path, dataset_id, random_state, max_trials, reward_metri
     task_config = task_loader.load(dataset_id)
     task = TSTask(task_config, random_state=random_state, max_trials=max_trials, reward_metric=reward_metric)
     task.ready()
+    setattr(task, "_local_model", True)
     return task
 
 
@@ -93,9 +95,8 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
               When develop a new play locally, this method will help user validate the predicted and params.
 
           """
-    # todo validate
     task.__end_time = time.time()
-    default_metrics = ['smape', 'mape', 'rmse', 'mae']  # todo
+    default_metrics = DEFAULT_REPORT_METRICS
     target_metrics = default_metrics
     task_metrics = cal_task_metrics(y_pred, task.get_test()[task.series_name], task.date_name,
                                     task.series_name,
@@ -110,7 +111,8 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
         'best_params': best_params
     }
 
-    report_task(report_data)
+    if not hasattr(task, "_local_model"):
+        report_task(report_data)
 
 
 def _get_api_server_api(api_server_uri=None):
