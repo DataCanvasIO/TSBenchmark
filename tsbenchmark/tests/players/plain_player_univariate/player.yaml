@@ -4,4 +4,3 @@ env:
 
 tasks:
   - univariate-forecast
-  - multivariate-forecast

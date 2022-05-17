@@ -55,9 +55,13 @@ need_custom_py_executable = pytest.mark.skipif(get_custom_py_executable() is Non
                                                reason='The test case need to set env "TSB_CUSTOM_PY_EXECUTABLE"')
 
 
-def create_task():
-    task_config_id = 694826
-    task_config = tsbenchmark.tasks.get_task_config(task_config_id)
+def create_univariate_task():
+    task_config = tsbenchmark.tasks.get_task_config(694826)
+    return task_config
+
+
+def create_multivariable_task():
+    task_config = tsbenchmark.tasks.get_task_config(890686)
     return task_config
 
 
@@ -117,7 +121,7 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
 
         # define players
         player = cls.load_plain_player_custom_python()
-        task0 = create_task()
+        task0 = create_univariate_task()
 
         callbacks = [ConsoleCallback()]
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
@@ -140,12 +144,48 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
         asyncio.get_event_loop().close()
 
 
+class TestPlayerFilterTask(BaseLocalBenchmark):
+
+    @classmethod
+    def setup_class(cls):
+        # clear ioloop
+        asyncio.set_event_loop(asyncio.new_event_loop())
+
+        # define players
+        player = load_test_player('plain_player_univariate')
+
+        callbacks = [ConsoleCallback()]
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
+        tasks = [create_univariate_task(), create_multivariable_task()]
+
+        lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[player],
+                            random_states=[DEFAULT_RANDOM_STATE], ts_tasks_config=tasks,
+                            batch_app_init_kwargs=dict(scheduler_exit_on_finish=True, server_port=8060),
+                            working_dir=batches_data_dir, callbacks=callbacks)
+        cls.lb = lb
+
+    def test_filter_task(self):
+        self.lb.run()
+        self.assert_bm_batch_succeed(self.lb)
+        tasks = self.lb.tasks()
+        assert len(tasks) == 1
+        bm_task = tasks[0]
+        # is multivariable task
+        assert bm_task.ts_task.id == create_univariate_task().id
+
+    @classmethod
+    def teardown_class(cls):
+        cls.lb.stop()
+        asyncio.get_event_loop().stop()  # release res
+        asyncio.get_event_loop().close()
+
+
 class TestRunBasePreviousBatchRemoteCustomPython(BaseLocalBenchmark):
 
     @classmethod
     def create_local_benchmark(cls, port):
         player = cls.load_plain_player_custom_python()
-        task0 = create_task()
+        task0 = create_univariate_task()
 
         callbacks = [ConsoleCallback()]
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
@@ -207,7 +247,7 @@ class TestRemoteCustomPythonBenchmark:
         cls.connection = ssh_utils_test.load_ssh_psw_config()
         player = load_player((PWD / "players" / "plain_player_custom_python").as_posix())
         player.env.venv.py_executable = get_custom_py_executable()
-        task0 = create_task()
+        task0 = create_univariate_task()
         callbacks = [ConsoleCallback()]
         cls.working_dir_path = Path(tempfile.mkdtemp(prefix="benchmark-test-batches"))
         cls.benchmark_name = 'remote-benchmark'
@@ -263,7 +303,7 @@ class TestRemoteCondaReqsTxtPlayerBenchmark:
 
         # define players
         players = _load_players([(PWD / "players" / "plain_player_requirements_txt").as_posix()])
-        task0 = create_task()
+        task0 = create_univariate_task()
 
         callbacks = [ConsoleCallback()]
         machines = [ssh_utils_test.load_ssh_psw_config()]
@@ -300,7 +340,7 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
         if self.env_dir_path.exists():
             print("Please remove the conda env")
 
-        task0 = create_task()
+        task0 = create_univariate_task()
         callbacks = [ConsoleCallback()]
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
         lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[player],
@@ -341,7 +381,7 @@ class TestLocalCondaReqsCondaYamlBenchmark(BaseLocalBenchmark):
         callbacks = [ConsoleCallback()]
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
         lb = LocalBenchmark(name='TestLocalCondaReqsCondaYamlBenchmark', desc='desc', players=[player],
-                            random_states=[DEFAULT_RANDOM_STATE], ts_tasks_config=[create_task()],
+                            random_states=[DEFAULT_RANDOM_STATE], ts_tasks_config=[create_univariate_task()],
                             working_dir=batches_data_dir,
                             batch_app_init_kwargs=dict(scheduler_interval=1, scheduler_exit_on_finish=True,
                                                        server_port=8063),
@@ -370,7 +410,7 @@ class TestRunBasePreviousBatchLocalCustomPython:
     def create_local_benchmark(port):
         player = load_test_player('plain_player_custom_python')
         player.env.venv.py_executable = sys.executable
-        task0 = create_task()
+        task0 = create_univariate_task()
 
         callbacks = [ConsoleCallback()]
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")

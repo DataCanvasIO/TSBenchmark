@@ -37,7 +37,7 @@ class TestLoadPlayer:
         env = player.env
         assert env.venv_kind == 'custom_python'
         assert env.venv.py_executable == sys.executable
-        assert set(player.tasks) == {"univariate-forecast", "multivariate-forecast"}
+        assert set(player.tasks) == {"univariate-forecast"}
 
     def test_load_external_reqs_txt_player(self):
         plain_player_dir = (HERE / "players" / "plain_player_requirements_txt").as_posix()
