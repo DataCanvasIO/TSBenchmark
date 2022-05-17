@@ -301,7 +301,7 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
     def get_command_prefix(self):
         runpy_script = (HERE / "runpy.sh").absolute().as_posix()
-        return f"/bin/sh -x {runpy_script}"
+        return f"/bin/bash -x {runpy_script}"
 
     def get_exec_py_args(self, working_dir_path, player):
         player_exec_file = player.abs_exec_file_path().as_posix()
@@ -349,7 +349,7 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
         return command
 
     def get_command_prefix(self):
-        return f"/bin/sh -x  resources/runpy.sh"
+        return f"/bin/bash -x  resources/runpy.sh"
 
     def get_exec_py_args(self, working_dir_path, player):
         remote_player_exec_file = (working_dir_path / "resources" / player.name / player.exec_file).as_posix()

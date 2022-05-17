@@ -31,7 +31,7 @@ def test_conda_yaml_env():
     print(f"generated env file path: {conda_env_yaml_file}")
 
     py_path = PWD / "runpy" / "conda_yaml" / "validate.py"
-    command = f"/bin/sh -x {runpy_file_path} --conda-home={conda_home} --venv-kind={PythonEnv.KIND_CONDA}" \
+    command = f"/bin/bash -x {runpy_file_path} --conda-home={conda_home} --venv-kind={PythonEnv.KIND_CONDA}" \
               f" --requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} " \
               f" --venv-name={env_name} --requirements-yaml-file={conda_env_yaml_file}" \
               f" --python-script={py_path.as_posix()}"
