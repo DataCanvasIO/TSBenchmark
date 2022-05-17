@@ -10,9 +10,9 @@ from hypernets.hyperctl.appliation import BatchApplication
 
 # from hypernets.hyperctl.scheduler import run_batch
 from hypernets.hyperctl.server import create_hyperctl_handlers
+from hypernets.hyperctl.utils import load_yaml
 from hypernets.utils import logging
 from tsbenchmark.server import BenchmarkBatchApplication
-logging.set_level('DEBUG')
 
 logger = logging.getLogger(__name__)
 
@@ -113,18 +113,21 @@ class JobParams:
         return self.__dict__
 
 
-def load_player(folder):
-    folder_path = Path(folder)
+def load_player(player_dir):
 
-    config_file = Path(folder) / "player.yaml"
+    player_dir_path = Path(player_dir)
+
+    def read_env_name_from_conda_yaml(conda_yaml_file_name):
+        conda_yaml_file_path = player_dir_path / conda_yaml_file_name
+        conda_yaml_dict = load_yaml(conda_yaml_file_path.as_posix())
+        return conda_yaml_dict['name']
+
+    config_file = Path(player_dir) / "player.yaml"
     if not config_file.exists():
         raise FileNotFoundError(config_file)
 
     assert config_file.exists()
-    with open(config_file, 'r') as f:
-        content = f.read()
-
-    play_dict = yaml.load(content, Loader=yaml.CLoader)
+    play_dict = load_yaml(config_file)
 
     play_dict['exec_file'] = "exec.py"
 
@@ -134,21 +137,27 @@ def load_player(folder):
     env_mgr_kind = env_venv_dict['kind']
     env_mgr_config = env_venv_dict.get('config', {})
 
-    player_name = folder_path.name
+    player_name = player_dir_path.name
     if env_mgr_kind == PythonEnv.KIND_CONDA:
-        env_mgr_config['name'] = env_mgr_config.get('name', f'tbs-{player_name}')  # set default env name
-        mgr_config = CondaVenvMRGConfig(**env_mgr_config)
         requirements_dict = env_dict.get('requirements')
         requirements_kind = requirements_dict['kind']
         requirements_config = requirements_dict.get('config', {})
-
         if requirements_kind == PythonEnv.REQUIREMENTS_CONDA_YAML:
+            # set env name
+            configured_env_name = env_mgr_config.get('name')
+            if configured_env_name is not None:
+                logger.warn(f"you have configured env name {configured_env_name} will be"
+                            f" instead of by the name from conda yaml file.")
+            env_mgr_config['name'] = read_env_name_from_conda_yaml(requirements_config.get('file_name', "env.yaml"))
             reqs_config = ReqsCondaYamlConfig(**requirements_config)
         elif requirements_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT:
+            env_mgr_config['name'] = env_mgr_config.get('name', f'tbs-{player_name}')  # set default env name
             requirements_config['py_version'] = str(requirements_config['py_version'])
             reqs_config = ReqsRequirementsTxtConfig(**requirements_config)
         else:
             raise Exception(f"Unsupported env manager {env_mgr_kind}")
+
+        mgr_config = CondaVenvMRGConfig(**env_mgr_config)
 
     elif env_mgr_kind == PythonEnv.KIND_CUSTOM_PYTHON:
         env_mgr_config['py_executable'] = env_mgr_config.get('py_executable', sys.executable)
@@ -158,7 +167,7 @@ def load_player(folder):
         raise Exception(f"Unsupported env manager {env_mgr_kind}")
 
     play_dict['env'] = PythonEnv(venv=mgr_config, requirements=reqs_config)
-    play_dict['base_dir'] = Path(folder).absolute().as_posix()
+    play_dict['base_dir'] = Path(player_dir).absolute().as_posix()
     return Player(**play_dict)
 
 

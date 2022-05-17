@@ -49,3 +49,14 @@ class TestLoadPlayer:
         assert env.venv_kind == PythonEnv.KIND_CONDA
         assert env.reqs_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT
         assert env.requirements.py_version == "3.8"
+
+    def test_load_conda_yaml_player(self):
+        plain_player = load_test_player("plain_player_conda_yaml")
+
+        assert plain_player.name == 'plain_player_conda_yaml'
+        env = plain_player.env
+
+        assert env.venv.name == "plain_player_conda_yaml"
+        assert env.venv_kind == PythonEnv.KIND_CONDA
+        assert env.reqs_kind == PythonEnv.REQUIREMENTS_CONDA_YAML
+        assert env.requirements.file_name == "env.yaml"
