@@ -9,13 +9,11 @@ def main():
     #                               dataset_id=890686, random_state=9527, max_trials=1, reward_metric='rmse')
 
     train_df = task.get_train().copy(deep=True)
-    metric_weighting = {'smape_weighting': 5} # todo
+
+    metric_weighting = { 'smape_weighting': 5}
     if task.reward_metric is not None:
         metric_weighting = {task.reward_metric + '_weighting': 5}
-
-    max_trials = 1
-    if task.max_trials is not None:
-        max_trials = task.max_trials
+    max_trials = task.max_trials
 
     model = AutoTS(
         forecast_length=task.horizon,
