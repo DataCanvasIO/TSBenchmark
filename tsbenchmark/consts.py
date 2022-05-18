@@ -7,3 +7,5 @@ DATASETS_SOURCE_MAP = {'AWS': 'https://tsbenchmark.s3.amazonaws.com/datas'}
 DATASETS_SOURCE_DEFAULT = 'AWS'
 
 DEFAULT_REPORT_METRICS = ['smape', 'mape', 'rmse', 'mae']
+
+DEFAULT_DOWNLOAD_RETRY_TIMES = 3

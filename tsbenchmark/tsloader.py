@@ -5,7 +5,7 @@ from hypernets.utils import logging
 import pandas as pd
 import yaml
 from tsbenchmark.tasks import TSTaskConfig
-from tsbenchmark.util import download_util, file_util, df_util
+from tsbenchmark.util import download_util, file_util, df_util, md5_util
 from tsbenchmark import consts
 
 logging.set_level('DEBUG')  # TODO
@@ -22,7 +22,7 @@ class TSDataSetDesc:
 
         if not os.path.exists(self._desc_file()):
             logger.info('Downloading dataset_desc.csv from remote.')
-            download_util.download(self._desc_file(), f'{data_source}/dataset_desc.csv')
+            download_util.download_and_check(self._desc_file(), f'{data_source}/dataset_desc.csv')
             logger.info('Finish download dataset_desc.csv.')
         self.dataset_desc = pd.read_csv(self._desc_file())
         self.dataset_desc_local = None
@@ -42,6 +42,9 @@ class TSDataSetDesc:
 
     def _desc_file(self):
         return os.path.join(self.data_path, 'dataset_desc.csv')
+
+    def _desc_md5sum(self):
+        return os.path.join(self.data_path, '.md5sum')
 
     def _desc_local_file(self):
         return os.path.join(self.data_path, 'dataset_desc_local.csv')
@@ -149,7 +152,7 @@ class TSDataSetLoader(DataSetLoader):
             import uuid
             file_name = str(uuid.uuid1()) + '.zip'
             file_tmp = os.path.join(tmp_path, file_name)
-            download_util.download(file_tmp, url)
+            download_util.download_and_check(file_tmp, url)
 
             # 3. Unzip file under data_path
             data_path = os.path.join(self.data_path, task_type, data_size)

@@ -2,6 +2,8 @@ import os
 import requests
 import zipfile
 
+import tsbenchmark.consts as consts
+
 
 class file_util:
     @staticmethod
@@ -33,6 +35,14 @@ class file_util:
         if not os.path.exists(file_path):
             with open(file_path, "w") as f:
                 pass
+
+    @staticmethod
+    def remove(file_path):
+        if os.path.exists(file_path):
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+            else:
+                os.removedirs(file_path)
 
     @staticmethod
     def unzip(zipPath, unZipPath):
@@ -139,6 +149,27 @@ class download_util:
             f.write(r.content)
             f.close
 
+    @staticmethod
+    def download_and_check(file_path, url):
+
+        if md5_util.check_md5sum_onefile(file_path):
+            return True
+
+        download_success = False
+        md5sum_path = os.path.join(os.path.dirname(file_path), '.md5sum')
+        url_md5sum = url[:url.rfind('/') + 1] + ".md5sum"
+        check_name = url[url.rfind('/') + 1:]
+        for i in range(consts.DEFAULT_DOWNLOAD_RETRY_TIMES):
+            file_util.remove(file_path)
+            file_util.remove(md5sum_path)
+            download_util.download(file_path, url)
+            download_util.download(md5sum_path, url_md5sum)
+            if md5_util.check_md5sum_onefile(file_path, check_name):
+                download_success = True
+        if not download_success:
+            raise FileNotFoundError(
+                r"Download failed for {url_file} in {consts.DEFAULT_DOWNLOAD_RETRY_TIMES} times.")
+
 
 class dict_util:
     @staticmethod
@@ -176,6 +207,9 @@ class md5_util:
 
     @staticmethod
     def check_md5sum(dir_check):
+        if not os.path.exists(dir_check) or not os.path.exists(os.path.join(dir_check, '.md5sum')):
+            return False
+
         flag = True
         content = md5_util.get_md5sum(dir_check)
         check_list = content.splitlines()
@@ -187,6 +221,27 @@ class md5_util:
             if not (bytes.decode(hash_value) == hash_calc):
                 flag = False
                 break
+        return flag
+
+    @staticmethod
+    def check_md5sum_onefile(file_check, check_name=None):
+        dir_path = os.path.dirname(file_check)
+        if not os.path.exists(file_check) or not os.path.exists(os.path.join(dir_path, '.md5sum')):
+            return False
+
+        check_name = check_name if check_name is not None else os.path.basename(file_check)
+
+        flag = False
+        content = md5_util.get_md5sum(dir_path)
+        check_list = content.splitlines()
+        for item in check_list:
+            hash_value = item.split()[0]
+            file_name = item.split()[1]
+            if bytes.decode(file_name) == check_name:
+                hash_calc = md5_util.get_md5(file_check)
+                if bytes.decode(hash_value) == hash_calc:
+                    flag = True
+                    break
         return flag
 
 
