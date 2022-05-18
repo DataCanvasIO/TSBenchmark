@@ -220,8 +220,12 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
                     skip_msg = f"skip {ts_task_config.id} for {player.name} because of not supported this task type."
                     logger.debug(skip_msg)
                     continue
-            for random_state in self.random_states:
-                ts_task = TSTask(ts_task_config, random_state=random_state, **self.task_constraints)
+            if player.random is True:
+                for random_state in self.random_states:
+                    ts_task = TSTask(ts_task_config, random_state=random_state, **self.task_constraints)
+                    self._tasks.append(BenchmarkTask(ts_task, player))
+            else:
+                ts_task = TSTask(ts_task_config, random_state=None, **self.task_constraints)
                 self._tasks.append(BenchmarkTask(ts_task, player))
 
     def run(self):

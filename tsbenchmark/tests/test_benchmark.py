@@ -180,6 +180,42 @@ class TestPlayerFilterTask(BaseLocalBenchmark):
         asyncio.get_event_loop().close()
 
 
+class TestNonRandomPlayer(BaseLocalBenchmark):
+
+    @classmethod
+    def setup_class(cls):
+        # clear ioloop
+        asyncio.set_event_loop(asyncio.new_event_loop())
+
+        # define players
+        non_random_player = load_test_player('non_random_player_univariate')
+        plain_player = load_test_player('plain_player')
+
+        callbacks = [ConsoleCallback()]
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
+        tasks = [create_univariate_task()]
+
+        lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[non_random_player, plain_player],
+                            random_states=[DEFAULT_RANDOM_STATE, 8087], ts_tasks_config=tasks,
+                            batch_app_init_kwargs=dict(scheduler_exit_on_finish=True, server_port=8060),
+                            working_dir=batches_data_dir, callbacks=callbacks)
+        cls.lb = lb
+
+    def test_no_random_player(self):
+        self.lb.run()
+        self.assert_bm_batch_succeed(self.lb)
+        tasks = self.lb.tasks()
+        assert len(tasks) == 3
+        ts_task = tasks[0].ts_task
+        assert ts_task.random_state is None
+
+    @classmethod
+    def teardown_class(cls):
+        cls.lb.stop()
+        asyncio.get_event_loop().stop()  # release res
+        asyncio.get_event_loop().close()
+
+
 class TestRunBasePreviousBatchRemoteCustomPython(BaseLocalBenchmark):
 
     @classmethod
