@@ -2,7 +2,7 @@ import os
 import requests
 import zipfile
 
-import consts
+import tsbenchmark.consts as consts
 
 
 class file_util:
