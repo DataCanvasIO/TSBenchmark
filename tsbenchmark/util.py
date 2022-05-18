@@ -30,7 +30,7 @@ class file_util:
     def get_or_create_file(file_path):
         if not os.path.exists(os.path.dirname(file_path)):
             os.makedirs(os.path.dirname(file_path))
-        if not os.path.exists(os.path.basename(file_path)):
+        if not os.path.exists(file_path):
             with open(file_path, "w") as f:
                 pass
 
@@ -111,7 +111,7 @@ class file_util:
         # Begin zip
         z = zipfile.ZipFile(zipFilePath, 'w')
         for f in files:
-            z.write(f, os.path.basename(f))
+            z.write(f, os.path.basename(os.path.dirname(f)) + '/' + os.path.basename(f))
         z.close()
 
     @staticmethod
@@ -232,20 +232,21 @@ class data_package_util:
             self.package_md5(file_pathes, os.path.join(dir_target, '.md5sum'))
             file_pathes.append(os.path.join(dir_target, '.md5sum'))
 
-            zip_file = os.path.join(dir_target, os.path.basename(dir_target) + '.zip')
+            zip_file = os.path.join(dir_target + '.zip')
             file_util.zip_files(file_pathes, zip_file)
 
             # Generate new .md5sum for zip file and cover the old one.
-            self.package_md5([zip_file], os.path.join(dir_target, '.md5sum'))
+            self.package_md5([zip_file], os.path.join(os.path.dirname(dir_target), '.md5sum'))
+
+            os.remove(os.path.join(dir_target, '.md5sum'))
+            os.removedirs(dir_target)
 
     def package_md5(self, files_path, target_path):
         md5_values = ''
         for i in range(len(files_path)):
             file_path = files_path[i]
-            md5_values += md5_util.get_md5(file_path) + '  ' + os.path.basename(file_path)
-            if i != len(files_path) - 1:
-                md5_values += '\n'
+            md5_values += md5_util.get_md5(file_path) + '  ' + os.path.basename(file_path) + '\n'
 
         file_util.get_or_create_file(target_path)
-        with open(target_path, 'w') as f:
+        with open(target_path, 'a') as f:
             f.write(md5_values)
