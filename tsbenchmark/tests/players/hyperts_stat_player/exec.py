@@ -3,7 +3,6 @@ import tsbenchmark.api
 
 def main():
     task = tsb.api.get_task()
-    print("task.reward_metric:",task.reward_metric) # todo
     # task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas2',
     #                               dataset_id=890686, random_state=9527, max_trials=1, reward_metric='rmse')
 
@@ -15,11 +14,11 @@ def main():
                           reward_metric=task.reward_metric,
                           timestamp_format=task.dtformat,
                           covariables=task.covariables_name,
-                          max_trials=1,  # todo
+                          max_trials=task.max_trials,
                           optimize_direction='min',
                           verbose=1,
                           log_level='INFO',
-                          early_stopping_rounds=30,
+                          early_stopping_rounds=0,
                           early_stopping_time_limit=0,
                           random_state=task.random_state
                           )
