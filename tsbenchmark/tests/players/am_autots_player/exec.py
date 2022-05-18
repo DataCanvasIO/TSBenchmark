@@ -2,6 +2,19 @@ import tsbenchmark as tsb
 import tsbenchmark.api
 from autots import AutoTS
 
+default_metric_weighting = {
+    'smape_weighting': 5,
+    'mae_weighting': 2,
+    'rmse_weighting': 2,
+    'made_weighting': 0.5,
+    'mage_weighting': 0,
+    'mle_weighting': 0,
+    'imle_weighting': 0,
+    'spl_weighting': 3,
+    'containment_weighting': 0,
+    'contour_weighting': 1,
+    'runtime_weighting': 0.05,
+}
 
 def main():
     task = tsb.api.get_task()
@@ -9,15 +22,12 @@ def main():
     #                               dataset_id=890686, random_state=9527, max_trials=1, reward_metric='rmse')
 
     train_df = task.get_train().copy(deep=True)
-
-    metric_weighting = { 'smape_weighting': 5}
-    if task.reward_metric is not None:
-        metric_weighting = {task.reward_metric + '_weighting': 5}
-    max_trials = task.max_trials
+    metric_key = (task.reward_metric + '_weighting').lower()
+    metric_weighting = {metric_key: 5} if metric_key in default_metric_weighting else default_metric_weighting
 
     model = AutoTS(
         forecast_length=task.horizon,
-        max_generations=max_trials,
+        max_generations=task.max_trials,
         random_seed=task.random_state,
         metric_weighting=metric_weighting
     )
