@@ -60,3 +60,12 @@ class TestLoadPlayer:
         assert env.venv_kind == PythonEnv.KIND_CONDA
         assert env.reqs_kind == PythonEnv.REQUIREMENTS_CONDA_YAML
         assert env.requirements.file_name == "env.yaml"
+
+    def test_load_non_random_player(self):
+        player = load_test_player("non_random_player_univariate")
+
+        assert player.name == 'non_random_player_univariate'
+        env = player.env
+        assert env.venv_kind == PythonEnv.KIND_CUSTOM_PYTHON
+
+        assert player.random is False

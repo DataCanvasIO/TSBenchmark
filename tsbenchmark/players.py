@@ -83,13 +83,14 @@ class PythonEnv:
 
 
 class Player:
-    def __init__(self, base_dir, exec_file: str, env: PythonEnv, tasks=None):
+    def __init__(self, base_dir, exec_file: str, env: PythonEnv, tasks=None, random=True):
         self.base_dir = base_dir
         self.base_dir_path = Path(base_dir)
 
         self.env: PythonEnv = env
         self.exec_file = exec_file
         self.tasks = tasks  # default is None, mean support all task type
+        self.random = random
 
         assert self.abs_exec_file_path().exists(), "exec_file not exists"
 
@@ -169,5 +170,3 @@ def load_player(player_dir):
     play_dict['env'] = PythonEnv(venv=mgr_config, requirements=reqs_config)
     play_dict['base_dir'] = Path(player_dir).absolute().as_posix()
     return Player(**play_dict)
-
-

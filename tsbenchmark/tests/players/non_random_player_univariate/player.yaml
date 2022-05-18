@@ -1,0 +1,8 @@
+env:
+  venv:
+    kind: custom_python
+
+tasks:
+  - univariate-forecast
+
+random: false
