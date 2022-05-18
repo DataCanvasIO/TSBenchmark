@@ -83,14 +83,14 @@ if [ "$venv_kind" == "custom_python"  ];then
     py_exec=$custom_py_executable
 
 elif [ "$venv_kind" == "conda"   ]; then
+    require_input "$conda_home" "conda-home"
+    require_input "$venv_name" "venv-name"
+    require_input "$requirements_kind" "requirements-kind"
+
     # define vars
     conda_exec="$conda_home/bin/conda"
     venv_dir="$conda_home/envs/$venv_name"
     py_exec="$venv_dir/bin/python"
-
-    require_input "$conda_home" "conda-home"
-    require_input "$venv_name" "venv-name"
-    require_input "$requirements_kind" "requirements-kind"
 
     # check conda executable
     if [ ! -f $conda_exec ];then
@@ -110,7 +110,7 @@ elif [ "$venv_kind" == "conda"   ]; then
         echo "prepare virtual env succeed."
       elif [  "$requirements_kind" == "conda_yaml" ]; then
         require_input "$requirements_yaml_file" "requirements-yaml-file"
-        $conda_exec env create -f $requirements_yaml_file
+        $conda_exec env create -f $requirements_yaml_file -n "$venv_name"
       else
         echo "unseen requirements $requirements_kind for conda"  1>&2
         exit -1

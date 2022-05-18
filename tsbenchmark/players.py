@@ -137,7 +137,7 @@ def load_player(player_dir):
             # set env name
             configured_env_name = env_mgr_config.get('name')
             if configured_env_name is not None:
-                logger.warn(f"you have configured env name {configured_env_name} will be"
+                logger.warning(f"you have configured env name {configured_env_name} will be"
                             f" instead of by the name from conda yaml file.")
             env_mgr_config['name'] = read_env_name_from_conda_yaml(requirements_config.get('file_name', "env.yaml"))
             reqs_config = ReqsCondaYamlConfig(**requirements_config)

@@ -1,8 +1,6 @@
 env:
   venv:
     kind: conda
-    config:
-      name: plain_player_conda_yaml
   requirements:
     kind: conda_yaml
     config:

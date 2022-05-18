@@ -4,9 +4,7 @@ from typing import List
 
 from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.batch import ShellJob, Batch
-# from hypernets.hyperctl.scheduler import run_batch
 from hypernets.hyperctl.callbacks import BatchCallback
-from hypernets.hyperctl.utils import load_yaml
 from hypernets.utils import logging
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.consts import DEFAULT_WORKING_DIR
@@ -295,12 +293,19 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
     def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
         local_requirements_txt_file = player.base_dir_path / player.env.requirements.file_name
-        command = f"--venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} --venv-name={player.env.venv.name} --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} --requirements-txt-file={local_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version}"
+        command = f"--venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home}" \
+                  f" --venv-name={player.env.venv.name}" \
+                  f" --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} " \
+                  f"--requirements-txt-file={local_requirements_txt_file} " \
+                  f"--requirements-txt-py-version={player.env.requirements.py_version}"
         return command
 
     def make_run_requirements_conda_yaml_command(self, working_dir_path, player):
         local_requirements_txt_file = player.base_dir_path / player.env.requirements.file_name
-        command = f"--venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} --venv-name={player.env.venv.name} --requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} --requirements-yaml-file={local_requirements_txt_file}"
+        command = f"--venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home}" \
+                  f" --venv-name={player.env.venv.name}" \
+                  f" --requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} " \
+                  f"--requirements-yaml-file={local_requirements_txt_file}"
         return command
 
     def get_command_prefix(self):
@@ -334,8 +339,11 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
         }
 
     def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
-        remote_requirements_txt_file = (working_dir_path / "resources" / player.env.requirements.file_name).as_posix()
-        command = f"--venv-kind=conda  --conda-home={self.conda_home} --venv-name={player.env.venv.name} --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} --requirements-txt-file={remote_requirements_txt_file} --requirements-txt-py-version={player.env.requirements.py_version}"
+        remote_requirements_txt_file = (working_dir_path / "resources" / player.name / player.env.requirements.file_name).as_posix()
+        command = f"--venv-kind=conda  --conda-home={self.conda_home} --venv-name={player.env.venv.name} " \
+                  f"--requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} " \
+                  f"--requirements-txt-file={remote_requirements_txt_file} " \
+                  f"--requirements-txt-py-version={player.env.requirements.py_version}"
         return command
 
     def get_job_asserts(self, bm_task: BenchmarkTask):
@@ -348,8 +356,10 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
         return command
 
     def make_run_requirements_conda_yaml_command(self, working_dir_path, player):
-        conda_yaml_file = (working_dir_path / "resources" / player.env.requirements.file_name).as_posix()
-        command = f"--venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} --venv-name={player.env.venv.name} --requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} --requirements-yaml-file={conda_yaml_file}"
+        conda_yaml_file = (working_dir_path / "resources" / player.name / player.env.requirements.file_name).as_posix()
+        command = f"--venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} " \
+                  f"--venv-name={player.env.venv.name} --requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} " \
+                  f"--requirements-yaml-file={conda_yaml_file}"
         return command
 
     def get_command_prefix(self):
