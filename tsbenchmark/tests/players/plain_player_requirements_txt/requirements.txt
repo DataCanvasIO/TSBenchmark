@@ -1,1 +1,1 @@
-requests
+https://github.com/DataCanvasIO/TSBenchmark.git

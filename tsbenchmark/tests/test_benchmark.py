@@ -1,25 +1,23 @@
+import asyncio
 import os
 import sys
 import tempfile
-import time
-import asyncio
-from typing import Dict
 from pathlib import Path
+from typing import Dict
 
 import pytest
-import tornado.ioloop
+
+import tsbenchmark.tasks
 from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.batch import ShellJob
 from hypernets.tests.hyperctl.test_scheduler import assert_batch_finished
+from hypernets.tests.utils import ssh_utils_test
 from hypernets.utils import ssh_utils
+from hypernets.utils.common import generate_short_id
 from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
-from tsbenchmark.cfg import load_benchmark, _load_players
+from tsbenchmark.cfg import _load_players
 from tsbenchmark.players import load_player
-from tsbenchmark.tasks import TSTask
-from hypernets.tests.utils import ssh_utils_test
-
-import tsbenchmark.tasks
 from tsbenchmark.tests.players import load_test_player
 
 PWD = Path(__file__).parent
@@ -37,10 +35,6 @@ def _conda_ready():
         return False
 
 
-def get_custom_py_executable():
-    return os.getenv("TSB_CUSTOM_PY_EXECUTABLE")
-
-
 # export TSB_CONDA_HOME=/opt/miniconda3
 need_conda = pytest.mark.skipif(not _conda_ready(),
                                 reason='The test case need conda to be installed and set env "TSB_CONDA_HOME"')
@@ -51,9 +45,6 @@ need_private_pypi = pytest.mark.skipif(os.getenv("TSB_PYPI") is None,
 need_server_host = pytest.mark.skipif(os.getenv("TSB_SERVER_HOST") is None,
                                       reason='The test case need to set env "TSB_SERVER_HOST"')
 
-need_custom_py_executable = pytest.mark.skipif(get_custom_py_executable() is None,
-                                               reason='The test case need to set env "TSB_CUSTOM_PY_EXECUTABLE"')
-
 
 def create_univariate_task():
     task_config = tsbenchmark.tasks.get_task_config(694826)
@@ -63,6 +54,12 @@ def create_univariate_task():
 def create_multivariable_task():
     task_config = tsbenchmark.tasks.get_task_config(890686)
     return task_config
+
+
+def load_player_with_random_env_name(env_name):
+    player = load_test_player(env_name)
+    player.env.venv.name = generate_short_id()
+    return player
 
 
 DEFAULT_RANDOM_STATE = 8086
@@ -90,37 +87,48 @@ class ConsoleCallback(BenchmarkCallback):
         print('on_finish')
 
 
-class BaseLocalBenchmark:
+def assert_bm_batch_succeed(lb):
+    # assert does not upload any assets
+    batch_app: BatchApplication = lb.batch_app
+    for job in batch_app.batch.jobs:
+        job: ShellJob = job
+        assert not job.resources_path.exists()
 
-    def assert_bm_batch_succeed(self, lb):
-        # assert does not upload any assets
-        batch_app: BatchApplication = lb.batch_app
-        for job in batch_app.batch.jobs:
-            job: ShellJob = job
-            assert not job.resources_path.exists()
-
-        # assert batch succeed
-        assert_batch_finished(batch_app.batch, ShellJob.STATUS_SUCCEED)
-
-    @staticmethod
-    def load_plain_player_custom_python():
-        player = load_test_player('plain_player_custom_python')
-        player.env.venv.py_executable = sys.executable
-        return player
+    # assert batch succeed
+    assert_batch_finished(batch_app.batch, ShellJob.STATUS_SUCCEED)
 
 
-class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
-    """Benchmark with constraints:
-        - local benchmark
-        - custom python
-    """
+class BaseTestBenchmark:
+
+    benchmark = None
+
     @classmethod
     def setup_class(cls):
         # clear ioloop
         asyncio.set_event_loop(asyncio.new_event_loop())
 
+    @classmethod
+    def teardown_class(cls):
+        if cls.benchmark is not None:
+            cls.benchmark.stop()
+        # release resources
+        asyncio.get_event_loop().stop()
+        asyncio.get_event_loop().close()
+
+
+class TestLocalCustomPythonTestBenchmark(BaseTestBenchmark):
+    """Benchmark with constraints:
+        - local benchmark
+        - custom python
+    """
+    benchmark = None
+
+    @classmethod
+    def setup_class(cls):
+        super(TestLocalCustomPythonTestBenchmark, cls).setup_class()
+
         # define players
-        player = cls.load_plain_player_custom_python()
+        player = load_test_player('plain_player')
         task0 = create_univariate_task()
 
         callbacks = [ConsoleCallback()]
@@ -131,25 +139,18 @@ class TestLocalCustomPythonBenchmark(BaseLocalBenchmark):
                             batch_app_init_kwargs=dict(scheduler_exit_on_finish=True, server_port=8060),
                             working_dir=batches_data_dir,
                             task_constraints={}, callbacks=callbacks)
-        cls.lb = lb
+        cls.benchmark = lb
 
     def test_run(self):
-        self.lb.run()
-        self.assert_bm_batch_succeed(self.lb)
-
-    @classmethod
-    def teardown_class(cls):
-        cls.lb.stop()
-        asyncio.get_event_loop().stop()  # release res
-        asyncio.get_event_loop().close()
+        self.benchmark.run()
+        assert_bm_batch_succeed(self.benchmark)
 
 
-class TestPlayerFilterTask(BaseLocalBenchmark):
+class TestPlayerFilterTask(BaseTestBenchmark):
 
     @classmethod
     def setup_class(cls):
-        # clear ioloop
-        asyncio.set_event_loop(asyncio.new_event_loop())
+        super(TestPlayerFilterTask, cls).setup_class()
 
         # define players
         player = load_test_player('plain_player_univariate')
@@ -162,30 +163,23 @@ class TestPlayerFilterTask(BaseLocalBenchmark):
                             random_states=[DEFAULT_RANDOM_STATE], ts_tasks_config=tasks,
                             batch_app_init_kwargs=dict(scheduler_exit_on_finish=True, server_port=8060),
                             working_dir=batches_data_dir, callbacks=callbacks)
-        cls.lb = lb
+        cls.benchmark = lb
 
     def test_filter_task(self):
-        self.lb.run()
-        self.assert_bm_batch_succeed(self.lb)
-        tasks = self.lb.tasks()
+        self.benchmark.run()
+        assert_bm_batch_succeed(self.benchmark)
+        tasks = self.benchmark.tasks()
         assert len(tasks) == 1
         bm_task = tasks[0]
         # is multivariable task
         assert bm_task.ts_task.id == create_univariate_task().id
 
-    @classmethod
-    def teardown_class(cls):
-        cls.lb.stop()
-        asyncio.get_event_loop().stop()  # release res
-        asyncio.get_event_loop().close()
 
-
-class TestNonRandomPlayer(BaseLocalBenchmark):
+class TestNonRandomPlayer(BaseTestBenchmark):
 
     @classmethod
     def setup_class(cls):
-        # clear ioloop
-        asyncio.set_event_loop(asyncio.new_event_loop())
+        super(TestNonRandomPlayer, cls).setup_class()
 
         # define players
         non_random_player = load_test_player('non_random_player_univariate')
@@ -199,28 +193,36 @@ class TestNonRandomPlayer(BaseLocalBenchmark):
                             random_states=[DEFAULT_RANDOM_STATE, 8087], ts_tasks_config=tasks,
                             batch_app_init_kwargs=dict(scheduler_exit_on_finish=True, server_port=8060),
                             working_dir=batches_data_dir, callbacks=callbacks)
-        cls.lb = lb
+        cls.benchmark = lb
 
     def test_no_random_player(self):
-        self.lb.run()
-        self.assert_bm_batch_succeed(self.lb)
-        tasks = self.lb.tasks()
+        self.benchmark.run()
+        assert_bm_batch_succeed(self.benchmark)
+        tasks = self.benchmark.tasks()
         assert len(tasks) == 3
         ts_task = tasks[0].ts_task
         assert ts_task.random_state is None
 
+
+class TestRunBasePreviousBatchRemoteCustomPythonTest(BaseTestBenchmark):
+
+    bc2 = None
+
     @classmethod
-    def teardown_class(cls):
-        cls.lb.stop()
-        asyncio.get_event_loop().stop()  # release res
-        asyncio.get_event_loop().close()
+    def setup_class(cls):
+        super(TestRunBasePreviousBatchRemoteCustomPythonTest, cls).setup_class()
 
+        base_bc = cls.create_local_benchmark(8060)
+        base_bc.run()
+        base_bc._batch_app.stop()
+        cls.base_bc = base_bc
 
-class TestRunBasePreviousBatchRemoteCustomPython(BaseLocalBenchmark):
+        bc2 = cls.create_local_benchmark(8060)
+        cls.bc2 = bc2
 
     @classmethod
     def create_local_benchmark(cls, port):
-        player = cls.load_plain_player_custom_python()
+        player = load_test_player("plain_player")
         task0 = create_univariate_task()
 
         callbacks = [ConsoleCallback()]
@@ -232,18 +234,6 @@ class TestRunBasePreviousBatchRemoteCustomPython(BaseLocalBenchmark):
                                                        server_port=port),
                             task_constraints={}, callbacks=callbacks)
         return lb
-
-    @classmethod
-    def setup_class(cls):
-        asyncio.set_event_loop(asyncio.new_event_loop())
-
-        base_bc = cls.create_local_benchmark(8060)
-        base_bc.run()
-        base_bc._batch_app.stop()
-        cls.base_bc = base_bc
-
-        bc2 = cls.create_local_benchmark(8060)
-        cls.bc2 = bc2
 
     def test_run_base_previous_batch(self):
         bc2 = self.bc2
@@ -258,14 +248,12 @@ class TestRunBasePreviousBatchRemoteCustomPython(BaseLocalBenchmark):
     @classmethod
     def teardown_class(cls):
         cls.bc2._batch_app._http_server.stop()
-        asyncio.get_event_loop().stop()  # release res
-        asyncio.get_event_loop().close()
+        super(TestRunBasePreviousBatchRemoteCustomPythonTest, cls).teardown_class()
 
 
 @ssh_utils_test.need_psw_auth_ssh
 @need_server_host
-@need_custom_py_executable
-class TestRemoteCustomPythonBenchmark:
+class TestRemoteCustomPythonTestBenchmark(BaseTestBenchmark):
     """
     Benchmark with constraints:
         - remote benchmark
@@ -278,11 +266,11 @@ class TestRemoteCustomPythonBenchmark:
     @classmethod
     def setup_class(cls):
         # clear ioloop
-        asyncio.set_event_loop(asyncio.new_event_loop())
+        super(TestRemoteCustomPythonTestBenchmark, cls).setup_class()
 
         cls.connection = ssh_utils_test.load_ssh_psw_config()
         player = load_player((PWD / "players" / "plain_player_custom_python").as_posix())
-        player.env.venv.py_executable = get_custom_py_executable()
+        player.env.venv.py_executable = sys.executable
         task0 = create_univariate_task()
         callbacks = [ConsoleCallback()]
         cls.working_dir_path = Path(tempfile.mkdtemp(prefix="benchmark-test-batches"))
@@ -296,15 +284,15 @@ class TestRemoteCustomPythonBenchmark:
                                                            scheduler_exit_on_finish=True),
                                 task_constraints={}, callbacks=callbacks,
                                 machines=[cls.connection])
-        cls.lb = lb
+        cls.benchmark = lb
 
     def test_run_benchmark(self):
-        self.lb.run()
+        self.benchmark.run()
 
         # assert local files
         batch_path = self.working_dir_path / "batches" / self.benchmark_name
         assert batch_path.exists()
-        batch_app: BatchApplication = self.lb._batch_app
+        batch_app: BatchApplication = self.benchmark._batch_app
         jobs = batch_app.batch.jobs
         assert len(jobs) == 1
         job = jobs[0]
@@ -323,19 +311,14 @@ class TestRemoteCustomPythonBenchmark:
             assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "plain_player_custom_python" / "exec.py").as_posix())
             assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "plain_player_custom_python" / "player.yaml").as_posix())
 
-    @classmethod
-    def teardown_class(cls):
-        cls.lb.stop()
-        asyncio.get_event_loop().stop()  # release res
-        asyncio.get_event_loop().close()
-
 
 @need_private_pypi
 @need_conda
 @ssh_utils_test.need_psw_auth_ssh
-class TestRemoteCondaReqsTxtPlayerBenchmark:
-    def setup_class(self):
-        asyncio.set_event_loop(asyncio.new_event_loop())
+class TestRemoteCondaReqsTxtPlayerTestBenchmark(BaseTestBenchmark):
+    @classmethod
+    def setup_class(cls):
+        super(TestRemoteCondaReqsTxtPlayerTestBenchmark, cls).setup_class()
 
         # define players
         players = _load_players([(PWD / "players" / "plain_player_requirements_txt").as_posix()])
@@ -355,26 +338,19 @@ class TestRemoteCondaReqsTxtPlayerBenchmark:
                                 conda_home=get_conda_home(),
                                 task_constraints={}, callbacks=callbacks,
                                 machines=machines)
-        self.lb = lb
-
-    def test_run_benchmark(self):
-        self.lb.run()
-        asyncio.get_event_loop().stop()  # release res
-        asyncio.get_event_loop().close()
+        cls.benchmark = lb
 
 
 @need_conda
-@need_private_pypi
-class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
+class TestLocalCondaReqsTxtTestBenchmark(BaseTestBenchmark):
     def test_run_benchmark(self):
-        asyncio.set_event_loop(asyncio.new_event_loop())
 
         # define players
-        player = load_test_player('plain_player_requirements_txt')
+        player = load_player_with_random_env_name('plain_player_requirements_txt')
         conda_home = get_conda_home()
         self.env_dir_path = Path(conda_home) / "envs" / player.env.venv.name
         if self.env_dir_path.exists():
-            print("Please remove the conda env")
+            raise ValueError(f"Please remove the conda env {player.env.venv.name}")
 
         task0 = create_univariate_task()
         callbacks = [ConsoleCallback()]
@@ -398,18 +374,11 @@ class TestLocalCondaReqsTxtBenchmark(BaseLocalBenchmark):
         self.assert_bm_batch_succeed(self.lb)
         self.lb.stop()
 
-    @classmethod
-    def teardown_class(cls):
-        asyncio.get_event_loop().stop()  # release res
-        asyncio.get_event_loop().close()
-
 
 @need_conda
 @need_private_pypi
-class TestLocalCondaReqsCondaYamlBenchmark(BaseLocalBenchmark):
+class TestLocalCondaReqsCondaYamlTestBenchmark(BaseTestBenchmark):
     def test_run_benchmark(self):
-        asyncio.set_event_loop(asyncio.new_event_loop())
-
         # define players
         player = load_test_player('plain_player_conda_yaml')
         conda_home = get_conda_home()
@@ -434,13 +403,10 @@ class TestLocalCondaReqsCondaYamlBenchmark(BaseLocalBenchmark):
         self.assert_bm_batch_succeed(self.lb)
         self.lb.stop()
 
-    @classmethod
-    def teardown_class(cls):
-        asyncio.get_event_loop().stop()  # release res
-        asyncio.get_event_loop().close()
 
+class TestRunBasePreviousBatchLocalCustomPythonTest(BaseTestBenchmark):
 
-class TestRunBasePreviousBatchLocalCustomPython:
+    bc2 = None
 
     @staticmethod
     def create_local_benchmark(port):
@@ -459,16 +425,17 @@ class TestRunBasePreviousBatchLocalCustomPython:
                             task_constraints={}, callbacks=callbacks)
         return lb
 
-    def setup_class(self):
-        asyncio.set_event_loop(asyncio.new_event_loop())
+    @classmethod
+    def setup_class(cls):
+        super(TestRunBasePreviousBatchLocalCustomPythonTest, cls).setup_class()
 
-        base_bc = self.create_local_benchmark(8064)
+        base_bc = cls.create_local_benchmark(8064)
         base_bc.run()
         base_bc._batch_app._http_server.stop()
-        self.base_bc = base_bc
+        cls.base_bc = base_bc
 
-        bc2 = self.create_local_benchmark(8065)
-        self.bc2 = bc2
+        bc2 = cls.create_local_benchmark(8065)
+        cls.bc2 = bc2
 
     def test_run_base_previous_batch(self):
         bc2 = self.bc2
@@ -483,8 +450,7 @@ class TestRunBasePreviousBatchLocalCustomPython:
     @classmethod
     def teardown_class(cls):
         cls.bc2._batch_app._http_server.stop()
-        asyncio.get_event_loop().stop()  # release res
-        asyncio.get_event_loop().close()
+        super(TestRunBasePreviousBatchLocalCustomPythonTest, cls).teardown_class()
 
 
 def test_2_tasks():
