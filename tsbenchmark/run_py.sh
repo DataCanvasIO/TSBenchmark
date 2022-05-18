@@ -104,7 +104,8 @@ elif [ "$venv_kind" == "conda"   ]; then
       if [ "$requirements_kind" == "requirements_txt"  ];then
         require_input "$requirements_kind" "requirements-kind"
         # handle requirement.txt
-        $conda_exec create -n $venv_name python=$requirements_txt_py_version -y
+        $conda_exec create -n $venv_name python=$requirements_txt_py_version pip -y
+        pip_exec="$venv_dir/bin/pip"
         $pip_exec install -r $requirements_txt_file
         echo "prepare virtual env succeed."
       elif [  "$requirements_kind" == "conda_yaml" ]; then
@@ -130,8 +131,9 @@ elif [ "$venv_kind" == "conda"   ]; then
 fi
 
 # check pyton executable
-if [ ! -f $py_exec ];then
+if [ ! -f ""$py_exec"" ];then
   echo "py_exe $py_exec is not exists, can not execute python script"
+  exit -1
 fi
 
 # run script

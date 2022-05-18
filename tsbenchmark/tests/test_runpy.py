@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 import tempfile
 
@@ -44,3 +45,38 @@ def test_conda_yaml_env():
     # assert python path
     assert (Path(conda_home) / "envs" / env_name / "bin" / "python").exists()
 
+
+def test_custom_python():
+
+    py_path = PWD / "run_py" / "conda_yaml" / "validate.py"
+    command = f"/bin/bash -x {run_py_file_path} --venv-kind={PythonEnv.KIND_CUSTOM_PYTHON}" \
+              f" --requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} " \
+              f" --custom-py-executable={sys.executable}" \
+              f" --python-script={py_path.as_posix()}"
+    print(command)
+    status, output = subprocess.getstatusoutput(command)
+    print("output")
+    print(output)
+    assert status == 0
+
+
+@need_conda
+def test_conda_requirement_txt():
+    py_path = PWD / "run_py" / "requirement_txt" / "validate.py"
+    conda_home = get_conda_home()
+    requirement_txt_path = PWD / "run_py" / "requirement_txt" / "requirements.txt"
+    venv_name = generate_short_id()
+
+    command = f"/bin/bash -x {run_py_file_path}  --conda-home={conda_home} --venv-kind={PythonEnv.KIND_CONDA}" \
+              f" --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} " \
+              f" --venv-name={venv_name} " \
+              f" --requirements-txt-file={requirement_txt_path.as_posix()} " \
+              f" --requirements-txt-py-version=3.7" \
+              f" --python-script={py_path.as_posix()}"
+    print(command)
+    status, output = subprocess.getstatusoutput(command)
+    print("output")
+    print(output)
+    assert status == 0
+    # assert python path
+    assert (Path(conda_home) / "envs" / venv_name / "bin" / "python").exists()
