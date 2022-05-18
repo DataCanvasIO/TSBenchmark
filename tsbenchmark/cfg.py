@@ -32,7 +32,7 @@ def _load_players(player_specs):
     logger.debug(f"default players dir is at {default_players_dir}")
     for player_folder in os.listdir(default_players_dir):
         # filter dirs
-        player_dir = default_players_dir / player_folder
+        player_dir = default_players_dir / str(player_folder)
         if os.path.isdir(player_dir):
             logger.debug(f'detected player at {player_dir}')
             player = load_player(player_dir)
@@ -66,9 +66,9 @@ class CopyCfgCallback(BenchmarkCallback):
         config_file_path = Path(self.config_file)
 
         # write config file
-        config_file_dest_path = Path(bm.working_dir) / config_file_path.name
-        os.makedirs(config_file_dest_path.parent.as_posix(), exist_ok=True)
-        shutil.copy(self.config_file, config_file_dest_path.as_posix())
+        config_file_destination_path = Path(bm.working_dir) / config_file_path.name
+        os.makedirs(config_file_destination_path.parent.as_posix(), exist_ok=True)
+        shutil.copy(self.config_file, config_file_destination_path.as_posix())
 
         # write status file
         random_state_path = Path(bm.working_dir) / self.random_state_file_name
@@ -114,7 +114,7 @@ def load_benchmark(config_file: str, working_dir=None):
     random_states = config_dict.get('random_states')
     if random_states is None or len(random_states) < 1:
         n_random_states = config_dict.get('n_random_states', 3)
-        random_states = [random.Random().randint(1000, 10000) for i in range(n_random_states)]
+        random_states = [random.Random().randint(1000, 10000) for _ in range(n_random_states)]
 
     # constraints
     task_constraints = config_dict.get('constraints', {}).get('task')

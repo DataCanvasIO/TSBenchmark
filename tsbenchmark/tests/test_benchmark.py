@@ -317,8 +317,8 @@ class TestRemoteCustomPythonBenchmark:
         with ssh_utils.sftp_client(**self.connection) as client:
             # working dir
             assert ssh_utils.exists(client, job_working_dir_path.as_posix())
-            # runpy.sh
-            assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "runpy.sh").as_posix())
+            # run_py.sh
+            assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "run_py.sh").as_posix())
             # player
             assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "plain_player_custom_python" / "exec.py").as_posix())
             assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "plain_player_custom_python" / "player.yaml").as_posix())

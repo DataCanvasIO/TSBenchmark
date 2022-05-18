@@ -9,7 +9,7 @@ from hypernets.utils.common import generate_short_id
 PWD = Path(__file__).parent
 
 
-runpy_file_path = PWD.parent / "runpy.sh"
+run_py_file_path = PWD.parent / "run_py.sh"
 
 
 @need_conda
@@ -17,7 +17,7 @@ def test_conda_yaml_env():
 
     env_name = generate_short_id()
     conda_home = get_conda_home()
-    conda_env_temp_yaml_path = PWD / "runpy" / "conda_yaml" / "env.yaml"
+    conda_env_temp_yaml_path = PWD / "run_py" / "conda_yaml" / "env.yaml"
 
     # generate env file
     conda_env_yaml_path_fd, conda_env_yaml_file = tempfile.mkstemp(suffix=".yaml")
@@ -30,8 +30,8 @@ def test_conda_yaml_env():
 
     print(f"generated env file path: {conda_env_yaml_file}")
 
-    py_path = PWD / "runpy" / "conda_yaml" / "validate.py"
-    command = f"/bin/bash -x {runpy_file_path} --conda-home={conda_home} --venv-kind={PythonEnv.KIND_CONDA}" \
+    py_path = PWD / "run_py" / "conda_yaml" / "validate.py"
+    command = f"/bin/bash -x {run_py_file_path} --conda-home={conda_home} --venv-kind={PythonEnv.KIND_CONDA}" \
               f" --requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} " \
               f" --venv-name={env_name} --requirements-yaml-file={conda_env_yaml_file}" \
               f" --python-script={py_path.as_posix()}"

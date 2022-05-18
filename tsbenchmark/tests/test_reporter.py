@@ -168,8 +168,8 @@ class TestRemoteCustomPythonBenchmark:
             with ssh_utils.sftp_client(**connection) as client:
                 # working dir
                 assert ssh_utils.exists(client, job_working_dir_path.as_posix())
-                # runpy.sh
-                assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "runpy.sh").as_posix())
+                # run_py.sh
+                assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "run_py.sh").as_posix())
 
     def teardown_class(self):
         self.lb.stop()

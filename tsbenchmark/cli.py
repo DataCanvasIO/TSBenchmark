@@ -3,7 +3,7 @@ import argparse
 
 from hypernets.utils import logging
 from hypernets.utils import logging as hyn_logging
-from tsbenchmark.benchmark import load_benchmark
+from tsbenchmark.cfg import load_benchmark
 from tsbenchmark.reporter import load_compare_reporter
 
 logger = logging.getLogger(__name__)
