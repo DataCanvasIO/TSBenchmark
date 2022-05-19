@@ -3,8 +3,7 @@ from typing import Dict
 import tsbenchmark
 from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark
 from tsbenchmark.callbacks import BenchmarkCallback
-from tsbenchmark.datasets import TSDataset
-from tsbenchmark.tasks import TSTask, TSTaskConfig
+from tsbenchmark.tasks import TSTask
 from tsbenchmark.tests.players import load_test_player
 import sys,tempfile
 
@@ -33,21 +32,14 @@ class ConsoleCallback(BenchmarkCallback):
         print('on_finish')
 
 
-def create_task():
-    task_config_id = 694826
-    task_config = tsbenchmark.tasks.get_task_config(task_config_id)
+def create_univariate_task():
+    task_config = tsbenchmark.tasks.get_task_config(694826)
     return task_config
 
 
-def create_minimal_local_benchmark():
-    # define players
-    player = load_test_player("plain_player_requirements_txt")
-    task0 = create_task()
-    callbacks = [ConsoleCallback()]
-    lb = LocalBenchmark(name='name', desc='desc', players=[player],
-                        random_states=[8086], ts_tasks_config=[task0], scheduler_exit_on_finish=True,
-                        constraints={}, callbacks=callbacks)
-    return lb
+def create_multivariable_task():
+    task_config = tsbenchmark.tasks.get_task_config(890686)
+    return task_config
 
 
 def load_plain_player_custom_python():
@@ -56,15 +48,56 @@ def load_plain_player_custom_python():
     return player
 
 
-def create_local_benchmark(callbacks=None):
-    player = load_plain_player_custom_python()
-    task0 = create_task()
+def _init_benchmark_benchmark(players=None, tasks=None, callbacks=None, batch_app_init_kwargs=None,
+                              random_states=None, conda_home=None):
+    if players is None:
+        players = [load_plain_player_custom_python()]
+
+    if tasks is None:
+        tasks = [create_univariate_task()]
+
+    if random_states is None:
+        random_states = [DEFAULT_RANDOM_STATE]
+
+    if callbacks is None:
+        callbacks = []
+
+    callbacks.append(ConsoleCallback())
 
     batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
 
-    lb = LocalBenchmark(name='local-benchmark', desc='desc', players=[player],
-                        random_states=[DEFAULT_RANDOM_STATE], ts_tasks_config=[task0],
-                        batch_app_init_kwargs=dict(scheduler_exit_on_finish=True, server_port=8060),
-                        working_dir=batches_data_dir,
-                        task_constraints={}, callbacks=callbacks)
+    kwargs = dict(desc='desc', players=players,
+                  random_states=random_states, ts_tasks_config=tasks,
+                  batch_app_init_kwargs=batch_app_init_kwargs,
+                  working_dir=batches_data_dir,
+                  conda_home=conda_home,
+                  callbacks=callbacks)
+    return kwargs
+
+
+def create_local_benchmark(batch_app_init_kwargs=None, **kwargs):
+    init_kwargs = _init_benchmark_benchmark(**kwargs)
+
+    if batch_app_init_kwargs is None:
+        batch_app_init_kwargs = dict(scheduler_exit_on_finish=True,
+                                     scheduler_interval=1,
+                                     server_port=8060)
+    lb = LocalBenchmark(name='local-benchmark', batch_app_init_kwargs=batch_app_init_kwargs, **init_kwargs)
+    return lb
+
+
+def create_remote_benchmark(machines, server_host, **kwargs):
+
+    init_kwargs = _init_benchmark_benchmark(**kwargs)
+
+    batch_app_init_kwargs = dict(server_port=8060,
+                                 server_host=server_host,
+                                 scheduler_interval=1,
+                                 scheduler_exit_on_finish=True),
+
+    lb = RemoteSSHBenchmark(name="remote-benchmark",
+                            machines=machines,
+                            batch_app_init_kwargs=batch_app_init_kwargs,
+                            **init_kwargs)
+
     return lb
