@@ -48,7 +48,7 @@ def load_plain_player_custom_python():
     return player
 
 
-def _init_benchmark_benchmark(players=None, tasks=None, callbacks=None, batch_app_init_kwargs=None,
+def _init_benchmark_benchmark(players=None, tasks=None, callbacks=None,
                               random_states=None, conda_home=None):
     if players is None:
         players = [load_plain_player_custom_python()]
@@ -68,7 +68,6 @@ def _init_benchmark_benchmark(players=None, tasks=None, callbacks=None, batch_ap
 
     kwargs = dict(desc='desc', players=players,
                   random_states=random_states, ts_tasks_config=tasks,
-                  batch_app_init_kwargs=batch_app_init_kwargs,
                   working_dir=batches_data_dir,
                   conda_home=conda_home,
                   callbacks=callbacks)
