@@ -43,6 +43,10 @@ need_conda = pytest.mark.skipif(not _conda_ready(),
 # e.g.: export TSB_SERVER_HOST=192.168.2.200
 need_server_host = pytest.mark.skipif(get_server_host() is None,
                                       reason='The test case need to set env "TSB_SERVER_HOST"')
+# e.g.: export TSB_PYPI=true
+need_private_pypi = pytest.mark.skipif(os.getenv("TSB_PYPI") is None,
+                                       reason='The test case need a private pypi created in ~/.pip/pip.conf to '
+                                              'install requirements"')
 
 
 def load_player_with_random_env_name(env_name):
@@ -263,6 +267,7 @@ class TestMultipleTasks(BaseBenchmarkTest):
 
 
 @need_conda
+@need_private_pypi
 class TestLocalCondaReqsTxtTestBenchmark(BaseBenchmarkTest):
     @classmethod
     def setup_class(cls):
@@ -287,6 +292,7 @@ class TestLocalCondaReqsTxtTestBenchmark(BaseBenchmarkTest):
 
 
 @need_conda
+@need_private_pypi
 class TestLocalCondaReqsCondaYamlBenchmark(BaseBenchmarkTest):
     @classmethod
     def setup_class(cls):
@@ -345,6 +351,7 @@ class TestRemoteCustomPythonTestBenchmark(BaseBenchmarkTest):
 @need_conda
 @ssh_utils_test.need_psw_auth_ssh
 @need_server_host
+@need_private_pypi
 class TestRemoteCondaReqsTxtPlayerTestBenchmark(BaseBenchmarkTest):
 
     @classmethod
@@ -375,6 +382,7 @@ class TestRemoteCondaReqsTxtPlayerTestBenchmark(BaseBenchmarkTest):
 @need_conda
 @ssh_utils_test.need_psw_auth_ssh
 @need_server_host
+@need_private_pypi
 class TestRemoteCondaReqsCondaYamlBenchmark(BaseBenchmarkTest):
     @classmethod
     def setup_class(cls):
