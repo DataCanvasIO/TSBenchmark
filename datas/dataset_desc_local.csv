@@ -3,3 +3,4 @@ id,type,data_size,shape,name,ok,label,frequency,industry,covariables,category,so
 694826,univariate-forecast,small,"(124, 2)",Air_Passengers,Y,"Regular time series,",Month,aviation,,benchmark,,csv,1
 309496,univariate-forecast,small,"(6940, 2)",US_Births,Y,"Regular time series,",Day,sociology,,benchmark,,csv,1
 192837,univariate-forecast,small,"(6940, 2)",M3,Y,"Regular time series,",Day,sociology,,benchmark,,tsf,5
+59229,univariate-forecast,small,"(432, 5)",Bike_Sharing_Demand,Y,"Regular time series,",Hour,transport,,benchmark,,csv,1

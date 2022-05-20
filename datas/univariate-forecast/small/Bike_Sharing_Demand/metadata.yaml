@@ -1,0 +1,16 @@
+name: Bike Sharing Demand
+metric: rmse
+date_name: datetime
+series_name: count
+covariables_name: workingday
+horizon: 24
+dtformat: '%Y-%m-%d %H:%M:%S'
+task: univariate-forecast
+shape:  (432, 2)
+label:  Regular time series,
+frequency: Hour
+industry: Transport
+source: https://www.kaggle.com/c/bike-sharing-demand/data?select=test.csv
+is_competion: true
+describe: Competion metric evaluated is rmsle. You are provided hourly rental data spanning two years.You must predict the total count of bikes rented during each hour covered by the test set, using only information available prior to the rental period.
+
