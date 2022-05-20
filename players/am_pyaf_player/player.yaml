@@ -3,3 +3,5 @@ env:
     kind: custom_python
     config:
       py_executable: /mnt/nfsroot/hegang/programs/anaconda3/envs/tsb-pyaf/bin/python
+
+random: false

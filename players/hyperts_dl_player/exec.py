@@ -13,11 +13,11 @@ def main():
                           reward_metric=task.reward_metric,
                           timestamp_format=task.dtformat,
                           covariables=task.covariables_name,
-                          max_trials=1,  # todo
+                          max_trials=task.max_trials,
                           optimize_direction='min',
                           verbose=1,
                           log_level='INFO',
-                          early_stopping_rounds=30,
+                          early_stopping_rounds=0,
                           early_stopping_time_limit=0,
                           random_state=task.random_state,
                           dl_gpu_usage_strategy=1

@@ -23,9 +23,10 @@ def main():
     model = Fedot(problem='ts_forecasting', task_params=fedot_task.task_params, timeout=1, seed=task.random_state)
     chain = model.fit(features=train_data)
     forecast = model.predict(features=test_data)
-    df_forecast = pd.DataFrame(forecast.reshape(-1,1),columns=[task.series_name])
+    df_forecast = pd.DataFrame(forecast.reshape(-1, 1), columns=[task.series_name])
 
     tsb.api.send_report_data(task, df_forecast)
+
 
 if __name__ == "__main__":
     main()

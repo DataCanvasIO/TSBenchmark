@@ -98,6 +98,11 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
     task.__end_time = time.time()
     default_metrics = DEFAULT_REPORT_METRICS
     target_metrics = default_metrics
+
+    assert y_pred is not None
+    if y_pred.shape[0] != task.get_test().shape[0]:
+        raise Exception(f"The result should have {task.get_test().shape[0]} rows but got {y_pred.shape[0]}. ")
+
     task_metrics = cal_task_metrics(y_pred, task.get_test()[task.series_name], task.date_name,
                                     task.series_name,
                                     task.covariables_name, target_metrics, 'regression')
@@ -113,6 +118,8 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
 
     if not hasattr(task, "_local_model"):
         report_task(report_data)
+    else:
+        logger.info("Successfully validation for local test mode.")
 
 
 def _get_api_server_api(api_server_uri=None):
