@@ -1,8 +1,7 @@
 import sys
 
-from tsbenchmark.benchmark import Player, LocalBenchmark
-from tsbenchmark.cfg import _load_players
-from tsbenchmark.players import load_player, PythonEnv
+from tsbenchmark.benchmark import Player
+from tsbenchmark.players import PythonEnv
 from pathlib import Path
 
 from tsbenchmark.tests.players import load_test_player
@@ -18,14 +17,11 @@ class TestLoadPlayer:
         assert env.venv_kind == 'custom_python'
 
     def test_load_builtin_players(self):
-        players = _load_players(['plain_player'])
-        assert len(players) == 1
-        plain_player: Player = players[0]
+        plain_player = load_test_player('plain_player')
         self.assert_palin_player(plain_player)
 
     def test_load_external_custom_python_player(self):
-        plain_player_dir = (HERE / "players" / "plain_player_custom_python").as_posix()
-        plain_player = load_player(plain_player_dir)
+        plain_player = load_test_player("plain_player_custom_python")
 
         assert plain_player.name == 'plain_player_custom_python'
         env = plain_player.env
@@ -40,12 +36,12 @@ class TestLoadPlayer:
         assert set(player.tasks) == {"univariate-forecast"}
 
     def test_load_external_reqs_txt_player(self):
-        plain_player_dir = (HERE / "players" / "plain_player_requirements_txt").as_posix()
-        plain_player = load_player(plain_player_dir)
+        plain_player = load_test_player("plain_player_requirements_txt")
 
         assert plain_player.name == 'plain_player_requirements_txt'
         env = plain_player.env
 
+        assert env.venv.name == "plain_player_requirements_txt"
         assert env.venv_kind == PythonEnv.KIND_CONDA
         assert env.reqs_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT
         assert env.requirements.py_version == "3.8"

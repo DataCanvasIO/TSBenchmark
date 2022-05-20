@@ -4,7 +4,7 @@ desc: 'hyperts V0.1.0 release benchmark on 20220321'
 kind: remote
 
 players:
-  - hyperts_dl_player
+  - players/hyperts_dl_player
   - tsbenchmark/tests/players/plain_player_requirements_txt
 
 datasets:

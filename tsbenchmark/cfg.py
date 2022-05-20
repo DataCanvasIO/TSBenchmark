@@ -17,7 +17,7 @@ SRC_DIR = os.path.dirname(__file__)
 logger = logging.getLogger(__name__)
 
 
-def _load_players(player_specs):
+def _load_players(player_folders):
 
     def put_player(dict_obj, _: Player):
         if _.name not in dict_obj:
@@ -25,32 +25,29 @@ def _load_players(player_specs):
         else:
             raise RuntimeError(f"already exists key {_.name}")
 
-    default_players = {}
+    # default_players = {}
 
     # 1. load default players
-    default_players_dir = Path(SRC_DIR).parent / "players"
-    logger.debug(f"default players dir is at {default_players_dir}")
-    for player_folder in os.listdir(default_players_dir):
-        # filter dirs
-        player_dir = default_players_dir / str(player_folder)
-        if os.path.isdir(player_dir):
-            logger.debug(f'detected player at {player_dir}')
-            player = load_player(player_dir)
-            put_player(default_players, player)
+    # default_players_dir = Path(SRC_DIR).parent / "players"
+    # logger.debug(f"default players dir is at {default_players_dir}")
+    # for player_folder in os.listdir(default_players_dir):
+    #     # filter dirs
+    #     player_dir = default_players_dir / str(player_folder)
+    #     if os.path.isdir(player_dir):
+    #         logger.debug(f'detected player at {player_dir}')
+    #         player = load_player(player_dir)
+    #         put_player(default_players, player)
 
     # 2. load user custom players
     selected_players = {}
-    for player_name_or_path in player_specs:
-        if player_name_or_path not in default_players:  # is a path
-            # load as a directory
-            abs_player_path = os.path.abspath(player_name_or_path)
-            logger.info(f"read player from dir {abs_player_path}")
+    for player_name_or_path in player_folders:
+        # if player_name_or_path not in default_players:  # is a path
+        # load as a directory
+        abs_player_path = os.path.abspath(player_name_or_path)
+        logger.info(f"read player from dir {abs_player_path}")
 
-            player = load_player(Path(player_name_or_path))
-            put_player(selected_players, player)
-        else:
-            player_name = player_name_or_path
-            put_player(selected_players, default_players[player_name])
+        player = load_player(Path(player_name_or_path))
+        put_player(selected_players, player)
 
     return list(selected_players.values())
 

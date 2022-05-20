@@ -1,14 +1,14 @@
-name: str, required
-desc: str, optional
+name: str, required, Benchmark 名称
+desc: str, optional, Benchmark 描述
 
-kind: str, optional, one of remote,local; default is `local`
+kind: str, optional, Benchmark类型，可选 remote,local; 默认是`local`
+#
 
-players:
+players: list[str], required, 参加Benchmark测试的player。
   - hyperts_dl
   - ./sourcecode/hyperts_stat/
 
-
-random_states: [ 23163,4,5318,9527,33179 ]
+random_states: [23163,4,5318,9527,33179]
 n_random_states: int, optional, default is 3
 
 constraints:
