@@ -1,4 +1,5 @@
 import abc
+import os
 from pathlib import Path
 from typing import List
 
@@ -195,7 +196,8 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         else:
             raise ValueError(f"unseen venv kind {venv_kind}")
 
-        merged_command = f"{self.get_command_prefix()} {command} {self.get_exec_py_args(working_dir_path, player)}"
+        merged_command = f"{self.get_command_prefix()} {command} " \
+                         f"{self.get_exec_py_args(working_dir_path, player)} --python-path={os.getcwd()}"
         logger.info(f"command of job {name} is {merged_command}")
 
         batch.add_job(name=name,

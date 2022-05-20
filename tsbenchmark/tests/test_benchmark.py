@@ -181,12 +181,12 @@ class TestRunBasePreviousBatchRemoteCustomPythonTest(BaseBenchmarkTest):
     def setup_class(cls):
         super(TestRunBasePreviousBatchRemoteCustomPythonTest, cls).setup_class()
 
-        base_bc = create_local_benchmark(8060)
+        base_bc = create_local_benchmark()
         base_bc.run()
         base_bc._batch_app.stop()
         cls.base_bc = base_bc
 
-        bc2 = create_local_benchmark(8060)
+        bc2 = create_local_benchmark()
         cls.bc2 = bc2
 
     def test_run_base_previous_batch(self):
