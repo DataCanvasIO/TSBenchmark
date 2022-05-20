@@ -166,6 +166,7 @@ class download_util:
             download_util.download(md5sum_path, url_md5sum)
             if md5_util.check_md5sum_onefile(file_path, check_name):
                 download_success = True
+                break
         if not download_success:
             raise FileNotFoundError(
                 r"Download failed for {url_file} in {consts.DEFAULT_DOWNLOAD_RETRY_TIMES} times.")
@@ -256,7 +257,14 @@ def cal_task_metrics(y_pred, y_true, date_col_name, series_col_name, covariables
     if date_col_name in y_true.columns:
         y_true = y_true.drop(columns=[date_col_name], axis=1)
     if covariables != None:
-        y_true = y_true.drop(columns=[covariables], axis=1)
+        cols_del_y_true = [ col for col in covariables if col not in y_true.columns.values]
+        if cols_del_y_true is not None and len(cols_del_y_true) > 1:
+            y_true = y_true.drop(columns = cols_del_y_true)
+
+        cols_del_y_pred = [ col for col  in covariables if col in y_pred.columns.values]
+        if cols_del_y_pred is not None and len(cols_del_y_pred) > 1:
+            y_pred = y_pred.drop(columns = cols_del_y_true)
+
     metrics_task = metrics.calc_score(y_true, y_pred,
                                       metrics=metrics_target, task=task_calc_score)
     return metrics_task
