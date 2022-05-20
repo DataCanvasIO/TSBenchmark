@@ -4,7 +4,6 @@ from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.server import RestCode, BaseHandler, create_hyperctl_handlers, \
     HyperctlWebApplication
 from hypernets.utils import logging as hyn_logging
-from tsbenchmark import tasks
 
 logger = hyn_logging.getLogger(__name__)
 

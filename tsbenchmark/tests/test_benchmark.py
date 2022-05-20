@@ -254,9 +254,7 @@ class TestMultipleTasks(BaseBenchmarkTest):
         super(TestMultipleTasks, cls).setup_class()
 
         player = load_test_player('plain_player')
-        t1 = tsbenchmark.tasks.get_task_config(694826)
-        t2 = tsbenchmark.tasks.get_task_config(890686)
-        tasks = [t1, t2]
+        tasks = [create_univariate_task(), create_multivariable_task()]
 
         lb = create_local_benchmark(players=[player], tasks=tasks)
         cls.benchmark = lb

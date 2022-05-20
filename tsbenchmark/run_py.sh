@@ -38,6 +38,9 @@ for i in "$@"; do
         --requirements-yaml-file=*)
             requirements_yaml_file="${i#*=}"
             shift ;;
+        --datasets-cache-path=*)
+            datasets_cache_path="${i#*=}"
+            shift ;;
         --python-path=*)
             python_path="${i#*=}"
             shift ;;
@@ -65,7 +68,8 @@ echo "requirements-kind: $requirements_kind"
 echo "requirements-txt-file: $requirements_txt_file"
 echo "requirements-txt-py-version: $requirements_txt_py_version"
 echo "requirements-yaml-file: $requirements_yaml_file"
-echo "python_path: $python_path"
+echo "python-path: $python_path"
+echo "datasets-cache_path: $datasets_cache_path"
 echo "python-script: $python_script"
 echo "-----------------------"
 
@@ -143,6 +147,11 @@ fi
 # check pyton path
 if [ ! -z "$python_path" ];then
   export PYTHONPATH=$python_path
+fi
+
+# check dataset cache path
+if [ ! -z "$datasets_cache_path" ];then
+  export TSB_DATASETS_CACHE_PATH=$datasets_cache_path
 fi
 
 # run script

@@ -1,9 +1,12 @@
-import asyncio
+import os
 from pathlib import Path
 
+from tsbenchmark import consts
 from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark
 from tsbenchmark.cfg import load_benchmark, CopyCfgCallback
 import tempfile
+
+from tsbenchmark.tests.test_benchmark import BaseBenchmarkTest, assert_local_bm_batch_succeed
 
 PWD = Path(__file__).parent
 
@@ -49,19 +52,17 @@ class TestLoadBenchmark:
         self.assert_benchmark(benchmark)
 
 
-class TestCopyCfgCallback:
+class TestCopyCfgCallback(BaseBenchmarkTest):
 
     @classmethod
     def setup_class(cls):
-        pass
-
-    def test_run_local(self):
-        import asyncio
-        asyncio.set_event_loop(asyncio.new_event_loop())
-
+        super(TestCopyCfgCallback, cls).setup_class()
         local_benchmark_example = PWD / "benchmark_local_no_report.yaml"
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
-        benchmark = load_benchmark(local_benchmark_example.as_posix(), working_dir=batches_data_dir)
+        cls.benchmark = load_benchmark(local_benchmark_example.as_posix(), working_dir=batches_data_dir)
+
+    def test_run_local(self):
+        benchmark = self.benchmark
         assert benchmark.name == "benchmark_example_local_no_report"
         assert isinstance(benchmark, LocalBenchmark)
         benchmark.run()
@@ -80,7 +81,26 @@ class TestCopyCfgCallback:
         assert set([bt.ts_task.random_state for bt in bm_tasks]) == {23163, 23164}
         assert set([bt.ts_task.max_trials for bt in bm_tasks]) == {10}
 
+
+class TestUseDatasetsCachePath(BaseBenchmarkTest):
+
     @classmethod
-    def teardown_class(cls):
-        asyncio.get_event_loop().stop()  # release res
-        asyncio.get_event_loop().close()
+    def setup_class(cls):
+        super(TestUseDatasetsCachePath, cls).setup_class()
+        benchmark_file = PWD / "benchmark_cache_path.yaml"
+        batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
+        cls.benchmark = load_benchmark(benchmark_file.as_posix(), working_dir=batches_data_dir)
+
+    def test_run_benchmark(self):
+        benchmark = self.benchmark
+
+        assert benchmark.name == "benchmark_cache_path"
+        assert isinstance(benchmark, LocalBenchmark)
+        benchmark.run()
+
+        ts_task = benchmark.tasks()[0].ts_task
+        assert os.getenv(consts.ENV_DATASETS_CACHE_PATH) == "/tmp/datasets-cache"
+        assert ts_task.taskdata.taskdata_loader.data_path == "/tmp/datasets-cache"
+
+        # job succeed
+        assert_local_bm_batch_succeed(self.benchmark)

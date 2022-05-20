@@ -31,7 +31,7 @@ def get_task():
     # max_trials = hyperctl_job_params['max_trials']
     # reward_metric = hyperctl_job_params['reward_metric']
 
-    task_config = tasks.get_task_config(job_params.task_config_id)
+    task_config = tasks.get_task_config(job_params.task_config_id, cache_path=job_params.dataset_cache_path)
 
     t = TSTask(task_config=task_config, random_state=job_params.random_state,
                max_trials=job_params.max_trials, reward_metric=job_params.reward_metric)

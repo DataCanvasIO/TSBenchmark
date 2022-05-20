@@ -1,0 +1,10 @@
+env:
+  venv:
+    kind: conda
+  requirements:
+    kind: requirements_txt
+    config:
+      py_version: 3.8
+      file_name: requirements.txt
+tasks:
+  - univariate-forecast

@@ -1,7 +1,8 @@
+import os
 from pathlib import Path
 import time
 
-from tsbenchmark.consts import DEFAULT_CACHE_PATH
+from tsbenchmark.consts import DEFAULT_CACHE_PATH, ENV_DATASETS_CACHE_PATH
 
 
 class TSTaskConfig(object):
@@ -111,12 +112,19 @@ class TSTask(object):
                 self.covariables_name = columns
 
 
-def get_task_config(task_id, cache_path=None) -> TSTaskConfig:
+def _get_task_load(cache_path=None):
     if cache_path is None:
-        cache_path = DEFAULT_CACHE_PATH
+        cache_path = os.getenv(ENV_DATASETS_CACHE_PATH)
+        if cache_path is None:
+            cache_path = DEFAULT_CACHE_PATH
 
     from tsbenchmark.tsloader import TSTaskLoader
     task_loader = TSTaskLoader(cache_path)
+    return task_loader
+
+
+def get_task_config(task_id, cache_path=None) -> TSTaskConfig:
+    task_loader = _get_task_load(cache_path)
     task_config: TSTaskConfig = task_loader.load(task_id)
     return task_config
 
@@ -125,13 +133,16 @@ def list_task_configs(*args, **kwargs):
     if 'cache_path' in kwargs:
         cache_path = kwargs.pop("cache_path")
     else:
-        cache_path = DEFAULT_CACHE_PATH
+        cache_path = None
 
-    from tsbenchmark.tsloader import TSTaskLoader
-    dataset_ids = kwargs.pop('ids')
+    if 'ids' in kwargs:
+        dataset_ids = kwargs.pop("ids")
+    else:
+        dataset_ids = None
 
-    task_loader = TSTaskLoader(cache_path)
+    task_loader = _get_task_load(cache_path)
     tasks = task_loader.list(*args, **kwargs)
+
     if dataset_ids is not None and len(dataset_ids) > 0:
         ret_tasks = list(filter(lambda t: get_task_config(t).dataset_id in dataset_ids, tasks))
     else:

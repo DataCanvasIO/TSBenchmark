@@ -6,6 +6,7 @@ import os
 
 import tsbenchmark
 from hypernets.hyperctl.utils import load_yaml
+from tsbenchmark import consts
 from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark, Benchmark
 import tsbenchmark.tasks
 from tsbenchmark.callbacks import BenchmarkCallback
@@ -86,7 +87,10 @@ def load_benchmark(config_file: str, working_dir=None):
 
     # select datasets and tasks
     datasets_config = config_dict.get('datasets', {})
-    # datasets_config_cache_path = config_dict.get('cache_path', "~/.cache/tsbenchmark/datasets")
+    datasets_config_cache_path = datasets_config.get('cache_path')
+    if datasets_config_cache_path is not None:
+        os.environ[consts.ENV_DATASETS_CACHE_PATH] = datasets_config_cache_path
+
     datasets_filter_config = datasets_config.get('filter', {})
     datasets_filter_tasks = datasets_filter_config.get('tasks')
 

@@ -1,0 +1,29 @@
+name: 'benchmark_cache_path'
+desc: 'Test cache path'
+
+kind: local
+
+players:
+  - tsbenchmark/tests/players/check_cache_path_player
+
+datasets:
+  cache_path: /tmp/datasets-cache
+  filter:
+    ids:
+      - 694826
+
+random_states: [23163]
+
+constraints:
+  task:
+    max_trials: 10
+    reward_metric: rmse
+
+report:
+  enable: false
+
+batch_application_config:
+  server_port: 8060
+  server_host: localhost
+  scheduler_interval: 1
+  scheduler_exit_on_finish: True

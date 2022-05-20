@@ -16,6 +16,7 @@ from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.tasks import TSTask
 from hypernets.tests.utils import ssh_utils_test
 from tsbenchmark.players import load_player
+from tsbenchmark.tests.players import load_test_player
 
 logging.set_level('DEBUG')  # TODO
 logger = logging.getLogger(__name__)
@@ -53,7 +54,7 @@ def create_benchmark_remote_cfg():
 
 def atest_benchmark_reporter():
     # define players
-    players = load_players([(HERE / "players" / "am_fedot_player").as_posix()])
+    players = [load_test_player("am_fedot_player")]
     task_list = [TSTask(tsbenchmark.tasks.get_task_config(t_id), random_state=8086, max_trials=1, reward_metric='rmse')
                  for
                  t_id in [694826, 309496]]

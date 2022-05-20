@@ -1,1 +1,5 @@
 hypernets
+pandas
+scikit-learn
+pyyaml
+requests

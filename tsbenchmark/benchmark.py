@@ -7,6 +7,7 @@ from hypernets.hyperctl.appliation import BatchApplication
 from hypernets.hyperctl.batch import ShellJob, Batch
 from hypernets.hyperctl.callbacks import BatchCallback
 from hypernets.utils import logging
+from tsbenchmark import consts
 from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.consts import DEFAULT_WORKING_DIR
 from tsbenchmark.players import Player, JobParams, PythonEnv
@@ -197,7 +198,9 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
             raise ValueError(f"unseen venv kind {venv_kind}")
 
         merged_command = f"{self.get_command_prefix()} {command} " \
-                         f"{self.get_exec_py_args(working_dir_path, player)} --python-path={os.getcwd()}"
+                         f"{self.get_exec_py_args(working_dir_path, player)} {self.get_datasets_cache_path_args()}" \
+                         f"  --python-path={os.getcwd()}"
+
         logger.info(f"command of job {name} is {merged_command}")
 
         batch.add_job(name=name,
@@ -227,6 +230,14 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
             else:
                 ts_task = TSTask(ts_task_config, random_state=None, **self.task_constraints)
                 self._tasks.append(BenchmarkTask(ts_task, player))
+
+    @staticmethod
+    def get_datasets_cache_path_args():
+        datasets_cache_path = os.environ.get(consts.ENV_DATASETS_CACHE_PATH)
+        if datasets_cache_path is not None:
+            return f"--datasets-cache-path={datasets_cache_path}"
+        else:
+            return ""
 
     def run(self):
         self._handle_on_start()  # callback start
