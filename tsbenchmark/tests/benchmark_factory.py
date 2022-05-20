@@ -92,7 +92,7 @@ def create_remote_benchmark(machines, server_host, **kwargs):
     batch_app_init_kwargs = dict(server_port=8060,
                                  server_host=server_host,
                                  scheduler_interval=1,
-                                 scheduler_exit_on_finish=True),
+                                 scheduler_exit_on_finish=True)
 
     lb = RemoteSSHBenchmark(name="remote-benchmark",
                             machines=machines,
