@@ -3,14 +3,11 @@ import os
 import threading
 import time
 
-import tsbenchmark.tasks
 from tsbenchmark import api
-from tsbenchmark.benchmark import LocalBenchmark, Benchmark
+from tsbenchmark.benchmark import Benchmark
 from tsbenchmark.callbacks import BenchmarkCallback
-from tsbenchmark.players import load_player
 from tsbenchmark.tasks import TSTask
 from tsbenchmark.tests.benchmark_factory import create_local_benchmark
-from tsbenchmark.tests.players import load_test_player
 
 
 class BenchmarkRunner(threading.Thread):
@@ -43,8 +40,10 @@ class TestAPI:
 
     def setup_class(self):
 
-        lb = create_local_benchmark(callbacks=[PlainCallback()])
-
+        lb = create_local_benchmark(callbacks=[PlainCallback()],
+                                    batch_app_init_kwargs=dict(scheduler_exit_on_finish=False,
+                                                               scheduler_interval=1,
+                                                               server_port=8060))
         player_name = lb.players[0].name
         self.task_config_id = lb.ts_tasks_config[0].id
         self.random_state = 8086
@@ -58,8 +57,10 @@ class TestAPI:
         self.runner.start()  # run benchmark in backend
 
         time.sleep(2)
+        print("sleep exit")
 
     def test_get_task(self):
+        print("test_get_task")
         # request task info
         task: TSTask = api.get_task()
 
@@ -83,6 +84,7 @@ class TestAPI:
         assert message['reward_metric'] == 0.7
 
     def teardown_class(self):
+        print("teardown_class")
         self.runner.stop()
 
 

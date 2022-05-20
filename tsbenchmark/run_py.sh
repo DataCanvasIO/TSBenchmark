@@ -38,6 +38,9 @@ for i in "$@"; do
         --requirements-yaml-file=*)
             requirements_yaml_file="${i#*=}"
             shift ;;
+        --python-path=*)
+            python_path="${i#*=}"
+            shift ;;
         --python-script=*)
             python_script="${i#*=}"
             shift ;;
@@ -62,6 +65,7 @@ echo "requirements-kind: $requirements_kind"
 echo "requirements-txt-file: $requirements_txt_file"
 echo "requirements-txt-py-version: $requirements_txt_py_version"
 echo "requirements-yaml-file: $requirements_yaml_file"
+echo "python_path: $python_path"
 echo "python-script: $python_script"
 echo "-----------------------"
 
@@ -131,9 +135,14 @@ elif [ "$venv_kind" == "conda"   ]; then
 fi
 
 # check pyton executable
-if [ ! -f ""$py_exec"" ];then
+if [ ! -f "$py_exec" ];then
   echo "py_exe $py_exec is not exists, can not execute python script"
   exit -1
+fi
+
+# check pyton path
+if [ ! -z "$python_path" ];then
+  export PYTHONPATH=$python_path
 fi
 
 # run script
