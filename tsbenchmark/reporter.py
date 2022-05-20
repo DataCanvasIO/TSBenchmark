@@ -324,8 +324,13 @@ class Reporter():
                          'best_params']
         data_df = pd.DataFrame(columns=cols_data_tmp)
         data_file = self.path_maintainer.data_file(bm_task)
+
+        round_no = 1
+        if 'random_states' in self.benchmark_config and bm_task.ts_task.random_state is not None:
+            round_no = self.benchmark_config['random_states'].index(bm_task.ts_task.random_state) + 1
+
         data = {'task_id': bm_task.ts_task.id,
-                'round_no': self.benchmark_config['random_states'].index(bm_task.ts_task.random_state) + 1,
+                'round_no': round_no,
                 'player': bm_task.player.name,
                 'dataset': bm_task.ts_task.taskdata.name,
                 'shape': bm_task.ts_task.shape,
@@ -380,6 +385,8 @@ class Reporter():
 
     def calc_and_paint(self, results_datas, columns, players, report_dir, report_imgs_dir, metric, stat_type,
                        title_text=None):
+        if len(players) == 0:
+            return
         df_report = self.analysis.report_calc_metric(results_datas, columns, players, report_dir, report_imgs_dir,
                                                      metric, stat_type)
         if title_text == None:
