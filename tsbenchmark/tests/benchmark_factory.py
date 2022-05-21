@@ -33,12 +33,12 @@ class ConsoleCallback(BenchmarkCallback):
 
 
 def create_univariate_task():
-    task_config = tsbenchmark.tasks.get_task_config(694826)
+    task_config = tsbenchmark.tasks.get_task_config(512754)
     return task_config
 
 
 def create_multivariable_task():
-    task_config = tsbenchmark.tasks.get_task_config(890686)
+    task_config = tsbenchmark.tasks.get_task_config(61807)
     return task_config
 
 

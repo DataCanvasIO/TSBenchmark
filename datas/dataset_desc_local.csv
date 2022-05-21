@@ -1,6 +1,3 @@
-id,type,data_size,shape,name,ok,label,frequency,industry,covariables,category,source_type,format,task_count
-890686,multivariate-forecast,medium,"(105, 112)",nn5_weekly,Y,Regular time series,Week,finance,,benchmark,monash,csv,1
-694826,univariate-forecast,small,"(124, 2)",Air_Passengers,Y,"Regular time series,",Month,aviation,,benchmark,,csv,1
-309496,univariate-forecast,small,"(6940, 2)",US_Births,Y,"Regular time series,",Day,sociology,,benchmark,,csv,1
-192837,univariate-forecast,small,"(6940, 2)",M3,Y,"Regular time series,",Day,sociology,,benchmark,,tsf,5
-59229,univariate-forecast,small,"(432, 5)",Bike_Sharing_Demand,Y,"Regular time series,",Hour,transport,,benchmark,,csv,1
+id,type,data_size,shape,name,label,frequency,industry,covariables,source_type,format,task_count,ok
+512754,univariate-forecast,small,"(124, 2)",Air_Passengers,"Regular time series,",Month,aviation,,,csv,1,Y
+61807,multivariate-forecast,small,"(105, 112)",nn5_weekly,Regular time series,Week,finance,,monash,csv,1,Y

@@ -23,7 +23,7 @@ class Navie(object):
 def main():
     # task = tsb.api.get_task()
     task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas2',
-                                  dataset_id=890686, random_state=9527, max_trials=1, reward_metric='rmse')
+                                  dataset_id=61807, random_state=9527, max_trials=1, reward_metric='rmse')
     snavie = Navie().fit(task.get_train(), task.series_name)
     df_forecast = snavie.predict(task.horizon)
 

@@ -23,7 +23,7 @@ class PlainCallback(BenchmarkCallback):
 def main():
     player_name = 'plain_player'
 
-    task_config_id = 694826
+    task_config_id = 512754
     random_state = 8086
     api_server_url = 'http://localhost:8060'
     bm_task_id = f'{player_name}_{task_config_id}_{random_state}'

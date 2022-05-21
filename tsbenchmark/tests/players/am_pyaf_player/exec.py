@@ -10,7 +10,7 @@ def main():
     task = tsb.api.get_task()
 
     # task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas2',
-    #                               dataset_id=694826, random_state=9527, max_trials=1, reward_metric='rmse')
+    #                               dataset_id=512754, random_state=9527, max_trials=1, reward_metric='rmse')
 
 
     train_df = task.get_train().copy(deep=True)

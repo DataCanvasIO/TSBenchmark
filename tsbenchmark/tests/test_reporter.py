@@ -1,6 +1,7 @@
 from tsbenchmark.tasks import TSTask
 from tsbenchmark.callbacks import ReporterCallback
 from hypernets.utils import logging
+from consts import NONE_DEV_ENV
 
 import os
 import tempfile
@@ -12,7 +13,6 @@ from hypernets.hyperctl.appliation import BatchApplication
 
 from hypernets.utils import ssh_utils
 from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark
-from tsbenchmark.callbacks import BenchmarkCallback
 from tsbenchmark.tasks import TSTask
 from hypernets.tests.utils import ssh_utils_test
 from tsbenchmark.players import load_player
@@ -28,7 +28,7 @@ HERE = Path(__file__).parent
 
 def create_tasks_new():
     tasks = [TSTask(tsbenchmark.tasks.get_task_config(t_id), random_state=8086, max_trials=1, reward_metric='rmse') for
-             t_id in [694826, 309496]]
+             t_id in [512754, 309496]]
     return tasks
 
 
@@ -52,12 +52,13 @@ def create_benchmark_remote_cfg():
     return benchmark_config
 
 
-def atest_benchmark_reporter():
+@pytest.mark.skip(NONE_DEV_ENV, reason="For IDE only")
+def test_benchmark_reporter():
     # define players
     players = [load_test_player("am_fedot_player")]
     task_list = [TSTask(tsbenchmark.tasks.get_task_config(t_id), random_state=8086, max_trials=1, reward_metric='rmse')
                  for
-                 t_id in [694826, 309496]]
+                 t_id in [512754, 309496]]
 
     # Mock data for benchmark_config
     benchmark_config = create_benchmark_remote_cfg()
@@ -100,7 +101,7 @@ need_server_host = pytest.mark.skipif(os.getenv("TSB_SERVER_HOST") is None,
 
 
 def create_task():
-    task_config_id = 694826
+    task_config_id = 512754
     task_config = tsbenchmark.tasks.get_task_config(task_config_id)
     return task_config
 
@@ -140,7 +141,6 @@ class TestRemoteCustomPythonBenchmark:
         self.working_dir_path = Path(tempfile.mkdtemp(prefix="benchmark-test-batches"))
         self.benchmark_name = 'remote-benchmark'
 
-
         lb = RemoteSSHBenchmark(name=self.benchmark_name, desc='desc', players=[player],
                                 random_states=[8086, 8087], ts_tasks_config=task_arr,
                                 working_dir=self.working_dir_path.as_posix(),
@@ -151,7 +151,8 @@ class TestRemoteCustomPythonBenchmark:
                                 machines=self.connections)
         self.lb = lb
 
-    def atest_run_benchmark(self):
+    @pytest.mark.skip(NONE_DEV_ENV, reason="For IDE only")
+    def test_run_benchmark(self):
         self.lb.run()
 
         # assert local files

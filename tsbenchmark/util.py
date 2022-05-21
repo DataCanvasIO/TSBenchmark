@@ -5,7 +5,39 @@ import zipfile
 import tsbenchmark.consts as consts
 
 
+class id_util:
+
+    @staticmethod
+    def generate(type, data_size, name):
+        TASK_TYPE_MAP = {
+            consts.TASK_TYPE_UNIVARIATE: '5',
+            consts.TASK_TYPE_MULTIVARIATE: '6'
+        }
+
+        DATA_SIZE_MAP = {
+            consts.DATA_SIZE_SMALL: '1',
+            consts.DATA_SIZE_MEDIUM: '2',
+            consts.DATA_SIZE_LARGE: '3'
+        }
+
+        id = TASK_TYPE_MAP[type]
+        id += DATA_SIZE_MAP[data_size]
+        id += str(id_util.hash(name, 10000))
+
+        return id
+
+    @staticmethod
+    def hash(_str, _base):
+        seed = 131
+        hash = 0
+        for i in _str:
+            hash = hash * seed + ord(i)
+        hash = hash & 0x7FFFFFFF
+        return (hash % _base)
+
+
 class file_util:
+
     @staticmethod
     def get_dir_path(dir_path):
         dir_path = os.path.expanduser(dir_path)
@@ -123,6 +155,21 @@ class file_util:
         for f in files:
             z.write(f, os.path.basename(os.path.dirname(f)) + '/' + os.path.basename(f))
         z.close()
+
+    @staticmethod
+    def dataset_dirs(dir_path):
+        if not os.path.exists(dir_path) or not os.path.isdir(dir_path):
+            return []
+
+        if 'metadata.yaml' in os.listdir(dir_path):
+            return [dir_path]
+
+        results = []
+        for d in os.listdir(dir_path):
+            sub_dir_path = os.path.join(dir_path, d)
+            if os.path.isdir(sub_dir_path):
+                results.extend(file_util.dataset_dirs(sub_dir_path))
+        return results
 
     @staticmethod
     def leaf_dirs(dir_path):
@@ -257,13 +304,13 @@ def cal_task_metrics(y_pred, y_true, date_col_name, series_col_name, covariables
     if date_col_name in y_true.columns:
         y_true = y_true.drop(columns=[date_col_name], axis=1)
     if covariables != None:
-        cols_del_y_true = [ col for col in covariables if col not in y_true.columns.values]
+        cols_del_y_true = [col for col in covariables if col not in y_true.columns.values]
         if cols_del_y_true is not None and len(cols_del_y_true) > 1:
-            y_true = y_true.drop(columns = cols_del_y_true)
+            y_true = y_true.drop(columns=cols_del_y_true)
 
-        cols_del_y_pred = [ col for col  in covariables if col in y_pred.columns.values]
+        cols_del_y_pred = [col for col in covariables if col in y_pred.columns.values]
         if cols_del_y_pred is not None and len(cols_del_y_pred) > 1:
-            y_pred = y_pred.drop(columns = cols_del_y_true)
+            y_pred = y_pred.drop(columns=cols_del_y_true)
 
     metrics_task = metrics.calc_score(y_true, y_pred,
                                       metrics=metrics_target, task=task_calc_score)
@@ -272,19 +319,17 @@ def cal_task_metrics(y_pred, y_true, date_col_name, series_col_name, covariables
 
 class data_package_util:
     def package(self, data_path, target_path):
+
+        self.desc_generate(data_path, target_path)
+
         import shutil
         # Generate .md5sum for dataset_desc.csv and copy them to target_path.
-        dataset_desc_src = os.path.join(data_path, 'dataset_desc.csv')
-        dataset_desc_target = os.path.join(target_path, 'dataset_desc.csv')
+        dataset_desc_src = os.path.join(target_path, 'dataset_desc.csv')
 
         self.package_md5([dataset_desc_src], os.path.join(target_path, '.md5sum'))
-        shutil.copy(dataset_desc_src, dataset_desc_target)
 
         # Generate .md5sum for each dataset and copy zip and .md5 to relative path from target_path.
-        leaf_dirs = file_util.leaf_dirs(data_path)
-        dataset_dirs = [leaf_dir for leaf_dir in leaf_dirs
-                        if 'metadata.yaml' in os.listdir(leaf_dir) and 'test.csv' in os.listdir(
-                leaf_dir) and 'train.csv' in os.listdir(leaf_dir)]
+        dataset_dirs = file_util.dataset_dirs(data_path)
 
         for dataset_dir in dataset_dirs:
             dir_target = os.path.join(target_path, dataset_dir[len(data_path) + len(os.sep):])
@@ -313,3 +358,49 @@ class data_package_util:
         file_util.get_or_create_file(target_path)
         with open(target_path, 'a') as f:
             f.write(md5_values)
+
+    def desc_generate(self, data_path, target_path):
+        import yaml
+        import pandas as pd
+        import hashlib
+        types = ['multivariate-forecast', 'univariate-forecast']
+        data_sizes = ['large', 'small', 'medium']
+        df = pd.DataFrame(
+            columns=['id', 'type', 'data_size', 'shape', 'name', 'label', 'frequency', 'industry', 'covariables',
+                     'source_type', 'format', 'task_count'])
+
+        for type in types:
+            for data_size in data_sizes:
+                path = os.path.join(data_path, type, data_size)
+                if os.path.exists(path):
+                    list = os.listdir(path)
+                    for dir in list:
+                        if (dir == '__init__.py' or dir == 'template'):
+                            continue
+                        record = {'type': type, 'data_size': data_size, 'name': dir, 'format': 'csv', 'task_count': 1}
+                        train_file_path = path + os.sep + dir + os.sep + 'train.csv'
+                        metadata_path = path + os.sep + dir + os.sep + 'metadata.yaml'
+
+                        if os.path.exists(metadata_path):
+                            f = open(metadata_path, 'r', encoding='utf-8')
+                            meta_config = yaml.load(f.read(), Loader=yaml.FullLoader)
+
+                            record.update({'id': id_util.generate(type, data_size, meta_config['name'])})
+                            record.update(
+                                {'source_type': meta_config['source_type'] if 'source_type' in meta_config else None})
+                            record.update({'covariables': 'yes' if 'covariables_col_name' in meta_config else ''})
+                            record.update({'label': meta_config['label'] if 'label' in meta_config else None})
+                            record.update(
+                                {'frequency': meta_config['frequency'] if 'frequency' in meta_config else None})
+                            record.update({'shape': meta_config['shape'] if 'shape' in meta_config else None})
+                            record.update(
+                                {'industry': meta_config['industry'].lower() if 'industry' in meta_config else None})
+
+                        if os.path.exists(train_file_path) and os.path.getsize(train_file_path) > 0:
+                            record.update({'ok': 'Y'})
+                        df = df.append(record, ignore_index=True)
+
+        file_util.get_or_create_file(os.path.join(target_path, 'dataset_desc.csv'))
+        file_util.get_or_create_file(os.path.join(target_path, 'dataset_desc_local.csv'))
+        df.to_csv(os.path.join(target_path, 'dataset_desc.csv'), index=False)
+        df.to_csv(os.path.join(target_path, 'dataset_desc_local.csv'), index=False)
