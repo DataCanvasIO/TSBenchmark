@@ -1,7 +1,7 @@
 from tsbenchmark.tasks import TSTask
 from tsbenchmark.callbacks import ReporterCallback
 from hypernets.utils import logging
-from consts import NONE_DEV_ENV
+from tsbenchmark.consts import NONE_DEV_ENV
 
 import os
 import tempfile

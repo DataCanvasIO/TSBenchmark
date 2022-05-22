@@ -371,18 +371,18 @@ class data_package_util:
         types = ['multivariate-forecast', 'univariate-forecast']
         data_sizes = ['large', 'small', 'medium']
         df = pd.DataFrame(
-            columns=['id', 'type', 'data_size', 'shape', 'name', 'label', 'frequency', 'industry', 'covariables',
-                     'source_type', 'format', 'task_count'])
+            columns=['id', 'task', 'data_size', 'shape', 'name', 'label', 'frequency', 'industry',
+                     'source_type','date_name','horizon', 'dtformat', 'format', 'task_count'])
 
-        for type in types:
+        for task in types:
             for data_size in data_sizes:
-                path = os.path.join(data_path, type, data_size)
+                path = os.path.join(data_path, task, data_size)
                 if os.path.exists(path):
                     list = os.listdir(path)
                     for dir in list:
                         if (dir == '__init__.py' or dir == 'template'):
                             continue
-                        record = {'type': type, 'data_size': data_size, 'name': dir, 'format': 'csv', 'task_count': 1}
+                        record = {'task': task, 'data_size': data_size, 'name': dir, 'format': 'csv', 'task_count': 1}
                         train_file_path = path + os.sep + dir + os.sep + 'train.csv'
                         metadata_path = path + os.sep + dir + os.sep + 'metadata.yaml'
 
@@ -390,19 +390,18 @@ class data_package_util:
                             f = open(metadata_path, 'r', encoding='utf-8')
                             meta_config = yaml.load(f.read(), Loader=yaml.FullLoader)
 
-                            record.update({'id': id_util.generate(type, data_size, meta_config['name'])})
+                            record.update({'id': id_util.generate(task, data_size, meta_config['name'])})
                             record.update(
                                 {'source_type': meta_config['source_type'] if 'source_type' in meta_config else None})
-                            record.update({'covariables': 'yes' if 'covariables_col_name' in meta_config else ''})
+                            record.update({'date_name': meta_config['date_name']})
+                            record.update({'horizon': meta_config['horizon']})
+                            record.update({'dtformat': meta_config['dtformat']})
                             record.update({'label': meta_config['label'] if 'label' in meta_config else None})
                             record.update(
                                 {'frequency': meta_config['frequency'] if 'frequency' in meta_config else None})
                             record.update({'shape': meta_config['shape'] if 'shape' in meta_config else None})
                             record.update(
                                 {'industry': meta_config['industry'].lower() if 'industry' in meta_config else None})
-
-                        if os.path.exists(train_file_path) and os.path.getsize(train_file_path) > 0:
-                            record.update({'ok': 'Y'})
                         df = df.append(record, ignore_index=True)
 
         file_util.get_or_create_file(os.path.join(target_path, 'dataset_desc.csv'))

@@ -94,22 +94,10 @@ class TSTask(object):
         return self.__test
 
     def ready(self):
-        if self.series_name is not None and self.covariables_name is not None:
-            return
+        metadata = self.taskdata.taskdata_loader.dataset_loader.ready(self.id)
+        for k, v in metadata.items():
+            self.__dict__[k] = v
 
-        columns = list(self.get_test().columns.values)
-        columns.remove(self.date_name)
-        if self.series_name is None and self.covariables_name is None:
-            self.series_name = columns
-        elif self.series_name is None:
-            for col in self.covariables_name:
-                columns.remove(col)
-            self.series_name = columns
-        elif self.covariables_name is None:
-            if len(columns) != len(self.series_name):
-                for col in self.series_name:
-                    columns.remove(col)
-                self.covariables_name = columns
 
 
 def _get_task_load(cache_path=None):

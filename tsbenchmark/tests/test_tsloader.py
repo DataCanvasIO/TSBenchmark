@@ -77,12 +77,9 @@ class Test_TSTaskLoader():
     def test_config_load(self):
         task_config = taskloader.load(512754)
         assert task_config.task == 'univariate-forecast' and task_config.dataset_id == 512754
-        assert task_config.taskdata.get_train().shape[0] == 124 and task_config.taskdata.get_test().shape[0] == 6
 
         task_config = taskloader.load(61807)
         assert task_config.task == 'multivariate-forecast' and task_config.dataset_id == 61807
-        assert task_config.taskdata.get_train().shape[1] == 112 and task_config.taskdata.get_test().shape[0] == 8
-        assert task_config.series_name is None
 
     def test_task_load(self):
         task_config = taskloader.load(512754)

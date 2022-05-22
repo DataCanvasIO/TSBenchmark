@@ -60,7 +60,7 @@ class TSDataSetDesc:
 
     def dataset_path_local(self, dataset_id):
         dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
-        return os.path.join(self.data_path, dataset.type.values[0],
+        return os.path.join(self.data_path, dataset.task.values[0],
                             dataset.data_size.values[0], dataset.name.values[0])
 
     def data_size(self, dataset_id):
@@ -122,6 +122,19 @@ class TSDataSetLoader(DataSetLoader):
         return df_test
 
     def load_meta(self, dataset_id):
+        metadata = self.dataset_desc.dataset_desc[self.dataset_desc.dataset_desc.id == dataset_id].iloc[0].to_dict()
+        return metadata
+
+    def ready(self, dataset_id):
+        ''' Download data and get the metadata from the metadata.yaml
+        Parameters
+        ----------
+        dataset_id
+
+        Returns dict
+        -------
+
+        '''
         self._download_if_not_cached(dataset_id)
         metadata = _get_metadata(self.dataset_desc.meta_file_path(dataset_id))
         metadata['data_size'] = self.dataset_desc.data_size(dataset_id)
@@ -132,8 +145,23 @@ class TSDataSetLoader(DataSetLoader):
         metadata['covariables_name'] = metadata['covariables_name'].split(
             ",") if 'covariables_name' in metadata else None
 
+        if metadata['series_name'] is not None and metadata['covariables_name'] is not None:
+            return metadata
         columns = list(self.load_test(dataset_id).columns.values)
         columns.remove(metadata['date_name'])
+
+        if metadata['series_name'] is None and metadata['covariables_name'] is None:
+            metadata['series_name'] = columns
+        elif metadata['series_name'] is None:
+            for col in metadata['covariables_name']:
+                columns.remove(col)
+            metadata['series_name'] = columns
+        elif metadata['covariables_name'] is None:
+            if len(columns) != len(metadata['series_name']):
+                for col in metadata['series_name']:
+                    columns.remove(col)
+                metadata['covariables_name'] = columns
+
         return metadata
 
     def _download_if_not_cached(self, dataset_id):
@@ -236,16 +264,16 @@ class TSTaskLoader(TaskLoader):
         metadata = self.taskdata_loader.load_meta(taskconfig_id)
         dataset_id, task_no = _to_dataset(taskconfig_id)
 
-        task = TSTaskConfig(taskconfig_id=taskconfig_id,
-                            dataset_id=dataset_id,
-                            taskdata=TSTaskData(id=taskconfig_id, dataset_id=dataset_id, name=metadata['name'],
-                                                taskdata_loader=self.taskdata_loader),
-                            date_name=metadata['date_name'],
-                            task=metadata['task'],
-                            horizon=metadata['horizon'],
-                            data_size=metadata['data_size'],
-                            shape=metadata['shape'],
-                            series_name=metadata['series_name'],
-                            covariables_name=metadata['covariables_name'],
-                            dtformat=metadata['dtformat'])
-        return task
+        task_config = TSTaskConfig(taskconfig_id=taskconfig_id,
+                                   dataset_id=dataset_id,
+                                   taskdata=TSTaskData(id=taskconfig_id, dataset_id=dataset_id, name=metadata['name'],
+                                                       taskdata_loader=self.taskdata_loader),
+                                   date_name=metadata['date_name'],
+                                   task=metadata['task'],
+                                   horizon=metadata['horizon'],
+                                   data_size=metadata['data_size'],
+                                   shape=metadata['shape'],
+                                   series_name=None,
+                                   covariables_name=None,
+                                   dtformat=metadata['dtformat'])
+        return task_config
