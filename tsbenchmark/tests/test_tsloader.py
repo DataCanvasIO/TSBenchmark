@@ -27,7 +27,7 @@ class Test_TSDataSetLoader():
         assert df_test.shape[0] == 6
 
         metadata = dataloader.load_meta(512754)
-        assert len(metadata) == 16
+        assert len(metadata) == 14
 
         dataloader.load_train(512754)
         dataloader.load_train(61807)
