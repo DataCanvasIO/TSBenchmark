@@ -52,8 +52,7 @@ def create_benchmark_remote_cfg():
     return benchmark_config
 
 
-@pytest.mark.skip(NONE_DEV_ENV, reason="For IDE only")
-def test_benchmark_reporter():
+def atest_benchmark_reporter():
     # define players
     players = [load_test_player("am_fedot_player")]
     task_list = [TSTask(tsbenchmark.tasks.get_task_config(t_id), random_state=8086, max_trials=1, reward_metric='rmse')
@@ -152,7 +151,7 @@ class TestRemoteCustomPythonBenchmark:
         self.lb = lb
 
     @pytest.mark.skip(NONE_DEV_ENV, reason="For IDE only")
-    def test_run_benchmark(self):
+    def atest_run_benchmark(self):
         self.lb.run()
 
         # assert local files
