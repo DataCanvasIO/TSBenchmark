@@ -130,7 +130,7 @@ def load_benchmark(config_file: str, working_dir=None):
     if report_enable is True:
         report_path = Path(report.get('path', '~/benchmark-output/hyperts')).expanduser().as_posix()
         # task_types = list(set(tsbenchmark.tasks.get_task_config(t).task for t in selected_task_ids))
-        from tsbenchmark.tests.test_reporter import ReporterCallback  # TODO remove from tests
+        from tsbenchmark.callbacks import ReporterCallback  # TODO remove from tests
         benchmark_config = {
             'report.path': report_path,
             'name': name,

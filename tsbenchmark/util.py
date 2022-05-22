@@ -3,6 +3,9 @@ import requests
 import zipfile
 
 import tsbenchmark.consts as consts
+from hypernets.utils import logging
+logging.set_level('DEBUG')  # TODO
+logger = logging.getLogger(__name__)
 
 
 class id_util:
@@ -190,11 +193,13 @@ class file_util:
 class download_util:
     @staticmethod
     def download(file_path, url):
+        logger.info(f"Begin download {file_path} from {url}")
         file_util.get_or_create_file(file_path)
         r = requests.get(url)
         with open(file_path, 'wb') as f:
             f.write(r.content)
             f.close
+        logger.info(f"Finish download {file_path} from {url}")
 
     @staticmethod
     def download_and_check(file_path, url):
