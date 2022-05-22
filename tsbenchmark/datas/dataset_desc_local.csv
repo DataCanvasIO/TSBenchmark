@@ -1,5 +1,15 @@
-id,type,data_size,shape,name,ok,label,frequency,industry,covariables,category,source_type,format,task_count
-61807,multivariate-forecast,medium,"(105, 112)",nn5_weekly,Y,Regular time series,Week,finance,,benchmark,monash,csv,1
-512754,univariate-forecast,small,"(124, 2)",Air_Passengers,Y,"Regular time series,",Month,aviation,,benchmark,,csv,1
-309496,univariate-forecast,small,"(6940, 2)",US_Births,Y,"Regular time series,",Day,sociology,,benchmark,,csv,1
-192837,univariate-forecast,small,"(6940, 2)",M3,Y,"Regular time series,",Day,sociology,,benchmark,,tsf,5
+id,task,data_size,shape,name,label,frequency,industry,source_type,date_name,horizon,dtformat,format,task_count
+631753,multivariate-forecast,large,"(4069953, 20)",ethylene_methane,"Regular time series,",Second,energy,,dt,3600,%Y-%m-%d %H:%M:%S,csv,1
+631482,multivariate-forecast,large,"(2073819, 7)",household_power_consumption,"Regular time series,",Minute,electricity,,dt,1440,%Y-%m-%d %H:%M:%S,csv,1
+614706,multivariate-forecast,small,"(2908, 3)",Beijing_tourism_forecast,"Regular time series,",Day,other,,Time,14,%Y-%m-%d,csv,1
+615251,multivariate-forecast,small,"(200, 108)",Crimes_Committed_in_France,"Regular time series,",Month,other,,date,12,%Y-%m-%d,csv,1
+61807,multivariate-forecast,small,"(105, 112)",nn5_weekly,Regular time series,Week,finance,monash,datetime,8,%Y-%m-%d,csv,1
+617081,multivariate-forecast,small,"(117, 11)",unemployment_data,"Regular time series,",Year,sociology,,date,3,%Y-%m-%d,csv,1
+62431,multivariate-forecast,medium,"(26176, 322)",electricity_hourly,"Regular time series,",Hour,energy,monash,datetime,128,%Y-%m-%d %H:%M:%S,csv,1
+532614,univariate-forecast,large,"(7375622, 2)",solar_4_seconds,Regular time series,Second,energy,,date,30,%Y-%m-%d %H:%M:%S,csv,1
+512754,univariate-forecast,small,"(124, 2)",Air_Passengers,"Regular time series,",Month,aviation,,month,6,%Y-%m,csv,1
+517050,univariate-forecast,small,"(432, 2)",Bike_Sharing_Demand,"Regular time series,",Hour,transport,,datetime,24,%Y-%m-%d %H:%M:%S,csv,1
+514906,univariate-forecast,small,"(128, 2)",Bread_Sydney_Prices,Regular time series,Year,finance,,date,6,%Y,csv,1
+511838,univariate-forecast,small,"(234, 2)",corn_price,"regular time series,",Week,finance,,Date,14,%Y-%m-%d,csv,1
+514718,univariate-forecast,small,"(6940, 2)",US_Births,"Regular time series,",Day,sociology,,date,365,%Y-%m-%d,csv,1
+529812,univariate-forecast,medium,"(41911, 2)",jena_climate_2009_2016,"Regular time series,",Minute,nature,,datetime,144,%Y-%m-%d %H:%M:%S,csv,1

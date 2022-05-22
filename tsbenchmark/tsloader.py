@@ -100,7 +100,7 @@ class TSDataSetLoader(DataSetLoader):
     def list(self, type=None, data_size=None):
         df = self.dataset_desc.dataset_desc
         df = df_util.filter(df, 'data_size', data_size)
-        df = df_util.filter(df, 'type', type)
+        df = df_util.filter(df, 'task', type)
         df = df[df['format'] != 'tsf']  # todo support in the future.
         return df['id'].values
 
@@ -170,7 +170,7 @@ class TSDataSetLoader(DataSetLoader):
         if not self.dataset_desc.cached(dataset_id):
             # 1. Get dataset's meta from dataset_desc.
             meta = self.dataset_desc.dataset_desc[self.dataset_desc.dataset_desc['id'] == dataset_id]
-            task_type = meta['type'].values[0]
+            task_type = meta['task'].values[0]
             data_size = meta['data_size'].values[0]
             name = meta['name'].values[0]
 
@@ -205,7 +205,7 @@ class TSTaskDataLoader():
     def list(self, type=None, data_size=None):
         df = self.dataset_loader.dataset_desc.dataset_desc
         df = df_util.filter(df, 'data_size', data_size)
-        df = df_util.filter(df, 'type', type)
+        df = df_util.filter(df, 'task', type)
         df = df[df['format'] != 'tsf']  # todo support in the future.
 
         taskdata_list = []

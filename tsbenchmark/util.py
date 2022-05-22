@@ -195,11 +195,17 @@ class download_util:
     def download(file_path, url):
         logger.info(f"Begin download {file_path} from {url}")
         file_util.get_or_create_file(file_path)
-        r = requests.get(url)
-        with open(file_path, 'wb') as f:
-            f.write(r.content)
-            f.close
-        logger.info(f"Finish download {file_path} from {url}")
+        response = requests.get(url=url, stream=True)
+        if response.status_code == 200:
+            chunk_size = 1024 * 8
+            with open(file_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=chunk_size):
+                    if chunk:
+                        f.write(chunk)
+            logger.info(f"Finish download {file_path} from {url}")
+        else :
+            raise FileNotFoundError(f"Download error with status_code {response.status_code} for "
+                                    f"{file_path} from {url}")
 
     @staticmethod
     def download_and_check(file_path, url):
