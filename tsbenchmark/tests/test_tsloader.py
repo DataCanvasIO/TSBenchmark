@@ -76,21 +76,21 @@ class Test_TSTaskLoader():
 
     def test_config_load(self):
         task_config = taskloader.load(512754)
-        assert task_config.task == 'univariate-forecast' and task_config.dataset_id == 512754
+        assert task_config.task == 'univariate-forecast' and task_config.dataset_id == str(512754)
 
         task_config = taskloader.load(61807)
-        assert task_config.task == 'multivariate-forecast' and task_config.dataset_id == 61807
+        assert task_config.task == 'multivariate-forecast' and task_config.dataset_id == str(61807)
 
     def test_task_load(self):
         task_config = taskloader.load(512754)
         task = TSTask(task_config, random_state=9527, max_trials=5, reward_metric='rmse')
-        assert task.task == 'univariate-forecast' and task.dataset_id == 512754
+        assert task.task == 'univariate-forecast' and task.dataset_id == str(512754)
         assert task.get_train().shape[0] == 124 and task.get_test().shape[0] == 6
         assert task.random_state == 9527
 
         task_config = taskloader.load(61807)
         task = TSTask(task_config, random_state=9527, max_trials=5, reward_metric='rmse')
-        assert task.task == 'multivariate-forecast' and task.dataset_id == 61807
+        assert task.task == 'multivariate-forecast' and task.dataset_id == str(61807)
         assert task.taskdata.get_train().shape[1] == 112 and task.taskdata.get_test().shape[0] == 8
         assert task.series_name is None
 

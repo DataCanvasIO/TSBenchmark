@@ -35,6 +35,7 @@ def get_task():
 
     t = TSTask(task_config=task_config, random_state=job_params.random_state,
                max_trials=job_params.max_trials, reward_metric=job_params.reward_metric)
+    t.ready()
     return t
 
 

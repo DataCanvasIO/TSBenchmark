@@ -25,20 +25,22 @@ class TSDataSetDesc:
             download_util.download_and_check(self._desc_file(), f'{data_source}/dataset_desc.csv')
             logger.info('Finish download dataset_desc.csv.')
         self.dataset_desc = pd.read_csv(self._desc_file())
+        self.dataset_desc['id'] = self.dataset_desc['id'].astype(str)
         self.dataset_desc_local = None
         if os.path.exists(self._desc_local_file()):
             self.dataset_desc_local = pd.read_csv(self._desc_local_file())
+            self.dataset_desc_local['id'] = self.dataset_desc_local['id'].astype(str)
 
     def exists(self, dataset_id):
-        return self.dataset_desc[self.dataset_desc['id'] == dataset_id].shape[0] == 1
+        return self.dataset_desc[self.dataset_desc['id'] == str(dataset_id)].shape[0] == 1
 
     def cached(self, dataset_id):
         return self.dataset_desc_local is not None and \
-               self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id].shape[0] == 1
+               self.dataset_desc_local[self.dataset_desc_local['id'] == str(dataset_id)].shape[0] == 1
 
     def update_local(self, dataset_id):
         df = pd.read_csv(self._desc_file())
-        df[df['id'] == dataset_id].to_csv(self._desc_local_file(), index=False, mode='a')
+        df[df['id'] == str(dataset_id)].to_csv(self._desc_local_file(), index=False, mode='a')
 
     def _desc_file(self):
         return os.path.join(self.data_path, 'dataset_desc.csv')
@@ -59,16 +61,16 @@ class TSDataSetDesc:
         return os.path.join(self.dataset_path_local(dataset_id), 'metadata.yaml')
 
     def dataset_path_local(self, dataset_id):
-        dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
+        dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == str(dataset_id)]
         return os.path.join(self.data_path, dataset.task.values[0],
                             dataset.data_size.values[0], dataset.name.values[0])
 
     def data_size(self, dataset_id):
-        dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
+        dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == str(dataset_id)]
         return dataset.data_size.values[0]
 
     def data_shape(self, dataset_id):
-        dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == dataset_id]
+        dataset = self.dataset_desc_local[self.dataset_desc_local['id'] == str(dataset_id)]
         return dataset.shape
 
 
@@ -82,10 +84,10 @@ def _get_metadata(meta_file_path):
 def _to_dataset(taskdata_id):
     if '_' in str(taskdata_id):
         strs = taskdata_id.split('_')
-        dataset_id = int(strs[0])
+        dataset_id = strs[0]
         task_no = int(strs[1])
     else:
-        dataset_id = int(taskdata_id)
+        dataset_id = str(taskdata_id)
         task_no = 1
     return dataset_id, task_no
 
@@ -109,7 +111,7 @@ class TSDataSetLoader(DataSetLoader):
 
     def data_format(self, dataset_id):
         df = self.dataset_desc.dataset_desc
-        return df[df['id'] == dataset_id]['format'].values[0]
+        return df[df['id'] == str(dataset_id)]['format'].values[0]
 
     def load_train(self, dataset_id):
         self._download_if_not_cached(dataset_id)
@@ -122,7 +124,7 @@ class TSDataSetLoader(DataSetLoader):
         return df_test
 
     def load_meta(self, dataset_id):
-        metadata = self.dataset_desc.dataset_desc[self.dataset_desc.dataset_desc.id == dataset_id].iloc[0].to_dict()
+        metadata = self.dataset_desc.dataset_desc[self.dataset_desc.dataset_desc.id == str(dataset_id)].iloc[0].to_dict()
         return metadata
 
     def ready(self, dataset_id):
@@ -169,7 +171,7 @@ class TSDataSetLoader(DataSetLoader):
             raise ValueError(f"TaskData {dataset_id} does not exists!")
         if not self.dataset_desc.cached(dataset_id):
             # 1. Get dataset's meta from dataset_desc.
-            meta = self.dataset_desc.dataset_desc[self.dataset_desc.dataset_desc['id'] == dataset_id]
+            meta = self.dataset_desc.dataset_desc[self.dataset_desc.dataset_desc['id'] == str(dataset_id)]
             task_type = meta['task'].values[0]
             data_size = meta['data_size'].values[0]
             name = meta['name'].values[0]
@@ -222,7 +224,7 @@ class TSTaskDataLoader():
     def exists(self, task_data_id):
         df = self.dataset_loader.dataset_desc.dataset_desc
         dataset_id, task_no = _to_dataset(task_data_id)
-        row = df[df['id'] == dataset_id]
+        row = df[df['id'] == str(dataset_id)]
         return row.shape[0] == 1 and int(row['task_count'].values[0]) >= task_no
 
     def load_meta(self, task_data_id):
