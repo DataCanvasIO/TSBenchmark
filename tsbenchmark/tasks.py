@@ -132,7 +132,7 @@ def list_task_configs(*args, **kwargs):
     tasks = task_loader.list(*args, **kwargs)
 
     if dataset_ids is not None and len(dataset_ids) > 0:
-        ret_tasks = list(filter(lambda t: get_task_config(t).dataset_id in dataset_ids, tasks))
+        ret_tasks = list(filter(lambda t: get_task_config(t).dataset_id in list(map(str,dataset_ids)), tasks))
     else:
         ret_tasks = tasks
 
