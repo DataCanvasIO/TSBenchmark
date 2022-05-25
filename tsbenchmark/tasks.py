@@ -52,16 +52,14 @@ class TSTask(object):
     Methods:
         get_train, get_test
     """
+
     def __init__(self, task_config, **kwargs):
         for k, v in task_config.__dict__.items():
             self.__dict__[k] = v
 
-        if "random_state" in kwargs:
-            self.random_state = kwargs.pop("random_state")
-        if "max_trials" in kwargs:
-            self.max_trials = kwargs.pop("max_trials")
-        if "reward_metric" in kwargs:
-            self.reward_metric = kwargs.pop("reward_metric")
+        self.random_state = kwargs.pop("random_state") if "random_state" in kwargs else None
+        self.max_trials = kwargs.pop("max_trials") if "max_trials" in kwargs else None
+        self.reward_metric = kwargs.pop("reward_metric") if "reward_metric" in kwargs else None
 
         self.start_time = time.time()
         self.download_time = 0
@@ -99,7 +97,6 @@ class TSTask(object):
             self.__dict__[k] = v
 
 
-
 def _get_task_load(cache_path=None):
     if cache_path is None:
         cache_path = os.getenv(ENV_DATASETS_CACHE_PATH)
@@ -132,7 +129,7 @@ def list_task_configs(*args, **kwargs):
     tasks = task_loader.list(*args, **kwargs)
 
     if dataset_ids is not None and len(dataset_ids) > 0:
-        ret_tasks = list(filter(lambda t: get_task_config(t).dataset_id in list(map(str,dataset_ids)), tasks))
+        ret_tasks = list(filter(lambda t: get_task_config(t).dataset_id in list(map(str, dataset_ids)), tasks))
     else:
         ret_tasks = tasks
 
