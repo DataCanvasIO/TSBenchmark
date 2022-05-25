@@ -143,17 +143,15 @@ def load_benchmark(config_file: str, working_dir=None):
     # batch_application_config
     batch_application_config = config_dict.get('batch_application_config', {})
 
-    # venvs
-    conda_home = config_dict.get('venv', {}).get('conda', {}).get('home')
-
     init_kwargs = dict(name=name, desc=desc, players=players, callbacks=callbacks,
                        batch_app_init_kwargs=batch_application_config,
                        working_dir=working_dir, random_states=random_states,
-                       conda_home=conda_home,
                        ts_tasks_config=task_configs, task_constraints=task_constraints)
 
     if kind == 'local':
-        benchmark = LocalBenchmark(**init_kwargs)
+        # venvs
+        conda_home = config_dict.get('venv', {}).get('conda', {}).get('home')
+        benchmark = LocalBenchmark(conda_home=conda_home, **init_kwargs)
         return benchmark
     elif kind == 'remote':
         machines = config_dict['machines']

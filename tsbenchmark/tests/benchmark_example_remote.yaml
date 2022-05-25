@@ -41,10 +41,9 @@ batch_application_config:
 working_dir: /tmp/tsbenchmark-hyperctl
 
 machines:
-  - hostname: host1
-    username: hyperctl
-    password: hyperctl
-
-venv:
-  conda:
-    home: ~/miniconda3/
+  - connection:
+        hostname: host1
+        username: hyperctl
+        password: hyperctl
+    environments:
+      conda_home: ~/miniconda3/

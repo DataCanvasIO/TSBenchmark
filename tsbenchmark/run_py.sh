@@ -20,9 +20,9 @@ for i in "$@"; do
         --custom-py-executable=*)
             custom_py_executable="${i#*=}"
             shift ;;
-        --conda-home=*)
-            conda_home="${i#*=}"
-            shift ;;
+#        --conda-home=*)
+#            conda_home="${i#*=}"
+#            shift ;;
         --venv-name=*)
             venv_name="${i#*=}"
             shift ;;
@@ -58,6 +58,8 @@ for i in "$@"; do
     esac
 done
 
+conda_home="$TSB_CONDA_HOME"
+
 echo -e "\n"
 echo "-----------------------"
 echo "venv-kind: $venv_kind"
@@ -91,7 +93,8 @@ if [ "$venv_kind" == "custom_python"  ];then
     py_exec=$custom_py_executable
 
 elif [ "$venv_kind" == "conda"   ]; then
-    require_input "$conda_home" "conda-home"
+
+    require_input "$conda_home" "TSB_CONDA_HOME"
     require_input "$venv_name" "venv-name"
     require_input "$requirements_kind" "requirements-kind"
 

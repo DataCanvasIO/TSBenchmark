@@ -77,7 +77,7 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    packages=find_packages(exclude=('docs', 'tests*')),
+    packages=find_packages(include="tsbenchmark"),
     package_data={
         'tsbenchmark': ['*.sh', 'datas/*', 'datas/multivariate-forecast/medium/nn5_weekly/*', 'datas/univariate-forecast/small/Air_Passengers/*', 'datas/univariate-forecast/small/US_Births/*'],
     },

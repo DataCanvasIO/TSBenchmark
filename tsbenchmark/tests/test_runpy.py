@@ -32,7 +32,7 @@ def test_conda_yaml_env():
     print(f"generated env file path: {conda_env_yaml_file}")
 
     py_path = PWD / "run_py" / "conda_yaml" / "validate.py"
-    command = f"/bin/bash -x {run_py_file_path} --conda-home={conda_home} --venv-kind={PythonEnv.KIND_CONDA}" \
+    command = f"/bin/bash -x {run_py_file_path} --venv-kind={PythonEnv.KIND_CONDA}" \
               f" --requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} " \
               f" --venv-name={env_name} --requirements-yaml-file={conda_env_yaml_file}" \
               f" --python-script={py_path.as_posix()}"
@@ -63,11 +63,11 @@ def test_custom_python():
 @need_conda
 def test_conda_requirement_txt():
     py_path = PWD / "run_py" / "requirement_txt" / "validate.py"
-    conda_home = get_conda_home()
+
     requirement_txt_path = PWD / "run_py" / "requirement_txt" / "requirements.txt"
     venv_name = generate_short_id()
 
-    command = f"/bin/bash -x {run_py_file_path}  --conda-home={conda_home} --venv-kind={PythonEnv.KIND_CONDA}" \
+    command = f"/bin/bash -x {run_py_file_path} --venv-kind={PythonEnv.KIND_CONDA}" \
               f" --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} " \
               f" --venv-name={venv_name} " \
               f" --requirements-txt-file={requirement_txt_path.as_posix()} " \
@@ -79,4 +79,5 @@ def test_conda_requirement_txt():
     print(output)
     assert status == 0
     # assert python path
+    conda_home = get_conda_home()
     assert (Path(conda_home) / "envs" / venv_name / "bin" / "python").exists()

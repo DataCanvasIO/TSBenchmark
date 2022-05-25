@@ -49,7 +49,7 @@ def load_plain_player_custom_python():
 
 
 def _init_benchmark_benchmark(players=None, tasks=None, callbacks=None,
-                              random_states=None, conda_home=None):
+                              random_states=None):
     if players is None:
         players = [load_plain_player_custom_python()]
 
@@ -69,19 +69,19 @@ def _init_benchmark_benchmark(players=None, tasks=None, callbacks=None,
     kwargs = dict(desc='desc', players=players,
                   random_states=random_states, ts_tasks_config=tasks,
                   working_dir=batches_data_dir,
-                  conda_home=conda_home,
                   callbacks=callbacks)
     return kwargs
 
 
-def create_local_benchmark(batch_app_init_kwargs=None, **kwargs):
+def create_local_benchmark(batch_app_init_kwargs=None, conda_home=None, **kwargs):
     init_kwargs = _init_benchmark_benchmark(**kwargs)
 
     if batch_app_init_kwargs is None:
         batch_app_init_kwargs = dict(scheduler_exit_on_finish=True,
                                      scheduler_interval=1,
                                      server_port=8060)
-    lb = LocalBenchmark(name='local-benchmark', batch_app_init_kwargs=batch_app_init_kwargs, **init_kwargs)
+    lb = LocalBenchmark(name='local-benchmark', conda_home=conda_home, batch_app_init_kwargs=batch_app_init_kwargs,
+                        **init_kwargs)
     return lb
 
 

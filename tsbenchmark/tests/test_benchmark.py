@@ -12,6 +12,7 @@ from hypernets.tests.hyperctl.test_scheduler import assert_batch_finished
 from hypernets.tests.utils import ssh_utils_test
 from hypernets.utils import ssh_utils
 from hypernets.utils.common import generate_short_id
+from tsbenchmark import consts
 from tsbenchmark.benchmark import BenchmarkBaseOnHyperctl
 from tsbenchmark.tests.benchmark_factory import create_local_benchmark, create_multivariable_task, \
     create_univariate_task, create_remote_benchmark
@@ -329,7 +330,7 @@ class TestRemoteCustomPythonTestBenchmark(BaseBenchmarkTest):
 
         cls.connection = ssh_utils_test.load_ssh_psw_config()
 
-        lb = create_remote_benchmark(machines=[cls.connection], server_host=get_server_host())
+        lb = create_remote_benchmark(machines=[{ 'connection': cls.connection } ], server_host=get_server_host())
         cls.benchmark = lb
 
     def test_run_benchmark(self):
@@ -359,10 +360,13 @@ class TestRemoteCondaReqsTxtPlayerTestBenchmark(BaseBenchmarkTest):
         player = load_player_with_random_env_name("plain_player_requirements_txt")
 
         cls.connection = ssh_utils_test.load_ssh_psw_config()
-        machines = [cls.connection]
-        print(machines)
-        lb = create_remote_benchmark(players=[player], machines=[cls.connection],
-                                     server_host=get_server_host(), conda_home=get_conda_home())
+
+        environments = {
+            consts.ENV_TSB_CONDA_HOME: get_conda_home()
+        }
+        lb = create_remote_benchmark(players=[player],
+                                     machines=[{'connection': cls.connection, 'environments': environments}],
+                                     server_host=get_server_host())
 
         cls.benchmark = lb
 
@@ -389,10 +393,12 @@ class TestRemoteCondaReqsCondaYamlBenchmark(BaseBenchmarkTest):
         player = load_player_with_random_env_name('plain_player_conda_yaml')
 
         cls.connection = ssh_utils_test.load_ssh_psw_config()
-        machines = [cls.connection]
-        print(machines)
-        lb = create_remote_benchmark(players=[player], machines=[cls.connection],
-                                     server_host=get_server_host(), conda_home=get_conda_home())
+        environments = {
+            consts.ENV_TSB_CONDA_HOME: get_conda_home()
+        }
+        lb = create_remote_benchmark(players=[player],
+                                     machines=[{'connection': cls.connection, 'environments': environments}],
+                                     server_host=get_server_host())
         cls.benchmark = lb
     
     def test_run_benchmark(self):

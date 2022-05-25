@@ -38,7 +38,7 @@ class BenchmarkTask:
 class Benchmark(metaclass=abc.ABCMeta):
 
     def __init__(self, name, desc, players, ts_tasks_config: List[TSTaskConfig], random_states: List[int],
-                 task_constraints=None, conda_home=None, working_dir=None, callbacks: List[BenchmarkCallback]=None):
+                 task_constraints=None, working_dir=None, callbacks: List[BenchmarkCallback]=None):
 
         self.name = name
         self.desc = desc
@@ -59,14 +59,6 @@ class Benchmark(metaclass=abc.ABCMeta):
             self.working_dir = DEFAULT_WORKING_DIR
         else:
             self.working_dir = Path(working_dir).absolute().as_posix()
-
-        venvs = set([p.env.venv_kind for p in self.players])
-        if conda_home is None:
-            # check whether all players use custom_python
-            if PythonEnv.KIND_CONDA in venvs:
-                raise ValueError(f"'conda_home' can not be None because of some player using conda virtual env.")
-        else:
-            self.conda_home = conda_home
 
         self._tasks = None
 
@@ -296,8 +288,27 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 
 class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
+    def __init__(self, *args, **kwargs):
+        if "conda_home" in kwargs:
+            self.conda_home = kwargs.pop("conda_home")
+        else:
+            self.conda_home = None
+
+        super(LocalBenchmark, self).__init__(*args, **kwargs)
+
+        # check whether all players use custom_python
+        venvs = set([p.env.venv_kind for p in self.players])
+        if PythonEnv.KIND_CONDA in venvs and self.conda_home is None:
+            raise ValueError(f"'conda_home' can not be None because of some player using conda virtual env.")
+
     def get_backend_type(self):
         return 'local'
+
+    def get_backend_conf(self):
+        if self.conda_home is not None:
+            return {'environments': {consts.ENV_TSB_CONDA_HOME: self.conda_home}}
+        else:
+            return {}
 
     def make_run_custom_pythonenv_command(self,  bm_task: BenchmarkTask, batch: Batch, name):
         custom_py_executable = bm_task.player.env.venv.py_executable
@@ -306,18 +317,18 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
 
     def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
         local_requirements_txt_file = player.base_dir_path / player.env.requirements.file_name
-        command = f"--venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home}" \
-                  f" --venv-name={player.env.venv.name}" \
-                  f" --requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} " \
+        command = f"--venv-kind={PythonEnv.KIND_CONDA} " \
+                  f"--venv-name={player.env.venv.name} " \
+                  f"--requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} " \
                   f"--requirements-txt-file={local_requirements_txt_file} " \
                   f"--requirements-txt-py-version={player.env.requirements.py_version}"
         return command
 
     def make_run_requirements_conda_yaml_command(self, working_dir_path, player):
         local_requirements_txt_file = player.base_dir_path / player.env.requirements.file_name
-        command = f"--venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home}" \
-                  f" --venv-name={player.env.venv.name}" \
-                  f" --requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} " \
+        command = f"--venv-kind={PythonEnv.KIND_CONDA} " \
+                  f"--venv-name={player.env.venv.name} " \
+                  f"--requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} " \
                   f"--requirements-yaml-file={local_requirements_txt_file}"
         return command
 
@@ -332,16 +343,24 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
     def get_job_asserts(self, bm_task: BenchmarkTask):
         return []
 
-    def get_backend_conf(self):
-        return {}
-
 
 class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
 
     def __init__(self, *args, **kwargs):
-        machines = kwargs.pop("machines")
+        if "machines" in kwargs:
+            self.machines = kwargs.pop("machines")
+        else:
+            raise ValueError("missing args 'machines' ")
+
         super(RemoteSSHBenchmark, self).__init__(*args, **kwargs)
-        self.machines = machines
+
+        # check whether all players use custom_python
+        venvs = set([p.env.venv_kind for p in self.players])
+        if PythonEnv.KIND_CONDA in venvs:
+            for machine in self.machines:
+                if machine.get('environments', {}).get(consts.ENV_TSB_CONDA_HOME) is None:
+                    raise ValueError(f"'conda_home' in machines can not be None"
+                                     f" because of some player using conda virtual env.")
 
     def get_backend_type(self):
         return 'remote'
@@ -353,7 +372,7 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
 
     def make_run_requirements_requirements_txt_command(self, working_dir_path, player):
         remote_requirements_txt_file = (working_dir_path / "resources" / player.name / player.env.requirements.file_name).as_posix()
-        command = f"--venv-kind=conda  --conda-home={self.conda_home} --venv-name={player.env.venv.name} " \
+        command = f"--venv-kind=conda --venv-name={player.env.venv.name} " \
                   f"--requirements-kind={PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT} " \
                   f"--requirements-txt-file={remote_requirements_txt_file} " \
                   f"--requirements-txt-py-version={player.env.requirements.py_version}"
@@ -370,7 +389,7 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
 
     def make_run_requirements_conda_yaml_command(self, working_dir_path, player):
         conda_yaml_file = (working_dir_path / "resources" / player.name / player.env.requirements.file_name).as_posix()
-        command = f"--venv-kind={PythonEnv.KIND_CONDA}  --conda-home={self.conda_home} " \
+        command = f"--venv-kind={PythonEnv.KIND_CONDA} " \
                   f"--venv-name={player.env.venv.name} --requirements-kind={PythonEnv.REQUIREMENTS_CONDA_YAML} " \
                   f"--requirements-yaml-file={conda_yaml_file}"
         return command

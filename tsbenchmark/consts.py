@@ -3,6 +3,7 @@ import os
 
 DEFAULT_CACHE_PATH = Path("~/.cache/tsbenchmark/datasets").expanduser().as_posix()
 ENV_DATASETS_CACHE_PATH = "TSB_DATASETS_CACHE_PATH"
+ENV_TSB_CONDA_HOME = "TSB_CONDA_HOME"
 
 DEFAULT_WORKING_DIR = Path("~/tsbenchmark-working-dir").expanduser().as_posix()
 

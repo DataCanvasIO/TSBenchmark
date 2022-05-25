@@ -27,7 +27,7 @@ class TestLoadBenchmark:
         assert benchmark.task_constraints == {"max_trials": 10, "reward_metric": "rmse"}
 
         assert Path(benchmark.working_dir).name.startswith("benchmark-working-dir")
-        assert benchmark.conda_home == "~/miniconda3/"
+
 
         assert set([p.name for p in benchmark.players]) == {'hyperts_dl_player', 'plain_player_requirements_txt'}
         assert len(benchmark.ts_tasks_config) > 0
@@ -41,6 +41,7 @@ class TestLoadBenchmark:
         assert benchmark.name == "benchmark_example_local"
         assert isinstance(benchmark, LocalBenchmark)
         self.assert_benchmark(benchmark)
+        assert benchmark.conda_home == "~/miniconda3/"
 
     def test_load_remote(self):
         local_benchmark_example = PWD / "benchmark_example_remote.yaml"
