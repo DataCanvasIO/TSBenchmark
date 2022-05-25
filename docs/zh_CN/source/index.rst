@@ -1,4 +1,4 @@
-HyperGBM
+TSBenchmark
 =====================
 
 
@@ -13,15 +13,13 @@ HyperGBM is an open source project created by `DataCanvas <https://www.datacanva
 ..  toctree::
     :maxdepth: 2
 
-    概览<overview.rst>
-    安装HyperGBM<installation.md>
-    快速开始<quick_start.rst>
+    概览<concepts.md>
+    快速开始<quickstart.md>
     使用示例<example.rst>
     How-To<how_to.rst>
     Release Notes<release_note.rst>
 
 
-		
 ces and tables
 ==================
 
