@@ -16,7 +16,6 @@ class TestLoadBenchmark:
     def assert_benchmark(self, benchmark):
         assert benchmark.desc == "hyperts V0.1.0 release benchmark on 20220321"
         assert len(benchmark.random_states) == 5
-        assert benchmark.conda_home == "~/miniconda3/"
         batch_app_init_kwargs = benchmark.batch_app_init_kwargs
 
         assert batch_app_init_kwargs['scheduler_interval'] == 1

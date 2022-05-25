@@ -46,4 +46,4 @@ machines:
         username: hyperctl
         password: hyperctl
     environments:
-      conda_home: ~/miniconda3/
+      TSB_CONDA_HOME: ~/miniconda3/
