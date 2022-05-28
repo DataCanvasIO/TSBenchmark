@@ -12,7 +12,7 @@ player 通常会包含一个描述文件`player.yaml`和一个python脚本`exec.
 - `exec.py`脚本来借助tsbenchmark提供的api完成读取任务、训练任务、和评估指标，api用法参考[tsbechmark api文档]()
 - `player.yaml`用来描述player的python运行环境和其他配置信息。
 
-完整定义player例子请参考[快速开始](quickstart.md)。
+完整定义player例子请参考[快速开始](quickstart.md)，另外在TSBenchmark中也已经将一些算法封装成Player，参考[Player列表](https://github.com/DataCanvasIO/TSBenchmark/tree/main/players).
 
 ### 自定义运行环境Player
 
@@ -124,23 +124,13 @@ desc: 'a local benchmark example'
 
 kind: local  # 设定为单机模式
 
-working_dir: ～/tsbenchmark-workdingdir  # Benchmark 的工作目录，用于存放Benchmark运行产生的文件; 可以为空，默认为 `～/tsbenchmark-workdingdir`
-
 players:  # 指定运行benchmark的player目录
   - players/hyperts_dl_player
 
-datasets:  # 过滤数据集中的任务
-  tasks_id:
-    - 512754
-
 random_states: [ 23163, 5318,9527,33179 ] # 使用随机数跑多轮
 
-constraints:
-  task:
-    max_trials: 10
-    reward_metric: rmse
-
 ```
+
 ### 单机模式设置conda安装目录
 
 如果player有使用conda虚拟环境的，需要配置conda的安装目录，Benchmark在运行的时候可以使用指定的conda创建虚拟环境。
@@ -251,11 +241,6 @@ players:
 
 random_states: [ 23163, 5318,9527,33179 ] 
 
-constraints:
-  task:
-    max_trials: 10
-    reward_metric: rmse
-
 machines:  # 配置远程 SSH机器
   - connection:  # 配置机器的链接信息
         hostname: host1  # ip地址或者主机名
@@ -264,3 +249,25 @@ machines:  # 配置远程 SSH机器
     environments:
       TSB_CONDA_HOME: /opt/miniconda3  # 如果运行player使用使用conda创建虚拟环境，需要配置远程机器上conda的安装目录
  ```
+
+
+### 重复运行Benchmark
+
+当一个Benchmark重复运行时，之前运行结束（失败或者成功状态）的任务会被跳过不在运行。
+如需重新运行Benchmark中的部分任务，可以删除该任务的状态文件。
+任务成功的状态文件：`{working_dir}/batches/{benchmark_name}/{job_name}.succeed`
+任务失败的状态文件：`{working_dir}/batches/{benchmark_name}/{job_name}.failed`
+
+Benchmark运行时会将输出的数据、状态信息写入到`working_dir`中，若要一次Benchmark基于上一次Benchmark，需要确保这两次运行的Benchmark的`workking_dir`和`name`属性一致，配置示例：
+```yaml
+name: 'benchmark_example_local' # benchmark 的名称，建议仅使用数字、大小写字母、下划线、中划线。
+desc: 'a local benchmark example'
+
+kind: local 
+
+working_dir: ～/tsbenchmark_working_dir  # Benchmark 的工作目录，用于存放Benchmark运行产生的文件; 可以为空，默认为 `～/tsbenchmark_working_dir`
+
+players: 
+  - players/hyperts_dl_player
+
+```
