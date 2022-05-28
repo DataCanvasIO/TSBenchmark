@@ -22,12 +22,7 @@ constraints:
   task:
     max_trials: 10
     reward_metric: rmse
-  filter:
-    tasks:
-      - univariate-forecast
-      - multivariate-forecast
-    data_sizes:
-      - small
+
 report:
   path:  ~/benchmark-output/hyperts
 
