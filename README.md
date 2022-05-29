@@ -3,7 +3,7 @@
 [![Downloads](https://pepy.tech/badge/hypergbm)](https://pepy.tech/project/hypergbm)
 [![PyPI Version](https://img.shields.io/pypi/v/hypergbm.svg)](https://pypi.org/project/hypergbm)
 
-[English](README.md)
+[中文](README_zh_CN.md)
 
 ## What is TSBenchmark
 Tsbenchmark is a distributed benchmark framework for time series forecasting (time series forecast) automatic machine learning (automl) algorithm.
@@ -49,7 +49,7 @@ df_forecast = snavie.predict(task.horizon)
 tsb.api.send_report_data(task, df_forecast)
 ```
 
-#### player.yaml 
+### player.yaml 
 
 The personalized parameter setting of the algorithm can specify the running environment of the algorithm.
 ```yaml
