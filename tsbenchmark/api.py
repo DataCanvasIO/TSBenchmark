@@ -14,22 +14,38 @@ from hypernets.hyperctl import utils
 from hypernets.utils import logging as hyn_logging
 from tsbenchmark.players import JobParams
 from tsbenchmark.tasks import TSTask
-from tsbenchmark.consts import DEFAULT_REPORT_METRICS
+from tsbenchmark.consts import DEFAULT_REPORT_METRICS, DEFAULT_GLOBAL_RANDOM_STATE
 
 hyn_logging.set_level(hyn_logging.DEBUG)
 
 logger = hyn_logging.get_logger(__name__)
 
+__all__ = ['get_task', 'get_local_task', 'send_report_data']
+
 
 def get_task():
+    """Get a TsTask from benchmark server.
+
+    TsTask is a unit task, which help Player get the data and metadata.
+    Get the TsTaskConfig from benchmark server and construct it to TSTask. Call TSTask.ready() method init start
+    time and load data.
+
+    See Also
+    --------
+    TSTask : Player will get the data and metadata from the TSTask then run algorithm for compete.
+
+    Notes
+    --------
+    You must get attributes description from TSTask.
+
+    Returns
+    -------
+    TSTask : The TsTask  for player get the data and metadata.
+
+    """
     hyperctl_job_params = hyperctl_api.get_job_params()
 
     job_params = JobParams(**hyperctl_job_params)
-
-    # task_id = hyperctl_job_params['task_id']
-    # random_state = hyperctl_job_params['random_state']
-    # max_trials = hyperctl_job_params['max_trials']
-    # reward_metric = hyperctl_job_params['reward_metric']
 
     task_config = tasks.get_task_config(job_params.task_config_id, cache_path=job_params.dataset_cache_path)
 
@@ -39,7 +55,56 @@ def get_task():
     return t
 
 
-def get_local_task(data_path, dataset_id, random_state, max_trials, reward_metric):
+def get_local_task(data_path='~/tmp/data_cache', dataset_id='512754', random_state=DEFAULT_GLOBAL_RANDOM_STATE, max_trials=3, reward_metric='smape'):
+    """Get a TsTask from local for develop a new player and test.
+
+    TsTask is a unit task, which help Player get the data and metadata.
+    Get a TsTaskConfig locally and construct it to TSTask. Call TSTask.ready() method init start
+    time and load data.
+
+    Parameters
+    ----------
+    data_path : str, default='~/tmp/data_cache'
+        The path locally to cache data. TSLoader will download data and cache it in data_path.
+    dataset_id : str, default='512754'
+        The unique id for a dataset task. You can get it from tests/dataset_desc.csv.
+    random_state : int, consts.GLOBAL_RANDOM_STATE
+       Determines random number for automl framework.
+    max_trials : int, 3
+        Maximum number of tests for automl framework, optional.
+    reward_metric : str, default='smape'
+         The optimize direction for model selection.
+         Hypernets search reward metric name or callable. Possible values:
+            - accuracy
+            - auc
+            - f1
+            - logloss
+            - mse
+            - mae
+            - rmse
+            - mape
+            - smape
+            - msle
+            - precision
+            - r2
+            - recall
+
+    Notes
+    ----------
+        You must get attributes description from TSTask.
+        In the report it support smape, mape, mae and rmse.
+
+
+    See Also
+    --------
+    TSTask : Player will get the data and metadata from the TSTask then run algorithm for compete.
+
+    Returns
+    -------
+    TSTask : The TsTask  for player get the data and metadata.
+
+    """
+
     from tsbenchmark.tsloader import TSTaskLoader
     from tsbenchmark.tasks import TSTask
     data_path = data_path
@@ -54,13 +119,12 @@ def get_local_task(data_path, dataset_id, random_state, max_trials, reward_metri
 def report_task(report_data: Dict, bm_task_id=None, api_server_uri=None):
     """Report metrics or running information to api server.
 
-    Args:
-        report_data:
-        bm_task_id: str, optional, BenchmarkTask id, if is None will get from current job
-        api_server_uri: str, optional, tsbenchmark api server uri, if is None will get from environment or
-            use default value
-
-    Returns:
+    Parameters
+    ----------
+    report_data:
+    bm_task_id: str, optional, BenchmarkTask id, if is None will get from current job
+    api_server_uri: str, optional, tsbenchmark api server uri, if is None will get from environment or
+        use default value
 
     """
 
@@ -81,22 +145,27 @@ def report_task(report_data: Dict, bm_task_id=None, api_server_uri=None):
 def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_params=''):
     """Send report data.
 
-          Args:
-              y_pred: pandas dataframe, required, The predicted values by the players.
-              key_params: str, optional, The params which user want to save to the report datas.
-              best_params: str, optional, The best model's params, for automl, there are many models will be trained.
-                           If user want to save the best params, user may assign the best_params.
+    This api used for send report data to benchmark server.
+        1. Prepare the data which can be call be tsb.api.report_task.
+        2. Call method report_task, send the report data to the Benchmark Server.
 
-          Returns:
 
-          ------------------------------------------------------------------------------------------------------------
-          Description:
-              1. Prepare the data which can be call be tsb.api.report_task.
-              2. Call method report_task, send the report data to the Master Server.
-              When develop a new play locally, this method will help user validate the predicted and params.
+    Parameters
+    ----------
+    y_pred: pandas.DataFrame,
+        The predicted values by the players.
+    key_params: str, default=''
+        The params which user want to save to the report datas.
+    best_params: str, default=''
+        The best model's params, for automl, there are many models will be trained.
+        If user want to save the best params, user may assign the best_params.
 
-          """
-    task.__end_time = time.time()
+    Notes
+    ----------
+        When develop a new play locally, this method will help user validate the predicted and params.
+
+    """
+    task._end_time = time.time()
     default_metrics = DEFAULT_REPORT_METRICS
     target_metrics = default_metrics
 
@@ -124,6 +193,7 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
 
 
 def _get_api_server_api(api_server_uri=None):
+
     if api_server_uri is None:
         api_server_portal = os.getenv(consts.KEY_ENV_SERVER_PORTAL)
         assert api_server_portal

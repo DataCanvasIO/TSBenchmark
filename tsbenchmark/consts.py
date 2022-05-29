@@ -22,3 +22,5 @@ DATA_SIZE_LARGE = 'large'
 TASK_TYPE_UNIVARIATE = 'univariate-forecast'
 TASK_TYPE_MULTIVARIATE = 'multivariate-forecast'
 
+DEFAULT_GLOBAL_RANDOM_STATE=2022
+

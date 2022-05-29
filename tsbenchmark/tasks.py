@@ -4,6 +4,7 @@ import time
 
 from tsbenchmark.consts import DEFAULT_CACHE_PATH, ENV_DATASETS_CACHE_PATH
 
+__all__ = ['TSTask']
 
 class TSTaskConfig(object):
 
@@ -26,34 +27,66 @@ class TSTaskConfig(object):
 class TSTask(object):
     """ Player will get the data and metadata from the TSTask then run algorithm for compete.
     Attributes:
-        dataset_id: str, not None.
-            The unique identification id.
-        date_name: str, not None.
-            The name of the date column.
-        task: str, not None.
-            The type of forecast. In time series task, it could be 'univariate-forecast' or 'multivariate-forecast'.
-        horizon: int, not None.
-            Number of periods of data to forecast ahead.
-        shape: str, not None.
-            The dataset shape from the train dataframe. The result from pandas.DataFrame.shape().
-        series_name: str or arr.
-            The names of the series columns.
-            For 'univariate-forecast' task, it should not be None.For 'multivariate-forecast' task, it should be None.
-            In the task from tsbenchmark.api.get_task() or tsbenchmark.api.get_local_task or called function TSTask.ready,
-            series_name should not be None.
+    ----------
+    dataset_id: str, not None.
+        The unique identification id.
+    date_name: str, not None.
+        The name of the date column.
+    task: str, not None.
+        The type of forecast. In time series task, it could be 'univariate-forecast' or 'multivariate-forecast'.
+    horizon: int, not None.
+        Number of periods of data to forecast ahead.
+    shape: str, not None.
+        The dataset shape from the train dataframe. The result from pandas.DataFrame.shape().
+    series_name: str or arr.
+        The names of the series columns.
+        For 'univariate-forecast' task, it should not be None.For 'multivariate-forecast' task, it should be None.
+        In the task from tsbenchmark.api.get_task() or tsbenchmark.api.get_local_task or called function TSTask.ready,
+        series_name should not be None.
 
-        covariables_name: str or arr, may be None.
-            The names of the covariables columns.
-            It should be get after called function TSTask.ready(), or from task from tsbenchmark.api.get_task() or tsbenchmark.api.get_local_task.
+    covariables_name: str or arr, may be None.
+        The names of the covariables columns.
+        It should be get after called function TSTask.ready(), or from task from tsbenchmark.api.get_task() or tsbenchmark.api.get_local_task.
 
-        dtformat: str, not None.
-            The format of the date column.
+    dtformat: str, not None.
+        The format of the date column.
 
-    Methods:
-        get_train, get_test
+    random_state : int, consts.GLOBAL_RANDOM_STATE
+           Determines random number for automl framework.
+        max_trials : int, 3
+            Maximum number of tests for automl framework, optional.
+        reward_metric : str, default='smape'
+             The optimize direction for model selection.
+             Hypernets search reward metric name or callable. Possible values:
+                - accuracy
+                - auc
+                - f1
+                - logloss
+                - mse
+                - mae
+                - rmse
+                - mape
+                - smape
+                - msle
+                - precision
+                - r2
+                - recall
+
+    Notes:
+    ----------
+    In the report it support smape, mape, mae and rmse.
+
     """
 
     def __init__(self, task_config, **kwargs):
+        """Init TSTask by task config.
+        Parameters
+        ----------
+        task_config : TSTaskConfig
+            The TSTaskConfig construct from dataset_desc.
+        kwargs:
+            Parameters to initialize TSTask. Include random_state, max_trials and reward_metric.
+        """
         for k, v in task_config.__dict__.items():
             self.__dict__[k] = v
 
@@ -79,22 +112,42 @@ class TSTask(object):
         }
 
     def get_data(self):
+        """Get data contain train_data and test_data.
+
+        """
         return self.taskdata.get_train(), self.taskdata.get_test()
 
     def get_train(self):
+        """Get a pandas.DadaFrame train data.
+
+        Returns:
+        -------
+            pandas.DataFrame : The data for train.
+
+        """
         if self.__train is None:
             self.__train = self.taskdata.get_train()
         return self.__train
 
     def get_test(self):
+        """Get a pandas.DadaFrame test data.
+
+        Returns:
+        -------
+            pandas.DataFrame : The data for test.
+
+        """
         if self.__test is None:
             self.__test = self.taskdata.get_test()
         return self.__test
 
     def ready(self):
+        """Init data download if the data have not been download yet.
+        """
         metadata = self.taskdata.taskdata_loader.dataset_loader.ready(self.id)
         for k, v in metadata.items():
             self.__dict__[k] = v
+        self.start_time = time.time()
 
 
 def _get_task_load(cache_path=None):
