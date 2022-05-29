@@ -31,7 +31,6 @@ pip install tsbechmark
     - am_navie_player: Algorithm specific directory.
     - exec.py: Required, Algorithm code to be tested.
     - player.yaml: Required, metadata settings of algorithm.
-    - env.yaml: optional, The environment to be tested is defined to support the installation of the environment.
 
 ### [tsbenchmark.yaml](tsbenchmark/tests/benchmark.template.yaml) and [Examples](tsbenchmark/tests/benchmark_example_remote.yaml).
 
