@@ -1,8 +1,8 @@
 欢迎使用 TSBenchmark
 =====================
 
-TSBenchmark: TSBenchmark是一套面向时间序列预测(Time Series Forecast)自动机器学习(AutoML)算法的分布式Benchmark框架。
-#########################################################
+TSBenchmark: 一个面向时间序列预测自动机器学习算法的分布式Benchmark框架
+#################################################################
 
 TSBenchmark 同时支持Time Series特性与AutoML特性。时间序列预测算法，支持单变量预测与多变量预测，同时支持协变量benchmark。
 运行过程中，支持最优参数组合采集，为AutoML框架的分析提供支撑。
@@ -19,7 +19,7 @@ TSBenchmark 同时支持Time Series特性与AutoML特性。时间序列预测算
 
     基本概念<concepts.md>
     快速开始<quickstart.md>
-    使用示例<examples.md>
+    使用示例<examples.rst>
     API 参考<api_docs/modules.rst>
     Release Notes<release_note.rst>
 
