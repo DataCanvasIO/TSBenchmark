@@ -30,7 +30,7 @@ def setup(app):
 
 
 now = datetime.now()
-project = 'HyperGBM'
+project = 'TSBenchmark'
 copyright = f'{now.year}, Zetyun.com'
 author = 'Zetyun.com'
 
@@ -61,12 +61,12 @@ html_static_path = ['_static']
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'hypergbm', 'HyperGBM Documentation',
+    (master_doc, 'TSBenchmark', 'TSBenchmark Documentation',
      [author], 1)
 ]
 
 texinfo_documents = [
-    (master_doc, 'HyperGBM', 'HyperGBM Documentation',
-     author, 'HyperGBM', 'One line description of project.',
+    (master_doc, 'TSBenchmark', 'TSBenchmark Documentation',
+     author, 'TSBenchmark', 'One line description of project.',
      'Miscellaneous'),
 ]
