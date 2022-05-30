@@ -25,7 +25,7 @@ class TestLoadBenchmark:
         assert batch_app_init_kwargs['server_host'] == "localhost"
         assert benchmark.task_constraints == {"max_trials": 10, "reward_metric": "rmse"}
 
-        assert Path(benchmark.working_dir).name.startswith("benchmark-working-dir")
+        assert Path(benchmark.working_dir_path).name.startswith("benchmark-working-dir")
 
 
         assert set([p.name for p in benchmark.players]) == {'hyperts_dl_player', 'plain_player_requirements_txt'}

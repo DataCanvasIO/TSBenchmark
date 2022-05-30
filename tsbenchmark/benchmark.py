@@ -88,8 +88,8 @@ class Benchmark(metaclass=abc.ABCMeta):
                 return bm_task
         return None
 
-    def get_batches_data_dir(self):
-        return (Path(self.working_dir) / "batches").as_posix()
+    def get_batch_working_dir(self):
+        return (Path(self.working_dir) / "batch").as_posix()
 
 
 class HyperctlBatchCallback(BatchCallback):
@@ -176,7 +176,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
                                reward_metric=safe_getattr(bm_task.ts_task, 'reward_metric'))
 
         # TODO support windows
-        working_dir_path = batch.data_dir_path() / name
+        working_dir_path = batch.working_dir_path
         working_dir = working_dir_path.as_posix()
         venv_kind = player.env.venv_kind
         if player.env.venv_kind == PythonEnv.KIND_CUSTOM_PYTHON:
@@ -235,7 +235,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         self._handle_on_start()  # callback start
         self._tasks = []
         # create batch app
-        batches_data_dir = self.get_batches_data_dir()
+        batches_data_dir = self.get_batch_working_dir()
 
         batch_name = self.name
         batch: Batch = Batch(batch_name, batches_data_dir)
