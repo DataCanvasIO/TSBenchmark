@@ -16,3 +16,11 @@ tsbenchmark.tasks module
    :members:
    :undoc-members:
    :show-inheritance:
+
+tsbenchmark.metrics module
+---------------
+
+.. automodule:: tsbenchmark.metrics
+   :members:
+   :undoc-members:
+   :show-inheritance:
