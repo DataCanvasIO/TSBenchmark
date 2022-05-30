@@ -83,7 +83,7 @@ def load_benchmark(config_file: str, working_dir=None):
 
     # working_dir
     if working_dir is None:
-        working_dir = Path(config_dict.get('working_dir', "~/tsbenchmark-data")).expanduser().as_posix()
+        working_dir = Path(config_dict.get('working_dir', (Path(consts.DEFAULT_WORKING_DIR) / name).as_posix())).expanduser().as_posix()
 
     # select datasets and tasks
     datasets_config = config_dict.get('datasets', {})
