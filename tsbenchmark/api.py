@@ -1,24 +1,19 @@
-from typing import Dict
-
-from hypernets.hyperctl import api as hyperctl_api
-from tsbenchmark import tasks
-from tsbenchmark.util import cal_task_metrics
-import pandas as pd
 import json
 import os
 import time
 
-from hypernets.hyperctl import consts
-from hypernets.hyperctl import utils
+import pandas as pd
+from typing import Dict
 
-from hypernets.utils import logging as hyn_logging
-from tsbenchmark.players import JobParams
 from tsbenchmark.tasks import TSTask
 from tsbenchmark.consts import DEFAULT_REPORT_METRICS, DEFAULT_GLOBAL_RANDOM_STATE
+from tsbenchmark import tasks
 
-hyn_logging.set_level(hyn_logging.DEBUG)
 
-logger = hyn_logging.get_logger(__name__)
+
+
+
+
 
 # __all__ = ['get_task', 'get_local_task', 'send_report_data']
 
@@ -39,6 +34,8 @@ def get_task() -> TSTask:
 
     Returns: TSTask, The TsTask  for player get the data and metadata.
     """
+    from hypernets.hyperctl import api as hyperctl_api
+    from tsbenchmark.players import JobParams
     hyperctl_job_params = hyperctl_api.get_job_params()
 
     job_params = JobParams(**hyperctl_job_params)
@@ -118,6 +115,7 @@ def report_task(report_data: Dict, bm_task_id=None, api_server_uri=None):
         'data': report_data
     }
 
+    from hypernets.hyperctl import utils
     utils.post_request(report_url, json.dumps(request_dict))
 
 
@@ -150,6 +148,7 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
     if y_pred.shape[0] != task.get_test().shape[0]:
         raise Exception(f"The result should have {task.get_test().shape[0]} rows but got {y_pred.shape[0]}. ")
 
+    from tsbenchmark.util import cal_task_metrics
     task_metrics = cal_task_metrics(y_pred, task.get_test()[task.series_name], task.date_name,
                                     task.series_name,
                                     task.covariables_name, target_metrics, 'regression')
@@ -166,12 +165,16 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
     if not hasattr(task, "_local_model"):
         report_task(report_data)
     else:
+        from hypernets.utils import logging as hyn_logging
+        hyn_logging.set_level(hyn_logging.DEBUG)
+        logger = hyn_logging.get_logger(__name__)
         logger.info("Successfully validation for local test mode.")
 
 
 def _get_api_server_api(api_server_uri=None):
 
     if api_server_uri is None:
+        from hypernets.hyperctl import consts
         api_server_portal = os.getenv(consts.KEY_ENV_SERVER_PORTAL)
         assert api_server_portal
         return api_server_portal
@@ -181,6 +184,8 @@ def _get_api_server_api(api_server_uri=None):
 
 def _get_bm_task_id(bm_task_id):
     if bm_task_id is None:
+        from hypernets.hyperctl import api as hyperctl_api
+        from tsbenchmark.players import JobParams
         hyperctl_job_params = hyperctl_api.get_job_params()
         job_params = JobParams(**hyperctl_job_params)
         return job_params.bm_task_id

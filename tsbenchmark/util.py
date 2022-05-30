@@ -4,7 +4,7 @@ import zipfile
 
 import tsbenchmark.consts as consts
 from hypernets.utils import logging
-logging.set_level('DEBUG')  # TODO
+logging.set_level('DEBUG')
 logger = logging.getLogger(__name__)
 
 
