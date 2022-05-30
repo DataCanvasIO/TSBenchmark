@@ -148,8 +148,8 @@ machines:  # 配置远程 SSH机器
 
 当一个Benchmark重复运行时，之前运行结束（失败或者成功状态）的任务会被跳过不在运行。
 如需重新运行Benchmark中的部分任务，可以删除该任务的状态文件。
-任务成功的状态文件：`{working_dir}/batches/{benchmark_name}/{job_name}.succeed`
-任务失败的状态文件：`{working_dir}/batches/{benchmark_name}/{job_name}.failed`
+任务成功的状态文件：`{working_dir}/batch/{job_name}.succeed`
+任务失败的状态文件：`{working_dir}/batch/{job_name}.failed`
 
 Benchmark运行时会将输出的数据、状态信息写入到`working_dir`中，若要一次Benchmark基于上一次Benchmark，需要确保这两次运行的Benchmark的`workking_dir`和`name`属性一致，配置示例：
 ```yaml
@@ -158,7 +158,7 @@ desc: 'a local benchmark example'
 
 kind: local 
 
-working_dir: ～/tsbenchmark_working_dir  # Benchmark 的工作目录，用于存放Benchmark运行产生的文件; 可以为空，默认为 `～/tsbenchmark_working_dir`
+working_dir: ～/tsbenchmark_working_dir/benchmark_example_local  # Benchmark 的工作目录，用于存放Benchmark运行产生的文件; 可以为空，默认为 `～/tsbenchmark_working_dir/{name}`
 
 players: 
   - players/hyperts_dl_player

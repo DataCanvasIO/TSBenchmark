@@ -56,7 +56,7 @@ class Benchmark(metaclass=abc.ABCMeta):
         self.callbacks = callbacks if callbacks is not None else []
 
         if working_dir is None:
-            self.working_dir = DEFAULT_WORKING_DIR
+            self.working_dir = os.path.join(DEFAULT_WORKING_DIR, name)
         else:
             self.working_dir = Path(working_dir).absolute().as_posix()
 
@@ -163,7 +163,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         task_id = bm_task.ts_task.id
         player: Player = bm_task.player
         random_state = bm_task.ts_task.random_state
-        name = f'{player.name}_{task_id}_{random_state}'
+        job_name = f'{player.name}_{task_id}_{random_state}'
 
         def safe_getattr(obj, attr_name):
             if hasattr(obj, attr_name):
@@ -176,26 +176,26 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
                                reward_metric=safe_getattr(bm_task.ts_task, 'reward_metric'))
 
         # TODO support windows
-        working_dir_path = batch.working_dir_path
-        working_dir = working_dir_path.as_posix()
+        job_working_dir_path = batch.working_dir_path / job_name
+        working_dir = job_working_dir_path.as_posix()
         venv_kind = player.env.venv_kind
         if player.env.venv_kind == PythonEnv.KIND_CUSTOM_PYTHON:
-            command = self.make_run_custom_pythonenv_command(bm_task, batch, name)
+            command = self.make_run_custom_pythonenv_command(bm_task, batch, job_name)
         elif player.env.venv_kind == PythonEnv.KIND_CONDA:
             if player.env.reqs_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT:
-                command = self.make_run_requirements_requirements_txt_command(working_dir_path, player)
+                command = self.make_run_requirements_requirements_txt_command(job_working_dir_path, player)
             else:
-                command = self.make_run_requirements_conda_yaml_command(working_dir_path, player)
+                command = self.make_run_requirements_conda_yaml_command(job_working_dir_path, player)
         else:
             raise ValueError(f"unseen venv kind {venv_kind}")
 
         merged_command = f"{self.get_command_prefix()} {command} " \
-                         f"{self.get_exec_py_args(working_dir_path, player)} {self.get_datasets_cache_path_args()}" \
+                         f"{self.get_exec_py_args(job_working_dir_path, player)} {self.get_datasets_cache_path_args()}" \
                          f"  --python-path={os.getcwd()}"
 
-        logger.info(f"command of job {name} is {merged_command}")
+        logger.info(f"command of job {job_name} is {merged_command}")
 
-        batch.add_job(name=name,
+        batch.add_job(name=job_name,
                       params=job_params.to_dict(),
                       command=merged_command,
                       output_dir=working_dir,
@@ -234,11 +234,13 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
     def run(self):
         self._handle_on_start()  # callback start
         self._tasks = []
-        # create batch app
-        batches_data_dir = self.get_batch_working_dir()
 
+        logger.info(f"benchmark name: {self.name}")
+        logger.info(f"benchmark working dir: {self.working_dir}")
+
+        # create batch app
         batch_name = self.name
-        batch: Batch = Batch(batch_name, batches_data_dir)
+        batch: Batch = Batch(batch_name, self.get_batch_working_dir())
         for ts_task_config in self.ts_tasks_config:
             self._create_tasks(ts_task_config)
 
