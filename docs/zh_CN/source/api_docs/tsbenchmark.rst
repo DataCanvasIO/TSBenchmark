@@ -1,9 +1,6 @@
 tsbenchmark package
 ===================
 
-Submodules
-----------
-
 tsbenchmark.api module
 ----------------------
 
@@ -12,10 +9,10 @@ tsbenchmark.api module
    :undoc-members:
    :show-inheritance:
 
-Module contents
+tsbenchmark.tasks module
 ---------------
 
-.. automodule:: tsbenchmark
+.. automodule:: tsbenchmark.tasks
    :members:
    :undoc-members:
    :show-inheritance:

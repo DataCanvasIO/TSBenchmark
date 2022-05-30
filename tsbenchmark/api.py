@@ -20,28 +20,24 @@ hyn_logging.set_level(hyn_logging.DEBUG)
 
 logger = hyn_logging.get_logger(__name__)
 
-__all__ = ['get_task', 'get_local_task', 'send_report_data']
+# __all__ = ['get_task', 'get_local_task', 'send_report_data']
 
 
-def get_task():
+def get_task() -> TSTask:
     """Get a TsTask from benchmark server.
 
     TsTask is a unit task, which help Player get the data and metadata.
-    Get the TsTaskConfig from benchmark server and construct it to TSTask. Call TSTask.ready() method init start
+    It will get TsTaskConfig from benchmark server and construct it to TSTask. Call TSTask.ready() method init start
     time and load data.
 
-    See Also
-    --------
-    TSTask : Player will get the data and metadata from the TSTask then run algorithm for compete.
+    See Also:
+        TSTask : Player will get the data and metadata from the TSTask then run algorithm for compete.
 
-    Notes
-    --------
-    You must get attributes description from TSTask.
+    Notes:
+        1. You can get attributes description from TSTask.
+        2. In the report it support 'smape', 'mape', 'mae' and 'rmse'.
 
-    Returns
-    -------
-    TSTask : The TsTask  for player get the data and metadata.
-
+    Returns: TSTask, The TsTask  for player get the data and metadata.
     """
     hyperctl_job_params = hyperctl_api.get_job_params()
 
@@ -55,53 +51,37 @@ def get_task():
     return t
 
 
-def get_local_task(data_path='~/tmp/data_cache', dataset_id='512754', random_state=DEFAULT_GLOBAL_RANDOM_STATE, max_trials=3, reward_metric='smape'):
+def get_local_task(data_path='~/tmp/data_cache', dataset_id='512754',
+                   random_state=DEFAULT_GLOBAL_RANDOM_STATE, max_trials=3, reward_metric='smape') -> TSTask:
     """Get a TsTask from local for develop a new player and test.
 
     TsTask is a unit task, which help Player get the data and metadata.
-    Get a TsTaskConfig locally and construct it to TSTask. Call TSTask.ready() method init start
+    It will get a TsTaskConfig locally and construct it to TSTask. Call TSTask.ready() method init start
     time and load data.
 
-    Parameters
-    ----------
-    data_path : str, default='~/tmp/data_cache'
-        The path locally to cache data. TSLoader will download data and cache it in data_path.
-    dataset_id : str, default='512754'
-        The unique id for a dataset task. You can get it from tests/dataset_desc.csv.
-    random_state : int, consts.GLOBAL_RANDOM_STATE
-       Determines random number for automl framework.
-    max_trials : int, 3
-        Maximum number of tests for automl framework, optional.
-    reward_metric : str, default='smape'
-         The optimize direction for model selection.
-         Hypernets search reward metric name or callable. Possible values:
-            - accuracy
-            - auc
-            - f1
-            - logloss
-            - mse
-            - mae
-            - rmse
-            - mape
-            - smape
-            - msle
-            - precision
-            - r2
-            - recall
+    Args:
+        data_path : str, default='~/tmp/data_cache'.
+            The path locally to cache data. TSLoader will download data and cache it in data_path.
+        dataset_id : str, default='512754'.
+            The unique id for a dataset task. You can get it from tests/dataset_desc.csv.
+        random_state : int, consts.GLOBAL_RANDOM_STATE.
+           Determines random number for automl framework.
+        max_trials : int, default=3.
+            Maximum number of tests for automl framework, optional.
+        reward_metric : str, default='smape'.
+             The optimize direction for model selection.
+             Hypernets search reward metric name or callable. Possible values: 'accuracy', 'auc', 'mse',
+             'mae','rmse', 'mape', 'smape', and 'msle'.
 
-    Notes
-    ----------
-        You must get attributes description from TSTask.
-        In the report it support smape, mape, mae and rmse.
+    Notes:
+        1. You can get attributes description from TSTask.
+        2. In the report it support 'smape', 'mape', 'mae' and 'rmse'.
 
 
-    See Also
-    --------
-    TSTask : Player will get the data and metadata from the TSTask then run algorithm for compete.
+    See Also:
+        TSTask: Player will get the data and metadata from the TSTask then run algorithm for compete.
 
-    Returns
-    -------
-    TSTask : The TsTask  for player get the data and metadata.
+    Returns: TSTask, The TsTask for player get the data and metadata.
 
     """
 
@@ -119,12 +99,11 @@ def get_local_task(data_path='~/tmp/data_cache', dataset_id='512754', random_sta
 def report_task(report_data: Dict, bm_task_id=None, api_server_uri=None):
     """Report metrics or running information to api server.
 
-    Parameters
-    ----------
-    report_data:
-    bm_task_id: str, optional, BenchmarkTask id, if is None will get from current job
-    api_server_uri: str, optional, tsbenchmark api server uri, if is None will get from environment or
-        use default value
+    Args:
+        report_data: Dict. The report data generate by send_report_data.
+        bm_task_id: str, optional, BenchmarkTask id, if is None will get from current job
+        api_server_uri: str, optional, tsbenchmark api server uri, if is None will get from environment or
+            use default value
 
     """
 
@@ -145,23 +124,21 @@ def report_task(report_data: Dict, bm_task_id=None, api_server_uri=None):
 def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_params=''):
     """Send report data.
 
-    This api used for send report data to benchmark server.
-        1. Prepare the data which can be call be tsb.api.report_task.
-        2. Call method report_task, send the report data to the Benchmark Server.
+    This interface used for send report data to benchmark server.
+    1. Prepare the data which can be call be tsb.api.report_task.
+    2. Call method report_task, send the report data to the Benchmark Server.
 
 
-    Parameters
-    ----------
-    y_pred: pandas.DataFrame,
-        The predicted values by the players.
-    key_params: str, default=''
-        The params which user want to save to the report datas.
-    best_params: str, default=''
-        The best model's params, for automl, there are many models will be trained.
-        If user want to save the best params, user may assign the best_params.
+    Args:
+        y_pred: pandas.DataFrame,
+            The predicted values by the players.
+        key_params: str, default=''
+            The params which user want to save to the report datas.
+        best_params: str, default=''
+            The best model's params, for automl, there are many models will be trained.
+            If user want to save the best params, user may assign the best_params.
 
-    Notes
-    ----------
+    Notes:
         When develop a new play locally, this method will help user validate the predicted and params.
 
     """
