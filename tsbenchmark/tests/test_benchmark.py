@@ -74,7 +74,7 @@ def assert_remote_bm_batch_succeed(benchmark: BenchmarkBaseOnHyperctl, connectio
     batch_app: BatchApplication = benchmark.batch_app
 
     # assert local files
-    batch_path = Path(benchmark.get_batches_data_dir()) / batch_app.batch.name
+    batch_path = Path(benchmark.get_batch_working_dir()) / batch_app.batch.name
     assert batch_path.exists()
     batch_app: BatchApplication = benchmark.batch_app
 
@@ -337,7 +337,7 @@ class TestRemoteCustomPythonTestBenchmark(BaseBenchmarkTest):
         self.benchmark.run()
 
         # assert local files
-        batch_path = Path(self.benchmark.get_batches_data_dir())
+        batch_path = Path(self.benchmark.get_batch_working_dir())
         assert batch_path.exists()
         batch_app: BatchApplication = self.benchmark.batch_app
         jobs = batch_app.batch.jobs

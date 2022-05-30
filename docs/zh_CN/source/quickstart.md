@@ -19,7 +19,7 @@ tasks:  # 声明该player 仅支持单变量预测的任务
   - univariate-forecast
 ```
 
-在目录`prophet_player`中创建`env.yaml` 文件，这个文件用来使用[conda]()创建虚拟环境，在player运行时使用。
+在目录`prophet_player`中创建`env.yaml` 文件，这个文件用来使用[conda](https://docs.conda.io/en/latest/miniconda.html)创建虚拟环境，在player运行时使用。
 ```yaml
 name: tsb_prophet_player
 channels:
