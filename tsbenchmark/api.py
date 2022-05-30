@@ -51,7 +51,7 @@ def get_task() -> TSTask:
     return t
 
 
-def get_local_task(data_path='~/tmp/data_cache', dataset_id='512754',
+def get_local_task(data_path, dataset_id='512754',
                    random_state=DEFAULT_GLOBAL_RANDOM_STATE, max_trials=3, reward_metric='smape') -> TSTask:
     """Get a TsTask from local for develop a new player and test.
 
