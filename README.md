@@ -6,37 +6,41 @@
 [中文](README_zh_CN.md)
 
 ## What is TSBenchmark
-Tsbenchmark is a distributed benchmark framework for time series forecasting (time series forecast) automatic machine learning (automl) algorithm.
+TSBenchmark is a distributed benchmark framework specified for time series forecasting tasks using automated machine learning (AutoML) algorithms.
 
 ## Overview
-Tsbenchmark supports both the time series feature and the automl feature. The time series prediction algorithm supports univariate prediction, multivariate prediction, and covariate benchmark.
-During operation, it supports the collection of optimal parameter combinations, providing support for the analysis of the automl framework.
-The framework supports distributed operation mode and has efficient running scoring efficiency. The framework integrates the lightweight distributed scheduling framework in hypernets and can be run in Python or CONDA environments.
-It is recommended to use CONDA as the environment management to support the environment isolation of different timing algorithms.
+TSBenchmark supports both time series and AutoML characteristics.
+
+As for time series forecasting, it supports univariate forecasting, multivariate forecasting, as well as covariate benchmark.
+During operation, it collects the information of optimal parameter combinations, performance indicators and other key parameters, supporting the analysis and evaluation of the AutoML framework.
+
+This benchmark framework supports distributed operation mode and shows high scores in efficiency ranking.
+It integrates the lightweight distributed scheduling framework in hypernets and can be executed in both Python and CONDA virtual environments.
+For the purpose of environment isolation, it is recommended to use CONDA as the environment manager to support different algorithms.
 
 ## Installation
 
 ### Pip
 
-Basically, use the following 'pip' command to install tsbenchmark:
+Basically, use 'pip' command to install tsbenchmark:
 ```bash
 pip install tsbechmark
 ```
 
 ## Examples
 
-### Develop your player.
-  - tsbenchmark.yaml Benchmark global configuration
+### Define your player.
+  - tsbenchmark.yaml:  the global Benchmark configuration
   - players 
-    - am_navie_player: Algorithm specific directory.
-    - exec.py: Required, Algorithm code to be tested.
-    - player.yaml: Required, metadata settings of algorithm.
+    - am_navie_player: the specific algorithm directory.
+    - exec.py: (Required), the algorithm to be tested.
+    - player.yaml: (Required), metadata settings of the algorithm.
 
 ### [tsbenchmark.yaml](tsbenchmark/tests/benchmark.template.yaml) and [Examples](tsbenchmark/tests/benchmark_example_remote.yaml).
 
 ### exec.py 
 
-Integrate the running code of the algorithm to be scored: obtain the task, train the model, predict and feed back the prediction results through the API interface.
+Integrate the forecasting tasks for evaluation through API interface, including task reading, model training, prediction and evaluation.
 
 ```python
 import tsbenchmark as tsb
@@ -50,7 +54,7 @@ tsb.api.send_report_data(task, df_forecast)
 
 ### player.yaml 
 
-The personalized parameter setting of the algorithm can specify the running environment of the algorithm.
+Use customized settings to specify the operating environment of the algorithm.
 ```yaml
 env:
   venv:
@@ -59,9 +63,9 @@ env:
       py_executable: /usr/anaconda3/envs/tsb-hyperts/bin/python
 ```
 
-For more usage examples, please refer to [Quick Start](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/quickstart.html) and [Examples](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/examples.html).
+For more examples, please refer to [Quick Start](https://tsbenchmark-zh-cn.readthedocs.io/en_US/latest/quickstart.html) and [Examples](https://tsbenchmark-zh-cn.readthedocs.io/en_US/latest/examples.html).
 
-### Use TSBenchmark with Command line tools
+### Run TSBenchmark with Command Line Tools
 ```bash
 tsb run --config benchmark_example_remote.yaml
 ```
@@ -105,12 +109,12 @@ Console outputs:
 
 ## Documents
 
-* [Overview](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/index.html)
-* [Concepts](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/concepts.html)
-* [Quick Start](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/quickstart.html)
-* [Examples](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/examples.html)
-* [API Reference](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/api_docs/modules.html)
-* [Release Notes](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/release_note.html)
+* [Overview](https://tsbenchmark-zh-cn.readthedocs.io/en_US/latest/index.html)
+* [Concepts](https://tsbenchmark-zh-cn.readthedocs.io/en_US/latest/concepts.html)
+* [Quick Start](https://tsbenchmark-zh-cn.readthedocs.io/en_US/latest/quickstart.html)
+* [Examples](https://tsbenchmark-zh-cn.readthedocs.io/en_US/latest/examples.html)
+* [API Reference](https://tsbenchmark-zh-cn.readthedocs.io/en_US/latest/api_docs/modules.html)
+* [Release Notes](https://tsbenchmark-zh-cn.readthedocs.io/en_US/latest/release_note.html)
 
 ## DataCanvas
 TSBenchmark is an open source project created by [DataCanvas](https://www.datacanvas.com/).
