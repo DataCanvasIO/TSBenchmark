@@ -59,7 +59,7 @@ env:
       py_executable: /usr/anaconda3/envs/tsb-hyperts/bin/python
 ```
 
-For more usage examples, please refer to [Quick Start](https://tsbenchmark.readthedocs.io/zh_CN/latest/quickstart.html) and [Examples](https://tsbenchmark.readthedocs.io/zh_CN/latest/examples.html).
+For more usage examples, please refer to [Quick Start](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/quickstart.html) and [Examples](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/examples.html).
 
 ### Use TSBenchmark with Command line tools
 ```bash
@@ -105,12 +105,12 @@ Console outputs:
 
 ## Documents
 
-* [Overview](https://tsbenchmark.readthedocs.io/zh_CN/latest/index.html)
-* [Concepts](https://tsbenchmark.readthedocs.io/zh_CN/latest/concepts.html)
-* [Quick Start](https://tsbenchmark.readthedocs.io/zh_CN/latest/quickstart.html)
-* [Examples](https://tsbenchmark.readthedocs.io/zh_CN/latest/examples.html)
-* [API Reference](https://tsbenchmark.readthedocs.io/zh_CN/latest/api_docs/modules.html)
-* [Release Notes](https://tsbenchmark.readthedocs.io/zh_CN/latest/release_note.html)
+* [Overview](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/index.html)
+* [Concepts](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/concepts.html)
+* [Quick Start](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/quickstart.html)
+* [Examples](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/examples.html)
+* [API Reference](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/api_docs/modules.html)
+* [Release Notes](https://tsbenchmark-zh-cn.readthedocs.io/zh_CN/latest/release_note.html)
 
 ## DataCanvas
 TSBenchmark is an open source project created by [DataCanvas](https://www.datacanvas.com/).
