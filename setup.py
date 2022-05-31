@@ -77,9 +77,9 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    packages=find_packages(include="tsbenchmark"),
+    packages=find_packages(include=["tsbenchmark", "tsbenchmark.*"]),
     package_data={
-        'tsbenchmark': ['*.sh', 'datas/*', 'datas/multivariate-forecast/medium/nn5_weekly/*', 'datas/univariate-forecast/small/Air_Passengers/*', 'datas/univariate-forecast/small/US_Births/*'],
+        'tsbenchmark': ['*.sh',],
     },
     entry_points={
         'console_scripts': [

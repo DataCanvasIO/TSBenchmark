@@ -5,7 +5,7 @@
 pip install tsbenchmark
 ```
 
-以使用[prophet]()训练为例子定一个player，创建目录`prophet_player`，并在该目录创建`player.yaml`文件:
+以使用[prophet](https://github.com/facebook/prophet)训练为例子定一个player，创建目录`prophet_player`，并在该目录创建`player.yaml`文件:
 ```yaml
 env:
   venv:
