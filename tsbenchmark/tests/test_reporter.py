@@ -184,7 +184,7 @@ class TestRemoteCustomPythonBenchmark:
     def teardown_class(self):
         self.lb.stop()
 
-def test_paint():
+def atest_paint():
     benchmark_config = create_paint_cfg()
     rc = ReporterCallback(benchmark_config=benchmark_config)
     rc.reporter.generate_report()
