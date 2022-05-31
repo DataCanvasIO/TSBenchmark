@@ -59,23 +59,14 @@ class PathMaintainer:
     def data_file_tmp(self, bmtask):
         return os.path.join(self.datas_dir(bmtask.ts_task.task), bmtask.player.name + '_tmp.csv')
 
-    # def compare_reports_dirs(self, task): todo
-    #     return [os.path.join(self.report_path, report_name, task, 'report') for report_name in self.reports]
-    #
-    # def compare_framework_dir(self, task, framework):
-    #     return file_util.get_dir_path(os.path.join(self.task_dir(task), framework))
-    #
-    # def compare_imgs_dir(self, task, framework):
-    #     return file_util.get_dir_path(os.path.join(self.compare_framework_dir(task, framework), 'imgs'))
-
 
 class Painter:
     def get_steps_colors(self, values):
+
+        adjust = 1 - np.min(values)
+        values = values + adjust
+        values = 1 / values
         _range = np.max(values) - np.min(values)
-        if _range == 0:
-            _range = 1
-        else:
-            values = 1 / values
         _values = (values - np.min(values)) / _range
         colors_data = plt.cm.Wistia(_values)
         return colors_data
@@ -83,11 +74,12 @@ class Painter:
     def paint_table(self, df, title_cols, title_text, result_path, fontsize=-1, fig_background_color='white',
                     fig_border='white'):
         df = df.copy()
-        df = df.applymap(lambda x: x[:15] + '...' if isinstance(x, str) and len(x) > 15 else x)
+        df = df.applymap(lambda x: x[:7] + '...' if isinstance(x, str) and len(x) > 15 else x)
 
         # Get headers
         footer_text = ''
         cols_header = df.columns
+        cols_header = cols_header.map(lambda x: x.replace('_player', ''))
         cols_header_data = df.columns[1:]
         if title_cols != None:
             cols_header_data = df.columns[len(title_cols):]
@@ -97,7 +89,7 @@ class Painter:
         # Get data
         cell_text = []
         for i, row in df.iterrows():
-            data_row = list(row.values[0:len(title_cols)]) + [f'{x:1.3f}' for x in row.values[len(title_cols):]]
+            data_row = list(row.values[0:len(title_cols)]) + [f'{x:1.6f}' for x in row.values[len(title_cols):]]
             cell_text.append(data_row)
 
         # Get colors
@@ -431,7 +423,7 @@ class CompareReporter():
                         traceback.print_exc()
                         logger.error('{png_path} generate error')
         logger.info(f'Finish generate compare report in {self.config_dict["report"]["path"]}')
-        
+
     def compare_reports_dirs(self, task):
         return [os.path.join(report_path, task, 'report') for report_path in self.config_dict['report_paths']]
 

@@ -51,6 +51,15 @@ def create_benchmark_remote_cfg():
                         }
     return benchmark_config
 
+def create_paint_cfg():
+    benchmark_config = {'report.path': r'D:\文档\0 DAT\3 Benchmark\benchmark-output',
+                        'name': 'benchmark_0531_small_03',
+                        'desc': 'report_remote',
+                        'random_states': [8086],
+                        'task_filter.tasks': ['univariate-forecast']
+                        }
+    return benchmark_config
+
 
 def atest_benchmark_reporter():
     # define players
@@ -174,3 +183,8 @@ class TestRemoteCustomPythonBenchmark:
 
     def teardown_class(self):
         self.lb.stop()
+
+def test_paint():
+    benchmark_config = create_paint_cfg()
+    rc = ReporterCallback(benchmark_config=benchmark_config)
+    rc.reporter.generate_report()
