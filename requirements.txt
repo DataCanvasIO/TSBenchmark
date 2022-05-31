@@ -1,4 +1,4 @@
-hypernets
+hypernets>=0.2.5.4
 pandas
 scikit-learn
 pyyaml
