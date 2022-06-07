@@ -21,10 +21,6 @@ constraints:
     max_trials: 10
     reward_metric: rmse
 
-report:
-  path: /tmp/benchmark-output/hyperts
-
-
 batch_application_config:
   server_port: 8060
   server_host: localhost

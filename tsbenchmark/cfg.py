@@ -128,11 +128,15 @@ def load_benchmark(config_file: str, working_dir=None):
     report = config_dict.get('report', {})
     report_enable = report.get('enable', True)
     if report_enable is True:
-        report_path = Path(report.get('path', '~/benchmark-output/hyperts')).expanduser().as_posix()
+        default_report_dir = (Path(working_dir) / "report").as_posix()
+        report_dir = Path(report.get('path', default_report_dir)).expanduser().as_posix()
+        if not os.path.exists(report_dir):
+            os.makedirs(report_dir, exist_ok=True)
+
         # task_types = list(set(tsbenchmark.tasks.get_task_config(t).task for t in selected_task_ids))
-        from tsbenchmark.callbacks import ReporterCallback  # TODO remove from tests
+        from tsbenchmark.callbacks import ReporterCallback
         benchmark_config = {
-            'report.path': report_path,
+            'report.path': report_dir,
             'name': name,
             'desc': desc,
             'random_states': random_states,

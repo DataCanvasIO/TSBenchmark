@@ -2,6 +2,7 @@
 
 tsbenchmark 提供了命令行工具`tsb`命令管理Benchmark。
 可以使用yaml格式的配置文件定义benchmark。使用tsb命令运行benchmark：
+
 ```shell
 $ tsb run --config <benchmark_config_file>
 ```
