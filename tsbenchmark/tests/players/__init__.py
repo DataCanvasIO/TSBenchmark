@@ -2,7 +2,6 @@ from pathlib import Path
 
 from tsbenchmark.players import load_player
 
-
 PWD = Path(__file__).parent
 
 
