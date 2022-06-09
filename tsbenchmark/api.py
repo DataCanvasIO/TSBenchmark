@@ -6,7 +6,7 @@ import pandas as pd
 from typing import Dict
 
 from tsbenchmark.tasks import TSTask
-from tsbenchmark.consts import DEFAULT_REPORT_METRICS, DEFAULT_GLOBAL_RANDOM_STATE
+from tsbenchmark.consts import DEFAULT_REPORT_METRICS, DEFAULT_GLOBAL_RANDOM_STATE, TASK_MODE_LOCAL
 from tsbenchmark import tasks
 
 
@@ -89,7 +89,7 @@ def get_local_task(data_path, dataset_id='512754',
     task_config = task_loader.load(dataset_id)
     task = TSTask(task_config, random_state=random_state, max_trials=max_trials, reward_metric=reward_metric)
     task.ready()
-    setattr(task, "_local_model", True)
+    setattr(task, TASK_MODE_LOCAL, True)
     return task
 
 
@@ -129,7 +129,8 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
 
     Args:
         y_pred: pandas.DataFrame,
-            The predicted values by the players.
+            The predicted values by the players. It should be a pandas.DataFrame, and it must have the headers name,
+            which you can get from task.series_name.
         key_params: str, default=''
             The params which user want to save to the report datas.
         best_params: str, default=''
@@ -162,7 +163,7 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
         'best_params': best_params
     }
 
-    if not hasattr(task, "_local_model"):
+    if not hasattr(task, TASK_MODE_LOCAL):
         report_task(report_data)
     else:
         from hypernets.utils import logging as hyn_logging

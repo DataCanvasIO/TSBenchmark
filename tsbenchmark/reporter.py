@@ -7,6 +7,7 @@ import traceback
 import numpy as np
 import json
 import matplotlib.pyplot as plt
+import tsbenchmark.consts as consts
 
 logging.set_level('DEBUG')  # TODO
 logger = logging.getLogger(__name__)
@@ -310,7 +311,7 @@ class Reporter():
         self.painter = Painter()
 
     def save_results(self, message, bm_task):
-        # todo missing_rate periods cv cv_folds run_times init_params ensemble best_model_params run_kwargs industry frequency
+        # todo missing_rate periods cv cv_folds run_times init_params ensemble run_kwargs industry frequency
         cols_data_tmp = ['task_id', 'round_no', 'player', 'dataset', 'shape', 'data_size', 'task', 'horizon',
                          'reward_metric', 'metrics', 'duration', 'random_state', 'y_predict', 'y_real', 'key_params',
                          'best_params']
@@ -354,8 +355,113 @@ class Reporter():
             report_dir = self.path_maintainer.report_dir(task_type)
             report_imgs_dir = self.path_maintainer.report_imgs_dir(task_type)
             data_results_file = file_util.get_filelist(task_dir, [])
-            results_datas, players = self.analysis.get_result_datas(data_results_file)
-            self.generate_type_reports(results_datas, players, report_dir, report_imgs_dir)
+            self.generate_table_reports(data_results_file, report_dir, report_imgs_dir)
+            self.generate_boxline_reports(data_results_file, report_imgs_dir)
+            if task_type == consts.TASK_TYPE_UNIVARIATE:
+                self.generate_line_reports(data_results_file, report_imgs_dir)
+
+    def generate_line_reports(self, result_file_list, report_imgs_dir):
+        line_dir = file_util.get_dir_path(os.path.join(report_imgs_dir, 'line'))
+        df_full = None
+        for result_file in result_file_list:
+            if 'report_' in os.path.basename(result_file) or '.csv' not in os.path.basename(result_file):
+                continue
+            if df_full is None:
+                df_full = pd.read_csv(result_file)
+            else:
+                df_full = pd.concat([df_full, pd.read_csv(result_file)], 0)
+
+        real_color = 'r'
+
+        import re
+        players = list(set(df_full['player'].values))
+        datasets = set(df_full['dataset'].values)
+
+        max_points = 25
+
+        for dataset in datasets:
+            df_data = df_full[df_full['dataset'] == dataset]
+            df_data = df_data.reset_index()
+            pattern = re.compile(r'\d+\.?\d*')
+            y_real = [float(r) for r in pattern.findall(df_data.iloc[0]['y_real'])]
+            legends = []
+            labels = []
+
+            plt.figure(figsize=(12, 5))
+            total_points = len(y_real)
+            if total_points > max_points:
+                y_real = y_real[::round(len(y_real) / max_points)]
+                plt.title(dataset + f'(only show {len(y_real)}/{total_points} points)')
+            l, = plt.plot(y_real, color=real_color, marker='o')
+            legends.append(l)
+            labels.append('y_real')
+
+            for player in players:
+                row = self.get_best_row(df_data, player)
+                if row is not None:
+                    y_pred = [float(r) for r in pattern.findall(row['y_predict'])]
+                    if len(y_pred) > max_points:
+                        y_pred = y_pred[::round(len(y_pred) / max_points)]
+                    l, = plt.plot(y_pred)
+                    legends.append(l)
+                    labels.append(row['player'].replace('_player', ''))
+
+            plt.legend(legends, labels)
+            plt.savefig(os.path.join(line_dir, dataset + '.png'))
+
+        return None
+
+    def get_best_row(self, df_data, player):
+        df = df_data[df_data['player'] == player]
+        best_row = None
+        best_metric = None
+        for i, row in df.iterrows():
+            metric = json.loads(row['metrics'].replace('\'', '\"').replace('nan', 'NaN'))[row['reward_metric']]
+            if best_metric is None:
+                best_row = row
+                best_metric = metric
+            else:
+                if metric is not None and best_metric > metric:
+                    best_row = row
+                    best_metric = metric
+        return best_row
+
+    def generate_table_reports(self, data_results_file, report_dir, report_imgs_dir):
+        table_dir = file_util.get_dir_path(os.path.join(report_imgs_dir, 'table'))
+        results_datas, players = self.analysis.get_result_datas(data_results_file)
+        self.generate_type_reports(results_datas, players, report_dir, table_dir)
+
+    def generate_boxline_reports(self, result_file_list, report_imgs_dir):
+        boxline_dir = file_util.get_dir_path(os.path.join(report_imgs_dir, 'boxline'))
+        df_full = None
+        for result_file in result_file_list:
+            if 'report_' in os.path.basename(result_file) or '.csv' not in os.path.basename(result_file):
+                continue
+            if df_full is None:
+                df_full = pd.read_csv(result_file)
+            else:
+                df_full = pd.concat([df_full, pd.read_csv(result_file)], 0)
+
+        players = set(df_full['player'].values)
+        datasets = set(df_full['dataset'].values)
+
+        for metric in ['smape', 'mape', 'rmse', 'mae']:
+            for dataset in datasets:
+                df_data = df_full[df_full['dataset'] == dataset][['player', 'metrics']]
+                df_result = None
+                for player in players:
+                    series_player = df_data[df_data['player'] == player].reset_index()['metrics']
+                    series_player = series_player.apply(
+                        lambda x: json.loads(x.replace('\'', '\"').replace('nan', 'NaN'))[metric])
+                    df_result = pd.concat([df_result, series_player], 1)
+                df_result.columns = [x.replace('_player', '') for x in list(players)]
+                df_result = df_result.fillna(df_result.mean())
+                plt.figure(figsize=(20, 10))
+                plt.title(dataset + ' ' + metric)
+                plt.boxplot(df_result.values, labels=[x.replace('_player', '') for x in list(players)])
+                plt.savefig(os.path.join(boxline_dir, dataset + '_' + metric + '.png'))
+
+        return None
 
     def generate_type_reports(self, results_datas, players, report_dir, report_imgs_dir):
         columns = ['dataset', 'shape', 'horizon']
