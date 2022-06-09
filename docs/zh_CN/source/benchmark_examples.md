@@ -8,8 +8,7 @@ $ tsb run --config <benchmark_config_file>
 ```
 
 ### 单机模式运行的Benchmark
-
-Benchmark可以在单机模式下运行。这种模式下训练任务都将在当前机器上进行。
+在单机模式下运行Benchmark，这种模式下训练任务都将在当前机器上进行。
 将benchmark配置文件中的配置项`kind`设置为 `local` 使用单机模式：
 
 ```yaml
@@ -21,7 +20,7 @@ kind: local  # 设定为单机模式
 players:  # 指定运行benchmark的player目录
   - players/hyperts_dl_player
 
-random_states: [ 23163, 5318,9527,33179 ] # 使用随机数跑多轮
+random_states: [23163, 5318, 9527] # 使用随机数跑多轮
 
 ```
 

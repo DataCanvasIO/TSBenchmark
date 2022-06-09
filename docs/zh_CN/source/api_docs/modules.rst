@@ -1,5 +1,5 @@
-tsbenchmark
-===========
+TSBenchmark API References
+==========================
 
 .. toctree::
    :maxdepth: 4
