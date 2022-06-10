@@ -10,11 +10,6 @@ from tsbenchmark.consts import DEFAULT_REPORT_METRICS, DEFAULT_GLOBAL_RANDOM_STA
 from tsbenchmark import tasks
 
 
-
-
-
-
-
 # __all__ = ['get_task', 'get_local_task', 'send_report_data']
 
 
@@ -146,8 +141,13 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
     target_metrics = default_metrics
 
     assert y_pred is not None
+    assert isinstance(y_pred, pd.DataFrame)
     if y_pred.shape[0] != task.get_test().shape[0]:
-        raise Exception(f"The result should have {task.get_test().shape[0]} rows but got {y_pred.shape[0]}. ")
+        raise Exception(
+            "The result should have {} rows but got {}. ".format(task.get_test().shape[0], y_pred.shape[0]))
+    if not all([key in y_pred.columns for key in task.series_name]):
+        raise Exception(f"Series names does not exists in the columns of predict result."
+                        f" You can get it from task.series_name.\n The Series names are {task.series_name} ")
 
     from tsbenchmark.util import cal_task_metrics
     task_metrics = cal_task_metrics(y_pred, task.get_test()[task.series_name], task.date_name,
@@ -173,7 +173,6 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
 
 
 def _get_api_server_api(api_server_uri=None):
-
     if api_server_uri is None:
         from hypernets.hyperctl import consts
         api_server_portal = os.getenv(consts.KEY_ENV_SERVER_PORTAL)
@@ -192,4 +191,3 @@ def _get_bm_task_id(bm_task_id):
         return job_params.bm_task_id
     else:
         return bm_task_id
-

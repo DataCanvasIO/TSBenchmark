@@ -3,15 +3,15 @@ import tsbenchmark
 from tsbenchmark.tsloader import TSDataSetLoader, TSTaskLoader
 from tsbenchmark.tasks import TSTask
 
-data_path = os.path.join(os.path.dirname(tsbenchmark.__file__),'tests','datas')
+data_path = os.path.join(os.path.dirname(tsbenchmark.__file__), 'tests', 'datas')
 dataloader = tsbenchmark.tsloader.TSDataSetLoader(data_path)
 
 
 class Test_TSDataSetLoader():
     def test_list(self):
-        assert len(dataloader.list()) == 14
+        assert len(dataloader.list()) == 19
 
-        assert len(dataloader.list(type='univariate-forecast')) == 7
+        assert len(dataloader.list(type='univariate-forecast')) == 12
 
         assert len(dataloader.list(data_size='medium')) == 2
 
@@ -27,7 +27,7 @@ class Test_TSDataSetLoader():
         assert df_test.shape[0] == 6
 
         metadata = dataloader.load_meta(512754)
-        assert len(metadata) == 14
+        assert len(metadata) == 15
 
         dataloader.load_train(512754)
         dataloader.load_train(61807)
@@ -38,23 +38,22 @@ taskdataloader = tsbenchmark.tsloader.TSTaskDataLoader(data_path)
 
 class Test_TSTaskDataLoader():
     def test_list(self):
-        assert len(taskdataloader.list()) == 14
+        assert len(taskdataloader.list()) == 19
 
-        assert len(taskdataloader.list(type='univariate-forecast')) == 7
+        assert len(taskdataloader.list(type='univariate-forecast')) == 12
 
-        assert len(taskdataloader.list(type=['univariate-forecast', 'multivariate-forecast'])) == 14
+        assert len(taskdataloader.list(type=['univariate-forecast', 'multivariate-forecast'])) == 19
 
-        assert len(taskdataloader.list(data_size=['medium', 'small'])) == 11
+        assert len(taskdataloader.list(data_size=['medium', 'small'])) == 16
 
         assert len(taskdataloader.list(type=['univariate-forecast', 'multivariate-forecast'],
-                                       data_size=['small'])) == 9
+                                       data_size=['small'])) == 14
 
         assert len(taskdataloader.list(data_size='medium')) == 2
 
     def test_exists(self):
         assert taskdataloader.exists(512754) == True
         assert taskdataloader.exists(9527) == False
-
 
     def test_load(self):
         df_train, df_test = taskdataloader.load(512754)
@@ -66,8 +65,8 @@ taskloader = TSTaskLoader(data_path)
 
 class Test_TSTaskLoader():
     def test_config_list(self):
-        assert len(taskloader.list()) == 14
-        assert len(taskloader.list(type='univariate-forecast')) == 7
+        assert len(taskloader.list()) == 19
+        assert len(taskloader.list(type='univariate-forecast')) == 12
         assert len(taskloader.list(data_size='medium')) == 2
 
     def test_config_exists(self):

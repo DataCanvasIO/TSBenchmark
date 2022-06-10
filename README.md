@@ -117,4 +117,4 @@ Console outputs:
 * [Release Notes](https://tsbenchmark.readthedocs.io/en/latest/release_note.html)
 
 ## DataCanvas
-TSBenchmark is an open source project created by [DataCanvas](https://www.datacanvas.com/).
+TSBenchmark is an open source project created by [DataCanvas](https://www.datacanvas.com/). 

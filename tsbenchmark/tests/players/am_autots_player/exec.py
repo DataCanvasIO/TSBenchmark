@@ -16,6 +16,7 @@ default_metric_weighting = {
     'runtime_weighting': 0.05,
 }
 
+
 def main():
     task = tsb.api.get_task()
     # task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/tsbenchmark/datas2',
