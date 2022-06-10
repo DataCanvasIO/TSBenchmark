@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 import zipfile
 
@@ -471,3 +472,21 @@ class cut_point_util:
             return results[results['metric'] == results['metric'].min()]['point'].values[0]
         else:
             return None
+
+
+def is_safe_dir_name(dir_name):
+    def _legal(c):
+        pattern = re.compile('[a-z]|[A-Z]|[0-9]')
+        if re.match(pattern, c):
+            return True
+        if c == "_":
+            return True
+        if c == "-":
+            return True
+        return False
+
+    for c in dir_name:
+        if not _legal(c):
+            return False
+
+    return True
