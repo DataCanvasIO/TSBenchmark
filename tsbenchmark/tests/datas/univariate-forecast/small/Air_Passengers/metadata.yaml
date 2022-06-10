@@ -3,6 +3,7 @@ metric: rmse
 date_name: month
 series_name: value
 horizon: 6
+freq: 1m
 dtformat: '%Y-%m'
 task: univariate-forecast
 shape:  (124, 2)

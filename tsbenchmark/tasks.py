@@ -6,9 +6,11 @@ from tsbenchmark.consts import DEFAULT_CACHE_PATH, ENV_DATASETS_CACHE_PATH
 
 __all__ = ['TSTask']
 
+
 class TSTaskConfig(object):
 
-    def __init__(self, taskconfig_id, dataset_id, taskdata, date_name, task, horizon, data_size, shape, series_name,
+    def __init__(self, taskconfig_id, dataset_id, taskdata, date_name, task, horizon, freq, data_size, shape,
+                 series_name,
                  covariables_name,
                  dtformat):
         self.id = taskconfig_id
@@ -17,6 +19,7 @@ class TSTaskConfig(object):
         self.date_name = date_name
         self.task = task
         self.horizon = horizon
+        self.freq = freq
         self.data_size = data_size
         self.shape = shape
         self.series_name = series_name

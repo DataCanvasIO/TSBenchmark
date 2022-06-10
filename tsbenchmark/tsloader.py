@@ -273,6 +273,7 @@ class TSTaskLoader(TaskLoader):
                                    date_name=metadata['date_name'],
                                    task=metadata['task'],
                                    horizon=metadata['horizon'],
+                                   freq=metadata['freq'],
                                    data_size=metadata['data_size'],
                                    shape=metadata['shape'],
                                    series_name=None,

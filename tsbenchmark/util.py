@@ -4,6 +4,11 @@ import zipfile
 
 import tsbenchmark.consts as consts
 from hypernets.utils import logging
+import pandas as pd
+import numpy as np
+import numpy as np
+import statsmodels.api as sm
+
 logging.set_level('DEBUG')
 logger = logging.getLogger(__name__)
 
@@ -203,7 +208,7 @@ class download_util:
                     if chunk:
                         f.write(chunk)
             logger.info(f"Finish download {file_path} from {url}")
-        else :
+        else:
             raise FileNotFoundError(f"Download error with status_code {response.status_code} for "
                                     f"{file_path} from {url}")
 
@@ -315,7 +320,7 @@ def cal_task_metrics(y_pred, y_true, date_col_name, series_col_name, covariables
     if date_col_name in y_true.columns:
         y_true = y_true.drop(columns=[date_col_name], axis=1)
     if covariables != None:
-        cols_del_y_true = [col for col in covariables if col not in y_true.columns.values]
+        cols_del_y_true = [col for col in covariables if col in y_true.columns.values]
         if cols_del_y_true is not None and len(cols_del_y_true) > 1:
             y_true = y_true.drop(columns=cols_del_y_true)
 
@@ -378,7 +383,7 @@ class data_package_util:
         data_sizes = ['large', 'small', 'medium']
         df = pd.DataFrame(
             columns=['id', 'task', 'data_size', 'shape', 'name', 'label', 'frequency', 'industry',
-                     'source_type','date_name','horizon', 'dtformat', 'format', 'task_count'])
+                     'source_type', 'date_name', 'horizon', 'freq', 'dtformat', 'format', 'task_count'])
 
         for task in types:
             for data_size in data_sizes:
@@ -401,6 +406,8 @@ class data_package_util:
                                 {'source_type': meta_config['source_type'] if 'source_type' in meta_config else None})
                             record.update({'date_name': meta_config['date_name']})
                             record.update({'horizon': meta_config['horizon']})
+                            record.update(
+                                {'freq': meta_config['freq'] if 'freq' in meta_config else None})
                             record.update({'dtformat': meta_config['dtformat']})
                             record.update({'label': meta_config['label'] if 'label' in meta_config else None})
                             record.update(
@@ -414,3 +421,53 @@ class data_package_util:
         file_util.get_or_create_file(os.path.join(target_path, 'dataset_desc_local.csv'))
         df.to_csv(os.path.join(target_path, 'dataset_desc.csv'), index=False)
         df.to_csv(os.path.join(target_path, 'dataset_desc_local.csv'), index=False)
+
+
+class cut_point_util:
+
+    def fft_infer_period(self, data: pd.DataFrame):
+        data = data.values.reshape(-1, )
+        try:
+            ft = np.fft.rfft(data)
+            freqs = np.fft.rfftfreq(len(data), 1)
+            mags = abs(ft)
+            inflection = np.diff(np.sign(np.diff(mags)))
+            peaks = (inflection < 0).nonzero()[0] + 1
+            peak = peaks[mags[peaks].argmax()]
+            signal_freq = freqs[peak]
+            period = int(1 / signal_freq)
+        except:
+            period = -1
+        return period
+
+    def train_with_armima(self, train_data, test_data):
+        mod = sm.tsa.statespace.SARIMAX(train_data,
+                                        enforce_stationarity=False,
+                                        enforce_invertibility=False)
+
+        results = mod.fit()
+
+        pred = results.get_forecast(test_data.shape[0])
+        prediction = pred.predicted_mean.values
+        truth = list(test_data.values)
+        MAPE = np.mean(np.abs((truth - prediction) / truth)) * 100
+
+        return train_data.shape, MAPE
+
+    def get_best_data_point(self, train_data, horizon):
+        test_data = train_data[-horizon:]
+        train_data = train_data[:-horizon]
+        period = self.fft_infer_period(train_data)
+        if period != -1:
+            val_points = [i for i in range(train_data.shape[0])[period::period]]
+            if train_data.shape[0] not in val_points:
+                val_points.append(train_data.shape[0])
+            results = pd.DataFrame(columns=['shape', 'point', 'metric'])
+            for i in val_points:
+                shape, mape = self.train_with_armima(train_data[-i:], test_data)
+                results = results.append({'shape': shape, 'point': -i, 'metric': mape},
+                                         ignore_index=True)
+            results.to_csv("results.csv", index=False)
+            return results[results['metric'] == results['metric'].min()]['point'].values[0]
+        else:
+            return None

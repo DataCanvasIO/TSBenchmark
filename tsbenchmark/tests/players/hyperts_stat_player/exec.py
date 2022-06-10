@@ -3,8 +3,8 @@ import tsbenchmark.api
 
 def main():
     # task = tsb.api.get_task()
-    task = tsb.api.get_local_task(data_path='/home/newbei/code/DAT/TSBenchmark/datas',
-                                  dataset_id=512754, random_state=9527, max_trials=1, reward_metric='smape')
+    task = tsb.api.get_local_task(data_path=r'D:\workspace\DAT\benchmark\hyperts\data\tsbenchmark-dev',
+                                  dataset_id=515962, random_state=9527, max_trials=1, reward_metric='smape')
 
     from hyperts.experiment import make_experiment
     train_df = task.get_train().copy(deep=True)

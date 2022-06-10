@@ -2,6 +2,7 @@ name: nn5_weekly
 metric: rmse
 date_name: datetime
 horizon: 8
+freq: W
 dtformat: '%Y-%m-%d'
 task: multivariate-forecast
 shape:  (105, 112)
