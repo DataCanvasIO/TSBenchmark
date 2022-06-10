@@ -5,4 +5,4 @@
    :maxdepth: 2
 
    Player配置文件参考<player_config.rst>
-   Benchmark配置文件参考<benchmark_examples.md>
+   Benchmark配置文件参考<benchmark_config.rst>

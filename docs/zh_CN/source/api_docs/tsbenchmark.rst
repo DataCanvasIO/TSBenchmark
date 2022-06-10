@@ -2,7 +2,7 @@ tsbenchmark package
 ===================
 
 tsbenchmark.api module
-----------------------
+-----------------------
 
 .. automodule:: tsbenchmark.api
    :members:
@@ -10,7 +10,7 @@ tsbenchmark.api module
    :show-inheritance:
 
 tsbenchmark.tasks module
----------------
+-------------------------
 
 .. automodule:: tsbenchmark.tasks
    :members:

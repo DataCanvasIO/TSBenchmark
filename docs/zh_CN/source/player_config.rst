@@ -15,8 +15,38 @@ Player通常会包含一个yaml格式的描述文件 ``player.yaml`` 和一个py
 - ``player.yaml`` 用来描述player的配置信息。
 
 
+定义player例子请参考 :doc:`/quickstart`，在TSBenchmark中也已经将一些算法封装成Player，参考 `Player列表 <https://github.com/DataCanvasIO/TSBenchmark/tree/main/players>`_ 。
 
-定义player例子请参考 :doc:`/quickstart`，在TSBenchmark中也已经将一些算法封装成Player，参考 `Player列表 <https://github.com/DataCanvasIO/TSBenchmark/tree/main/players>`_ ，一个player.yaml例子：
+
+配置样例
+=========
+
+自定义python环境
+-------------------
+
+.. code-block:: yaml
+
+    name: hyperts_player
+    env:
+      kind: custom_python  # 使用自定义python环境
+      py_executable: /usr/bin/python
+
+
+conda管理conda格式依赖文件
+--------------------------
+
+.. code-block:: yaml
+
+    name: hyperts_player
+    env:
+      kind: conda  # 使用conda创建虚拟环境
+      requirements:
+        kind: conda_yaml # 使用conda 格式的依赖
+        file_name: env.yaml
+
+
+conda管理pip格式依赖文件
+--------------------------------
 
 .. code-block:: yaml
 
@@ -25,8 +55,8 @@ Player通常会包含一个yaml格式的描述文件 ``player.yaml`` 和一个py
       kind: conda  # 使用conda创建虚拟环境
       requirements:
         kind: requirements_txt # 使用pip格式的依赖定义文件
-        config:
-          file_name: requirements.txt
+        file_name: requirements.txt
+        py_version: 3.8
 
     tasks:  # 仅支持单变量预测的任务
       - univariate-forecast
@@ -38,7 +68,7 @@ Player通常会包含一个yaml格式的描述文件 ``player.yaml`` 和一个py
 ==========
 
 PlayerConfig
-^^^^^^^^^^^^
+------------
 
 .. list-table::
     :widths: 10 10 80
@@ -57,7 +87,7 @@ PlayerConfig
       - 运行环境配置。
 
     * - tasks
-      - ``list[string]``, optional
+      - ``list[str]``, optional
       - player支持的任务类型，默认为空，如果为空表示支持所有任务类型。
 
         Benchmark运行时只会给Player分配它能支持的类型的任务;
