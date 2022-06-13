@@ -9,7 +9,7 @@ players:
 
 datasets:
   filter:
-    tasks:
+    task_types:
       - univariate-forecast
       - multivariate-forecast
     data_sizes:
@@ -33,7 +33,7 @@ batch_application_config:
   scheduler_interval: 1
   scheduler_exit_on_finish: True
 
-working_dir: /tmp/tsbenchmark-hyperctl
+benchmarks_working_dir: /tmp/tsbenchmark-hyperctl
 
 machines:
   - connection:

@@ -9,7 +9,7 @@ players:
 datasets:
   cache_path: /tmp/datasets-cache
   filter:
-    ids:
+    task_ids:
       - 512754
 
 random_states: [23163]
