@@ -112,6 +112,10 @@ Benchmark有两个实现：
       - `ConstraintsConfig`_,  required
       - 运行Benchmark的约束条件。
 
+    * - batch_application_config
+      - `BatchApplicationConfig`_,  required
+      - 配置Hyperctl。
+
     * - tasks
       - `TaskFilterConfig`_,  optional
       - 设置参与Benchmark的任务。
@@ -132,6 +136,7 @@ Benchmark有两个实现：
     - 任务失败的状态文件：``{benchmarks_working_dir}/{benchmark_name}/batch/{job_name}.failed``
 
     若要实现一次Benchmark基于上一次Benchmark运行时跳过已经结束的任务， 需要确保这两次运行的Benchmark的 ``benchmarks_working_dir`` 和 ``name`` 属性一致。
+
 
 
 TaskFilterConfig
@@ -206,6 +211,36 @@ TaskConstraintsConfig
     * - reward_metric
       - ``str``, optional
       - 设置调参的评价指标，默认是 ``rmse``。
+
+
+BatchApplicationConfig
+------------------------
+
+TSBenchmark 使用 `Hyperctl <https://hypernets.readthedocs.io/en/latest/hyperctl.html>`_ 管理任务。
+
+.. list-table::
+    :widths: 10 10 80
+    :header-rows: 1
+
+    * - Field Name
+      - Type
+      - Description
+
+    * - server_port
+      - ``int``, optional
+      - 服务端口，默认为 ``8086`` 。
+
+    * - server_host
+      - ``str``, optional
+      - Hyperctl服务地址，默认为 ``localhost`` , 如果是并行运行模式请将该地址配置为远程节点可以访问的ip。
+
+    * - scheduler_interval
+      - ``int``, optional
+      - 调度周期，默认为 ``5000``, 单位毫秒。
+
+    * - scheduler_exit_on_finish
+      - ``boolean``, optional
+      - 所有任务结束后是否退出进程，默认为 ``true`` 。
 
 
 LocalBenchmarkConfig
