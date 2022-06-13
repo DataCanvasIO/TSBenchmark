@@ -107,7 +107,7 @@ class Painter:
                    edgecolor=fig_border,
                    facecolor=fig_background_color,
                    tight_layout={'pad': 1},
-                   # figsize=(5,3)
+                   figsize=(16, 10)
                    )
 
         # plt.rcParams.update({"font.size": 20})
