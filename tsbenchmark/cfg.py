@@ -10,6 +10,7 @@ from tsbenchmark import consts
 from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark, Benchmark
 import tsbenchmark.tasks
 from tsbenchmark.callbacks import BenchmarkCallback
+from tsbenchmark.consts import DEFAULT_WORKING_DIR
 from tsbenchmark.players import Player, load_player
 from hypernets.utils import logging
 
@@ -74,7 +75,7 @@ class CopyCfgCallback(BenchmarkCallback):
             json.dump(bm.random_states, f)
 
 
-def load_benchmark(config_file: str, working_dir=None):
+def load_benchmark(config_file: str, benchmarks_working_dir=None):
     config_dict = load_yaml(config_file)
     name = config_dict['name']
     desc = config_dict.get('desc', '')
@@ -82,8 +83,10 @@ def load_benchmark(config_file: str, working_dir=None):
     assert kind in ['local', 'remote']
 
     # working_dir
-    if working_dir is None:
-        working_dir = Path(config_dict.get('working_dir', (Path(consts.DEFAULT_WORKING_DIR) / name).as_posix())).expanduser().as_posix()
+    if benchmarks_working_dir is None:
+        benchmarks_working_dir = config_dict.get('benchmarks_working_dir', DEFAULT_WORKING_DIR)
+
+    working_dir = (Path(benchmarks_working_dir).expanduser() / name).as_posix()
 
     # select datasets and tasks
     datasets_config = config_dict.get('datasets', {})

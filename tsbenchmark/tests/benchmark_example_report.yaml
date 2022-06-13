@@ -9,7 +9,7 @@ players:
 
 datasets:
   filter:
-    tasks:
+    task_types:
       - univariate-forecast
     data_sizes:
       - small
