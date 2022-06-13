@@ -28,7 +28,7 @@ LocalBenchmark
 
     datasets:
       task_ids:
-        - 512754
+        - '512754'
 
     random_states: [ 23163, 5318, 9527 ]
 
@@ -52,7 +52,7 @@ RemoteSSHBenchmark
 
     datasets:
       task_ids:
-        - 512754
+        - '512754'
 
     random_states: [ 23163, 5318, 9527 ]
 
@@ -161,11 +161,11 @@ TaskFilterConfig
       - 按数据集的大小筛选, 默认选择所有大小类型的数据集文件; 可选 ``small``, ``large``。
 
     * - task_ids
-      - ``list[int]``, optional
+      - ``list[str]``, optional
       - 指定任务的id。
 
     * - dataset_ids
-      - ``list[int]``, optional
+      - ``list[str]``, optional
       - 指定数据集的id。
 
 .. Note::

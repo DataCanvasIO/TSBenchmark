@@ -186,8 +186,8 @@ def list_task_configs(cache_path=None, dataset_ids=None, task_ids=None, dataset_
 
     # filter by task_ids
     if task_ids is not None and len(task_ids) > 0:
-        task_ids = map(str, task_ids)
-        filter_task_ids = filter(lambda _: _ in task_ids,  queried_task_ids)
+        task_ids = list(map(str, task_ids))
+        filter_task_ids = list(filter(lambda _: _ in task_ids,  queried_task_ids))
     else:
         filter_task_ids = queried_task_ids
 

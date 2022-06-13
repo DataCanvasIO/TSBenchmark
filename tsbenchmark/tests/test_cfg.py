@@ -26,7 +26,7 @@ class TestLoadBenchmark:
         assert batch_app_init_kwargs['server_host'] == "localhost"
         assert benchmark.task_constraints == {"max_trials": 10, "reward_metric": "rmse"}
 
-        assert Path(benchmark.working_dir).name.startswith("benchmark-working-dir")
+        assert Path(benchmark.working_dir).name == benchmark.name
 
         assert set([p.name for p in benchmark.players]) == {'hyperts_dl_player', 'plain_player_requirements_txt'}
         assert len(benchmark.ts_tasks_config) > 0
@@ -60,7 +60,7 @@ class TestLoadBenchmark:
         # assert report.enable is True
         report_callback: ReporterCallback = benchmark.callbacks[1]
         assert isinstance(report_callback, ReporterCallback)
-        assert report_callback.reporter.benchmark_config['report.path'] == os.path.join(batches_data_dir, "report")
+        assert report_callback.reporter.benchmark_config['report.path'] == os.path.join(batches_data_dir, benchmark.name, "report")
 
     def test_load_remote(self):
         local_benchmark_example = PWD / "benchmark_example_remote.yaml"
