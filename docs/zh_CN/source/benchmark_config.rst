@@ -151,7 +151,7 @@ TaskFilterConfig
       - ``list[str]``, optional
       - 按任务类型筛选，默认为使用所有类型的任务。可选的值有 ``univariate-forecast``, ``multivariate-forecast``。
 
-    * - data_sizes
+    * - datasets_sizes
       - ``list[str]``, optional
       - 按数据集的大小筛选, 默认选择所有大小类型的数据集文件; 可选 ``small``, ``large``。
 

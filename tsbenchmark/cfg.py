@@ -10,8 +10,11 @@ from tsbenchmark import consts
 from tsbenchmark.benchmark import LocalBenchmark, RemoteSSHBenchmark, Benchmark
 import tsbenchmark.tasks
 from tsbenchmark.callbacks import BenchmarkCallback
+from . import util
+
 from tsbenchmark.players import Player, load_player
 from hypernets.utils import logging
+
 
 SRC_DIR = os.path.dirname(__file__)
 
@@ -81,6 +84,9 @@ def load_benchmark(config_file: str, working_dir=None):
     kind = config_dict.get('kind', 'local')
     assert kind in ['local', 'remote']
 
+    # check name
+    assert util.is_safe_dir_name(name), "benchmark can only contains letters, numbers, '-' and '_' ."
+
     # working_dir
     if working_dir is None:
         working_dir = Path(config_dict.get('working_dir', (Path(consts.DEFAULT_WORKING_DIR) / name).as_posix())).expanduser().as_posix()
@@ -92,19 +98,23 @@ def load_benchmark(config_file: str, working_dir=None):
         os.environ[consts.ENV_DATASETS_CACHE_PATH] = datasets_config_cache_path
 
     datasets_filter_config = datasets_config.get('filter', {})
-    datasets_filter_tasks = datasets_filter_config.get('tasks')
+    datasets_filter_tasks = datasets_filter_config.get('task_types')
 
     datasets_filter_data_sizes = datasets_filter_config.get('data_sizes')
 
-    datasets_filter_data_ids = datasets_filter_config.get('ids')
+    datasets_filter_dataset_ids = datasets_filter_config.get('dataset_ids')
 
-    selected_task_ids = tsbenchmark.tasks.list_task_configs(type=datasets_filter_tasks,
-                                                            data_size=datasets_filter_data_sizes,
-                                                            ids=datasets_filter_data_ids)
-    assert selected_task_ids is not None and len(selected_task_ids) > 0, "no task selected"
+    datasets_filter_task_ids = datasets_filter_config.get('task_ids')
+
+    task_configs = tsbenchmark.tasks.list_task_configs(task_types=datasets_filter_tasks,
+                                                            dataset_sizes=datasets_filter_data_sizes,
+                                                            dataset_ids=datasets_filter_dataset_ids,
+                                                            task_ids=datasets_filter_task_ids)
+
+    assert task_configs is not None and len(task_configs) > 0, "no task selected"
 
     # load tasks
-    task_configs = [tsbenchmark.tasks.get_task_config(tid) for tid in selected_task_ids]
+    # task_configs = [tsbenchmark.tasks.get_task_config(tid) for tid in selected_task_ids]
 
     # load players
     players_name_or_path = config_dict.get('players')

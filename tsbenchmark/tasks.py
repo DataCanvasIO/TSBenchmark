@@ -154,23 +154,46 @@ def get_task_config(task_id, cache_path=None) -> TSTaskConfig:
     return task_config
 
 
-def list_task_configs(*args, **kwargs):
-    if 'cache_path' in kwargs:
-        cache_path = kwargs.pop("cache_path")
-    else:
-        cache_path = None
+def list_task_configs(cache_path=None, dataset_ids=None, task_ids=None, dataset_sizes=None, task_types=None):
+    f""" Query tasks. 
 
-    if 'ids' in kwargs:
-        dataset_ids = kwargs.pop("ids")
-    else:
-        dataset_ids = None
+    Args:
+        cache_path: str, optional, default is None
+            Where to store downloaded datasets. 
+            If None, try to get from environment by key: {ENV_DATASETS_CACHE_PATH}. 
+            If not present, use default value {DEFAULT_CACHE_PATH}
+
+        dataset_ids: list[str], optional, default is None
+            Filter tasks by dataset ids.
+
+        task_ids: list[str], optional, default is None
+            Filter tasks by dataset ids.
+
+        dataset_sizes: list[str], optional, default is None
+            Filter tasks by dataset sizes.
+            If is None, select all types of dataset files; The options values are `small`, `large`
+    
+        task_types: list[str], optional, default is None
+            Filter tasks by task types. If is all types of tasks are used.
+            The optional values are `uniform-forecast`, `multivariate-forecast`.
+
+    """
 
     task_loader = _get_task_load(cache_path)
-    tasks = task_loader.list(*args, **kwargs)
+    queried_task_ids = task_loader.list(type=task_types, data_size=dataset_sizes)
+    if queried_task_ids is None or len(queried_task_ids) < 1:
+        return []
 
-    if dataset_ids is not None and len(dataset_ids) > 0:
-        ret_tasks = list(filter(lambda t: get_task_config(t).dataset_id in list(map(str, dataset_ids)), tasks))
+    # filter by task_ids
+    if task_ids is not None and len(task_ids) > 0:
+        task_ids = map(str, task_ids)
+        filter_task_ids = filter(lambda _: _ in task_ids,  queried_task_ids)
     else:
-        ret_tasks = tasks
+        filter_task_ids = queried_task_ids
 
-    return ret_tasks
+    # filter by dataset_ids
+    if dataset_ids is not None and len(dataset_ids) > 0:
+        dataset_ids = list(map(str, dataset_ids))
+        filter_task_ids = list(filter(lambda t: get_task_config(t).dataset_id in dataset_ids, filter_task_ids))
+
+    return list(map(lambda t: get_task_config(task_id=t, cache_path=cache_path), filter_task_ids))
