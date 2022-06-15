@@ -12,7 +12,7 @@ import tsbenchmark.tasks
 from tsbenchmark.callbacks import BenchmarkCallback
 from . import util
 
-from tsbenchmark.consts import DEFAULT_WORKING_DIR
+from tsbenchmark.consts import DEFAULT_BENCHMARK_DATA_DIR
 from tsbenchmark.players import Player, load_player
 from hypernets.utils import logging
 
@@ -68,17 +68,17 @@ class CopyCfgCallback(BenchmarkCallback):
         config_file_path = Path(self.config_file)
 
         # write config file
-        config_file_destination_path = Path(bm.working_dir) / config_file_path.name
+        config_file_destination_path = Path(bm.data_dir) / config_file_path.name
         os.makedirs(config_file_destination_path.parent.as_posix(), exist_ok=True)
         shutil.copy(self.config_file, config_file_destination_path.as_posix())
 
         # write status file
-        random_state_path = Path(bm.working_dir) / self.random_state_file_name
+        random_state_path = Path(bm.data_dir) / self.random_state_file_name
         with open(random_state_path, 'w') as f:
             json.dump(bm.random_states, f)
 
 
-def load_benchmark(config_file: str, benchmarks_working_dir=None):
+def load_benchmark(config_file: str, benchmarks_data_dir=None):
     config_dict = load_yaml(config_file)
     name = config_dict['name']
     desc = config_dict.get('desc', '')
@@ -88,11 +88,11 @@ def load_benchmark(config_file: str, benchmarks_working_dir=None):
     # check name
     assert util.is_safe_dir_name(name), "benchmark can only contains letters, numbers, '-' and '_' ."
 
-    # working_dir
-    if benchmarks_working_dir is None:
-        benchmarks_working_dir = config_dict.get('benchmarks_working_dir', DEFAULT_WORKING_DIR)
+    # data_dir
+    if benchmarks_data_dir is None:
+        benchmarks_data_dir = config_dict.get('benchmarks_data_dir', DEFAULT_BENCHMARK_DATA_DIR)
 
-    working_dir = (Path(benchmarks_working_dir).expanduser() / name).as_posix()
+    data_dir = (Path(benchmarks_data_dir).expanduser() / name).as_posix()
 
     # select datasets and tasks
     datasets_config = config_dict.get('datasets', {})
@@ -110,9 +110,9 @@ def load_benchmark(config_file: str, benchmarks_working_dir=None):
     datasets_filter_task_ids = datasets_filter_config.get('task_ids')
 
     task_configs = tsbenchmark.tasks.list_task_configs(task_types=datasets_filter_tasks,
-                                                            dataset_sizes=datasets_filter_data_sizes,
-                                                            dataset_ids=datasets_filter_dataset_ids,
-                                                            task_ids=datasets_filter_task_ids)
+                                                       dataset_sizes=datasets_filter_data_sizes,
+                                                       dataset_ids=datasets_filter_dataset_ids,
+                                                       task_ids=datasets_filter_task_ids)
 
     assert task_configs is not None and len(task_configs) > 0, "no task selected"
 
@@ -141,7 +141,7 @@ def load_benchmark(config_file: str, benchmarks_working_dir=None):
     report = config_dict.get('report', {})
     report_enable = report.get('enable', True)
     if report_enable is True:
-        default_report_dir = (Path(working_dir) / "report").as_posix()
+        default_report_dir = (Path(data_dir) / "report").as_posix()
         report_dir = Path(report.get('path', default_report_dir)).expanduser().as_posix()
         if not os.path.exists(report_dir):
             os.makedirs(report_dir, exist_ok=True)
@@ -162,7 +162,7 @@ def load_benchmark(config_file: str, benchmarks_working_dir=None):
 
     init_kwargs = dict(name=name, desc=desc, players=players, callbacks=callbacks,
                        batch_app_init_kwargs=batch_application_config,
-                       working_dir=working_dir, random_states=random_states,
+                       data_dir=data_dir, random_states=random_states,
                        ts_tasks_config=task_configs, task_constraints=task_constraints)
 
     if kind == 'local':

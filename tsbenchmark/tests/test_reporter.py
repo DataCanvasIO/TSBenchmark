@@ -146,12 +146,12 @@ class TestRemoteCustomPythonBenchmark:
         # task0 = create_task()
         # task_loader.load(task_id)
 
-        self.working_dir_path = Path(tempfile.mkdtemp(prefix="benchmark-test-batches"))
+        self.data_dir_path = Path(tempfile.mkdtemp(prefix="benchmark-test-batches"))
         self.benchmark_name = 'remote-benchmark'
 
         lb = RemoteSSHBenchmark(name=self.benchmark_name, desc='desc', players=[player],
                                 random_states=[8086, 8087], ts_tasks_config=task_arr,
-                                working_dir=self.working_dir_path.as_posix(),
+                                data_dir=self.data_dir_path.as_posix(),
                                 batch_app_init_kwargs=dict(server_host=os.getenv('TSB_SERVER_HOST'),
                                                            server_port=8060,
                                                            scheduler_exit_on_finish=True),
@@ -164,7 +164,7 @@ class TestRemoteCustomPythonBenchmark:
         self.lb.run()
 
         # assert local files
-        batch_path = self.working_dir_path / "batches" / self.benchmark_name
+        batch_path = self.data_dir_path / "batches" / self.benchmark_name
         assert batch_path.exists()
         batch_app: BatchApplication = self.lb._batch_app
         jobs = batch_app.batch.jobs
@@ -173,13 +173,13 @@ class TestRemoteCustomPythonBenchmark:
         assert (batch_path / f"{job.name}.succeed").exists()
 
         # assert remote files
-        job_working_dir_path = batch_path / job.name
+        job_data_dir_path = batch_path / job.name
         for connection in self.connections:
             with ssh_utils.sftp_client(**connection) as client:
                 # working dir
-                assert ssh_utils.exists(client, job_working_dir_path.as_posix())
+                assert ssh_utils.exists(client, job_data_dir_path.as_posix())
                 # run_py.sh
-                assert ssh_utils.exists(client, (job_working_dir_path / "resources" / "run_py.sh").as_posix())
+                assert ssh_utils.exists(client, (job_data_dir_path / "resources" / "run_py.sh").as_posix())
 
     def teardown_class(self):
         self.lb.stop()

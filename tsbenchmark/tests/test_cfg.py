@@ -26,7 +26,7 @@ class TestLoadBenchmark:
         assert batch_app_init_kwargs['server_host'] == "localhost"
         assert benchmark.task_constraints == {"max_trials": 10, "reward_metric": "rmse"}
 
-        assert Path(benchmark.working_dir).name == benchmark.name
+        assert Path(benchmark.data_dir).name == benchmark.name
 
         assert set([p.name for p in benchmark.players]) == {'hyperts_dl_player', 'plain_player_requirements_txt'}
         assert len(benchmark.ts_tasks_config) > 0
@@ -36,7 +36,7 @@ class TestLoadBenchmark:
     def test_load_local(self):
         local_benchmark_example = PWD / "benchmark_example_local.yaml"
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
-        benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_working_dir=batches_data_dir)
+        benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_data_dir=batches_data_dir)
         assert benchmark.name == "benchmark_example_local"
         assert isinstance(benchmark, LocalBenchmark)
         self.assert_benchmark(benchmark)
@@ -49,7 +49,7 @@ class TestLoadBenchmark:
     def test_default_report(self):
         local_benchmark_example = PWD / "benchmark_example_report.yaml"
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
-        benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_working_dir=batches_data_dir)
+        benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_data_dir=batches_data_dir)
         assert benchmark.name == "benchmark_example_local"
         assert isinstance(benchmark, LocalBenchmark)
         self.assert_benchmark(benchmark)
@@ -65,7 +65,7 @@ class TestLoadBenchmark:
     def test_load_remote(self):
         local_benchmark_example = PWD / "benchmark_example_remote.yaml"
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
-        benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_working_dir=batches_data_dir)
+        benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_data_dir=batches_data_dir)
         assert benchmark.name == "benchmark_example_remote"
         assert isinstance(benchmark, RemoteSSHBenchmark)
         assert len(benchmark.machines) > 0
@@ -79,7 +79,7 @@ class TestCopyCfgCallback(BaseBenchmarkTest):
         super(TestCopyCfgCallback, cls).setup_class()
         local_benchmark_example = PWD / "benchmark_local_no_report.yaml"
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
-        cls.benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_working_dir=batches_data_dir)
+        cls.benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_data_dir=batches_data_dir)
 
     def test_run_local(self):
         benchmark = self.benchmark
@@ -88,10 +88,10 @@ class TestCopyCfgCallback(BaseBenchmarkTest):
         benchmark.run()
 
         # assert copied file exists
-        assert (Path(benchmark.working_dir) / "benchmark_local_no_report.yaml").exists()
+        assert (Path(benchmark.data_dir) / "benchmark_local_no_report.yaml").exists()
 
         # assert random states file exits and content is right
-        random_states_path = Path(benchmark.working_dir) / "random_states"
+        random_states_path = Path(benchmark.data_dir) / "random_states"
         assert random_states_path.exists()
         from hypernets.hyperctl.utils import load_json
         assert set(load_json(random_states_path)) == set(benchmark.random_states)
@@ -109,7 +109,7 @@ class TestUseDatasetsCachePath(BaseBenchmarkTest):
         super(TestUseDatasetsCachePath, cls).setup_class()
         benchmark_file = PWD / "benchmark_cache_path.yaml"
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
-        cls.benchmark = load_benchmark(benchmark_file.as_posix(), benchmarks_working_dir=batches_data_dir)
+        cls.benchmark = load_benchmark(benchmark_file.as_posix(), benchmarks_data_dir=batches_data_dir)
 
     def test_run_benchmark(self):
         benchmark = self.benchmark

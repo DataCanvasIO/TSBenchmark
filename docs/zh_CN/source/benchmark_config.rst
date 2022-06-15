@@ -100,7 +100,7 @@ Benchmark有两个实现：
 
     * - benchmarks_working_dir
       - ``str``, optional
-      - 用于存放Benchmark运行产生的文件; 默认为 ``～/tsbenchmark_working_dir``，
+      - 用于存放Benchmark运行产生的文件; 默认为 ``～/tsbenchmark-data-dir``，
 
         将会以Benchmark的name为名称为每个Benchmark在此目录下创建子目录。
 

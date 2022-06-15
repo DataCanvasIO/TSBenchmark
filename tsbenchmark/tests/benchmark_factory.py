@@ -48,8 +48,8 @@ def load_plain_player_custom_python():
     return player
 
 
-def _init_benchmark_benchmark(players=None, tasks=None, callbacks=None,
-                              random_states=None):
+def _init_benchmark(players=None, tasks=None, callbacks=None,
+                    random_states=None):
     if players is None:
         players = [load_plain_player_custom_python()]
 
@@ -64,17 +64,17 @@ def _init_benchmark_benchmark(players=None, tasks=None, callbacks=None,
 
     callbacks.append(ConsoleCallback())
 
-    batches_data_dir = tempfile.mkdtemp(prefix="benchmark-test-batches")
+    benchmark_data_dir = tempfile.mkdtemp(prefix="benchmark-test")
 
     kwargs = dict(desc='desc', players=players,
                   random_states=random_states, ts_tasks_config=tasks,
-                  working_dir=batches_data_dir,
+                  data_dir=benchmark_data_dir,
                   callbacks=callbacks)
     return kwargs
 
 
 def create_local_benchmark(batch_app_init_kwargs=None, conda_home=None, **kwargs):
-    init_kwargs = _init_benchmark_benchmark(**kwargs)
+    init_kwargs = _init_benchmark(**kwargs)
 
     if batch_app_init_kwargs is None:
         batch_app_init_kwargs = dict(scheduler_exit_on_finish=True,
@@ -87,7 +87,7 @@ def create_local_benchmark(batch_app_init_kwargs=None, conda_home=None, **kwargs
 
 def create_remote_benchmark(machines, server_host, **kwargs):
 
-    init_kwargs = _init_benchmark_benchmark(**kwargs)
+    init_kwargs = _init_benchmark(**kwargs)
 
     batch_app_init_kwargs = dict(server_port=8060,
                                  server_host=server_host,

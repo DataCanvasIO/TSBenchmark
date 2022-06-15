@@ -74,19 +74,19 @@ def assert_remote_bm_batch_succeed(benchmark: BenchmarkBaseOnHyperctl, connectio
     batch_app: BatchApplication = benchmark.batch_app
 
     # assert local files
-    batch_path = Path(benchmark.get_batch_working_dir())
+    batch_path = Path(benchmark.get_batch_data_dir())
     assert batch_path.exists()
     batch_app: BatchApplication = benchmark.batch_app
 
     job = batch_app.batch.jobs[job_index]
 
     # assert remote files
-    job_working_dir_path = batch_path / job.name
+    job_data_dir_path = batch_path / job.name
     with ssh_utils.sftp_client(**connection) as client:
         # working dir
-        assert ssh_utils.exists(client, job_working_dir_path.as_posix())
+        assert ssh_utils.exists(client, job_data_dir_path.as_posix())
         for asset in asserts:
-            assert ssh_utils.exists(client, (job_working_dir_path / "resources" / asset).as_posix())
+            assert ssh_utils.exists(client, (job_data_dir_path / "resources" / asset).as_posix())
 
     # assert batch succeed
     assert_batch_finished(batch_app.batch, ShellJob.STATUS_SUCCEED)
@@ -337,7 +337,7 @@ class TestRemoteCustomPythonTestBenchmark(BaseBenchmarkTest):
         self.benchmark.run()
 
         # assert local files
-        batch_path = Path(self.benchmark.get_batch_working_dir())
+        batch_path = Path(self.benchmark.get_batch_data_dir())
         assert batch_path.exists()
         batch_app: BatchApplication = self.benchmark.batch_app
         jobs = batch_app.batch.jobs
