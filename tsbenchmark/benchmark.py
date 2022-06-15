@@ -200,7 +200,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
                       command=merged_command,
                       data_dir=job_data_dir,
                       working_dir=job_data_dir,
-                      assets=self.get_job_asserts(bm_task))
+                      assets=self.get_job_assets(bm_task))
 
     def _handle_on_start(self):
         for callback in self.callbacks:
@@ -260,7 +260,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         else:
             scheduler_callbacks = None
         init_dict = dict(benchmark=self, batch=batch, scheduler_callbacks=scheduler_callbacks,
-                         backend_type=self.get_backend_type(), backend_conf=self.get_backend_conf())
+                         backend_conf=self.get_backend_conf())
         copy_dict = self.batch_app_init_kwargs.copy()
         copy_dict.update(init_dict)
 
@@ -268,15 +268,11 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
         return batch_app
 
     @abc.abstractmethod
-    def get_backend_type(self):
-        raise NotImplemented
-
-    @abc.abstractmethod
     def get_backend_conf(self):
         raise NotImplemented
 
     @abc.abstractmethod
-    def get_job_asserts(self,  bm_task: BenchmarkTask):
+    def get_job_assets(self, bm_task: BenchmarkTask):
         raise NotImplemented
 
     @abc.abstractmethod
@@ -303,14 +299,12 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
         if PythonEnv.KIND_CONDA in venvs and self.conda_home is None:
             raise ValueError(f"'conda_home' can not be None because of some player using conda virtual env.")
 
-    def get_backend_type(self):
-        return 'local'
-
     def get_backend_conf(self):
+        ret_dict = {"type": 'local'}
         if self.conda_home is not None:
-            return {'environments': {consts.ENV_TSB_CONDA_HOME: self.conda_home}}
-        else:
-            return {}
+            ret_dict['environments'] = {consts.ENV_TSB_CONDA_HOME: self.conda_home}
+
+        return ret_dict
 
     def make_run_custom_pythonenv_command(self,  bm_task: BenchmarkTask, batch: Batch, name):
         custom_py_executable = bm_task.player.env.venv.py_executable
@@ -342,7 +336,7 @@ class LocalBenchmark(BenchmarkBaseOnHyperctl):
         player_exec_file = player.abs_exec_file_path().as_posix()
         return f"--python-script={player_exec_file}"
 
-    def get_job_asserts(self, bm_task: BenchmarkTask):
+    def get_job_assets(self, bm_task: BenchmarkTask):
         return []
 
 
@@ -364,11 +358,9 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
                     raise ValueError(f"'conda_home' in machines can not be None"
                                      f" because of some player using conda virtual env.")
 
-    def get_backend_type(self):
-        return 'remote'
-
     def get_backend_conf(self):
         return {
+            'type': 'remote',
             'machines': self.machines
         }
 
@@ -380,7 +372,7 @@ class RemoteSSHBenchmark(BenchmarkBaseOnHyperctl):
                   f"--requirements-txt-py-version={player.env.requirements.py_version}"
         return command
 
-    def get_job_asserts(self, bm_task: BenchmarkTask):
+    def get_job_assets(self, bm_task: BenchmarkTask):
         run_py_shell = (HERE / "run_py.sh").absolute().as_posix()
         return [run_py_shell, bm_task.player.base_dir]
 
