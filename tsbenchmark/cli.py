@@ -18,8 +18,8 @@ def main():
     """
     Examples:
         cd tsbenchmark/tests
-        tsb run --config ./benchmark_example_local.yaml
-        tsb --log-level=DEBUG run --config ./benchmark_example_local.yaml
+        tsb run --config ./benchmark_local.yaml
+        tsb --log-level=DEBUG run --config ./benchmark_local.yaml
         tsb compare ~/tsbenchmark-data/report/bechmark1 ~/tsbenchmark-data/report/bechmark2
     """
     print("PWD_path")

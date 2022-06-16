@@ -34,7 +34,7 @@ class TestLoadBenchmark:
         assert isinstance(benchmark.callbacks[0], CopyCfgCallback)
 
     def test_load_local(self):
-        local_benchmark_example = PWD / "benchmark_example_local.yaml"
+        local_benchmark_example = PWD / "benchmark_local.yaml"
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
         benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_data_dir=batches_data_dir)
         assert benchmark.name == "benchmark_example_local"
@@ -52,7 +52,7 @@ class TestLoadBenchmark:
         assert report_callback.reporter.benchmark_config['report.path'] == "/tmp/benchmark-output/hyperts"
 
     def test_default_report(self):
-        local_benchmark_example = PWD / "benchmark_example_report.yaml"
+        local_benchmark_example = PWD / "benchmark_report.yaml"
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
         benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_data_dir=batches_data_dir)
         assert benchmark.name == "benchmark_example_local"
@@ -68,7 +68,7 @@ class TestLoadBenchmark:
         assert report_callback.reporter.benchmark_config['report.path'] == os.path.join(batches_data_dir, benchmark.name, "report")
 
     def test_load_remote(self):
-        local_benchmark_example = PWD / "benchmark_example_remote.yaml"
+        local_benchmark_example = PWD / "benchmark_remote.yaml"
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
         benchmark = load_benchmark(local_benchmark_example.as_posix(), benchmarks_data_dir=batches_data_dir)
         assert benchmark.name == "benchmark_example_remote"

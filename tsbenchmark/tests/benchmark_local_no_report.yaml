@@ -6,13 +6,10 @@ kind: local
 players:
   - tsbenchmark/tests/players/plain_player
 
-datasets:
+tasks:
   filter:
-    task_types:
-      - univariate-forecast
-      - multivariate-forecast
-    data_sizes:
-      - small
+    task_ids:
+      - '512754'
 
 random_states: [ 23163, 23164 ]
 

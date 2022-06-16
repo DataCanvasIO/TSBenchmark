@@ -36,7 +36,7 @@ pip install tsbechmark
     - exec.py: (Required), the algorithm to be tested.
     - player.yaml: (Required), metadata settings of the algorithm.
 
-### [tsbenchmark.yaml](tsbenchmark/tests/benchmark.template.yaml) and [Examples](tsbenchmark/tests/benchmark_example_remote.yaml).
+### [Benchmark config file examples](https://tsbenchmark-en-us.readthedocs.io/zh_CN/latest/benchmark_config.html).
 
 ### exec.py 
 
@@ -67,7 +67,7 @@ For more examples, please refer to [Quick Start](https://tsbenchmark.readthedocs
 
 ### Run TSBenchmark with Command Line Tools
 ```bash
-tsb run --config benchmark_example_remote.yaml
+tsb run --config benchmark_remote.yaml
 ```
 
 ```
