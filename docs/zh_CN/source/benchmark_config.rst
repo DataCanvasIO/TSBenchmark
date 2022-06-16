@@ -26,9 +26,10 @@ LocalBenchmark
     players:
       - players/hyperts_dl_player
 
-    datasets:
-      task_ids:
-        - '512754'
+    tasks:
+      filter:
+        task_ids:
+          - '512754'
 
     random_states: [ 23163, 5318, 9527 ]
 
@@ -50,9 +51,10 @@ RemoteSSHBenchmark
     players:
       - players/hyperts_dl_player
 
-    datasets:
-      task_ids:
-        - '512754'
+    tasks:
+      filter:
+        task_ids:
+          - '512754'
 
     random_states: [ 23163, 5318, 9527 ]
 
@@ -117,7 +119,7 @@ Benchmark有两个实现：
       - 配置Hyperctl。
 
     * - tasks
-      - `TaskFilterConfig`_,  optional
+      - `TaskConfig`_,  optional
       - 设置参与Benchmark的任务。
 
     * - random_states
@@ -137,6 +139,29 @@ Benchmark有两个实现：
 
     若要实现一次Benchmark基于上一次Benchmark运行时跳过已经结束的任务， 需要确保这两次运行的Benchmark的 ``benchmarks_working_dir`` 和 ``name`` 属性一致。
 
+
+TaskConfig
+------------
+
+.. list-table::
+    :widths: 10 10 80
+    :header-rows: 1
+
+    * - Field Name
+      - Type
+      - Description
+
+    * - cache_path
+      - ``str``, optional
+      - 下载Dataset, Task的缓存目录，加载数据集或任务时会优先读取缓存，如果缓存不存在再从source中加载。 默认读取环境变量 ``TSB_DATASETS_CACHE_PATH``，如果不存在使用 ``~/.cache/tsbenchmark/datasets`` 。
+
+    * - filter
+      - `TaskFilterConfig`_, optional
+      - 按数据集的大小筛选, 默认选择所有大小类型的数据集文件; 可选 ``small``, ``large``。
+
+    * - source
+      - ``str``, optional
+      - 数据集和任务的下载源。默认为 ``AWS`` 。
 
 
 TaskFilterConfig

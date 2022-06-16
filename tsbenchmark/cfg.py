@@ -49,7 +49,7 @@ def _load_players(player_folders):
         # if player_name_or_path not in default_players:  # is a path
         # load as a directory
         abs_player_path = os.path.abspath(player_name_or_path)
-        logger.info(f"read player from dir {abs_player_path}")
+        logger.debug(f"read player from dir {abs_player_path}")
 
         player = load_player(Path(player_name_or_path))
         put_player(selected_players, player)
@@ -95,7 +95,7 @@ def load_benchmark(config_file: str, benchmarks_data_dir=None):
     data_dir = (Path(benchmarks_data_dir).expanduser() / name).as_posix()
 
     # select datasets and tasks
-    datasets_config = config_dict.get('datasets', {})
+    datasets_config = config_dict.get('tasks', {})
     datasets_config_cache_path = datasets_config.get('cache_path')
     if datasets_config_cache_path is not None:
         os.environ[consts.ENV_DATASETS_CACHE_PATH] = datasets_config_cache_path

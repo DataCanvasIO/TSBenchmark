@@ -42,6 +42,11 @@ class TestLoadBenchmark:
         self.assert_benchmark(benchmark)
         assert benchmark.conda_home == "~/miniconda3/"
 
+        # assets tasks
+        for task_config in benchmark.ts_tasks_config:
+            assert task_config.task == 'univariate-forecast'
+            assert task_config.data_size == 'small'
+
         report_callback: ReporterCallback = benchmark.callbacks[1]
         assert isinstance(report_callback, ReporterCallback)
         assert report_callback.reporter.benchmark_config['report.path'] == "/tmp/benchmark-output/hyperts"
@@ -107,9 +112,25 @@ class TestUseDatasetsCachePath(BaseBenchmarkTest):
     @classmethod
     def setup_class(cls):
         super(TestUseDatasetsCachePath, cls).setup_class()
-        benchmark_file = PWD / "benchmark_cache_path.yaml"
+        template_benchmark_file = PWD / "benchmark_cache_path.yaml"
+        cache_data_dir = tempfile.mkdtemp(prefix="benchmark-cache-dir")
+        cls.cache_data_dir = cache_data_dir
+
+        print("generate cache_data_dir: ")
+        print(cache_data_dir)
+
+        benchmark_file_fd, benchmark_file = tempfile.mkstemp(prefix="benchmark_cache_path", suffix=".yaml")
+        os.close(benchmark_file_fd)
+
+        with open(template_benchmark_file, 'r') as f:
+            content = f.read().replace("#cache_path#", cache_data_dir)
+
+        with open(benchmark_file, 'w') as f:
+            f.write(content)
+
         batches_data_dir = tempfile.mkdtemp(prefix="benchmark-working-dir")
-        cls.benchmark = load_benchmark(benchmark_file.as_posix(), benchmarks_data_dir=batches_data_dir)
+
+        cls.benchmark = load_benchmark(benchmark_file, benchmarks_data_dir=batches_data_dir)
 
     def test_run_benchmark(self):
         benchmark = self.benchmark
@@ -119,8 +140,8 @@ class TestUseDatasetsCachePath(BaseBenchmarkTest):
         benchmark.run()
 
         ts_task = benchmark.tasks()[0].ts_task
-        assert os.getenv(consts.ENV_DATASETS_CACHE_PATH) == "/tmp/datasets-cache"
-        assert ts_task.taskdata.taskdata_loader.data_path == "/tmp/datasets-cache"
+        assert os.getenv(consts.ENV_DATASETS_CACHE_PATH) == self.cache_data_dir
+        assert ts_task.taskdata.taskdata_loader.data_path == self.cache_data_dir
 
         # job succeed
         assert_local_bm_batch_succeed(self.benchmark)

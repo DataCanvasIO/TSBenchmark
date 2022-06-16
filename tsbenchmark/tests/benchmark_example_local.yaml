@@ -7,7 +7,7 @@ players:
   - players/hyperts_dl_player
   - tsbenchmark/tests/players/plain_player_requirements_txt
 
-datasets:
+tasks:
   filter:
     task_types:
       - univariate-forecast

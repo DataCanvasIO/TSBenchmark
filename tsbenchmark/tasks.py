@@ -137,14 +137,14 @@ class TSTask(object):
         self.start_time = time.time()
 
 
-def _get_task_load(cache_path=None):
+def _get_task_load(cache_path=None, data_source=None):
     if cache_path is None:
         cache_path = os.getenv(ENV_DATASETS_CACHE_PATH)
         if cache_path is None:
             cache_path = DEFAULT_CACHE_PATH
 
     from tsbenchmark.tsloader import TSTaskLoader
-    task_loader = TSTaskLoader(cache_path)
+    task_loader = TSTaskLoader(cache_path, data_source=data_source)
     return task_loader
 
 
@@ -154,14 +154,17 @@ def get_task_config(task_id, cache_path=None) -> TSTaskConfig:
     return task_config
 
 
-def list_task_configs(cache_path=None, dataset_ids=None, task_ids=None, dataset_sizes=None, task_types=None):
+def list_task_configs(cache_path=None, data_source=None, dataset_ids=None, task_ids=None, dataset_sizes=None, task_types=None):
     f""" Query tasks. 
 
     Args:
         cache_path: str, optional, default is None
-            Where to store downloaded datasets. 
+            Where to store downloaded data. 
             If None, try to get from environment by key: {ENV_DATASETS_CACHE_PATH}. 
             If not present, use default value {DEFAULT_CACHE_PATH}
+
+        data_source: str, optional
+            Where to download datasets or tasks, default is `AWS`
 
         dataset_ids: list[str], optional, default is None
             Filter tasks by dataset ids.
@@ -179,7 +182,7 @@ def list_task_configs(cache_path=None, dataset_ids=None, task_ids=None, dataset_
 
     """
 
-    task_loader = _get_task_load(cache_path)
+    task_loader = _get_task_load(cache_path, data_source=data_source)
     queried_task_ids = task_loader.list(type=task_types, data_size=dataset_sizes)
     if queried_task_ids is None or len(queried_task_ids) < 1:
         return []

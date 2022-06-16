@@ -6,8 +6,8 @@ kind: local
 players:
   - tsbenchmark/tests/players/check_cache_path_player
 
-datasets:
-  cache_path: /tmp/datasets-cache
+tasks:
+  cache_path: #cache_path#
   filter:
     task_ids:
       - '512754'
