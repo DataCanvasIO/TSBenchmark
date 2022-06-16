@@ -1,7 +1,5 @@
 env:
-  venv:
-    kind: custom_python
-    config:
-      py_executable: /mnt/nfsroot/hegang/programs/anaconda3/envs/tsb-gluonts/bin/python
+  kind: custom_python
+  py_executable: /mnt/nfsroot/hegang/programs/anaconda3/envs/tsb-gluonts/bin/python
 
 random: false

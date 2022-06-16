@@ -1,6 +1,5 @@
 env:
-  venv:
-    kind: custom_python
+  kind: custom_python
 
 tasks:
   - univariate-forecast

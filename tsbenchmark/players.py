@@ -126,38 +126,38 @@ def load_player(player_dir):
 
     env_dict = play_dict['env']
 
-    env_venv_dict = env_dict.get('venv')
-    env_mgr_kind = env_venv_dict['kind']
-    env_mgr_config = env_venv_dict.get('config', {})
+    # env_venv_dict = env_dict.get('venv')
+    env_kind = env_dict['kind']
 
     player_name = player_dir_path.name
-    if env_mgr_kind == PythonEnv.KIND_CONDA:
+    if env_kind == PythonEnv.KIND_CONDA:
         requirements_dict = env_dict.get('requirements')
         requirements_kind = requirements_dict['kind']
-        requirements_config = requirements_dict.get('config', {})
         if requirements_kind == PythonEnv.REQUIREMENTS_CONDA_YAML:
             # set env name
-            configured_env_name = env_mgr_config.get('name')
+            configured_env_name = env_dict.get('name')
             if configured_env_name is not None:
                 logger.warning(f"you have configured env name {configured_env_name} will be"
-                            f" instead of by the name from conda yaml file.")
-            env_mgr_config['name'] = read_env_name_from_conda_yaml(requirements_config.get('file_name', "env.yaml"))
-            reqs_config = ReqsCondaYamlConfig(**requirements_config)
+                               f" instead of by the name from conda yaml file.")
+            conda_yaml_file = requirements_dict.get('file_name', "env.yaml")
+            env_name = read_env_name_from_conda_yaml(conda_yaml_file)
+            reqs_config = ReqsCondaYamlConfig(file_name=conda_yaml_file)
         elif requirements_kind == PythonEnv.REQUIREMENTS_REQUIREMENTS_TXT:
-            env_mgr_config['name'] = env_mgr_config.get('name', f'tbs-{player_name}')  # set default env name
-            requirements_config['py_version'] = str(requirements_config['py_version'])
-            reqs_config = ReqsRequirementsTxtConfig(**requirements_config)
+            env_name = env_dict.get('name', f'tbs_{player_name}')  # set default env name
+            # requirements_config['py_version'] = str(requirements_config['py_version'])
+            requirements_txt_file = requirements_dict.get('file_name', "env.yaml")
+            reqs_config = ReqsRequirementsTxtConfig(py_version=str(requirements_dict.get('py_version', sys.version)),
+                                                    file_name=requirements_txt_file)
         else:
-            raise Exception(f"Unsupported env manager {env_mgr_kind}")
+            raise Exception(f"Unsupported env manager {env_kind}")
 
-        mgr_config = CondaVenvMRGConfig(**env_mgr_config)
+        mgr_config = CondaVenvMRGConfig(name=env_name)
 
-    elif env_mgr_kind == PythonEnv.KIND_CUSTOM_PYTHON:
-        env_mgr_config['py_executable'] = env_mgr_config.get('py_executable', sys.executable)
-        mgr_config = CustomPyMRGConfig(**env_mgr_config)
+    elif env_kind == PythonEnv.KIND_CUSTOM_PYTHON:
+        mgr_config = CustomPyMRGConfig(py_executable=env_dict.get('py_executable', sys.executable))
         reqs_config = None
     else:
-        raise Exception(f"Unsupported env manager {env_mgr_kind}")
+        raise Exception(f"Unsupported env manager {env_kind}")
 
     play_dict['env'] = PythonEnv(venv=mgr_config, requirements=reqs_config)
     play_dict['base_dir'] = Path(player_dir).absolute().as_posix()

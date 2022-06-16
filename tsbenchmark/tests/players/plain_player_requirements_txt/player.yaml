@@ -1,10 +1,7 @@
 env:
-  venv:
-    kind: conda
-    config:
-      name: plain_player_requirements_txt
+  kind: conda
+  name: plain_player_requirements_txt
   requirements:
     kind: requirements_txt
-    config:
-      py_version: 3.8
-      file_name: requirements.txt
+    py_version: "3.8"
+    file_name: requirements.txt

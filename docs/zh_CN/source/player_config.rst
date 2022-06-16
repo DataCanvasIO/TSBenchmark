@@ -83,7 +83,7 @@ PlayerConfig
       - player的名称，如果为空将使用player所在的文件夹名。
 
     * - env
-      - `EnvConfig`_
+      - `EnvConfig`_, required
       - 运行环境配置。
 
     * - tasks
@@ -133,8 +133,8 @@ CustomPythonEnvConfig
       -
 
     * - py_executable
-      - ``str``, required
-      - python的可执行文件路径。
+      - ``str``, optional
+      - python的可执行文件路径，默认为当前进程使用的python。
 
 
 CondaEnvConfig
@@ -205,7 +205,7 @@ benchmark运行时候会使用conda创建虚拟环境并使用 `pip <https://pip
       -
     * - py_version
       - ``str``, optional
-      - 虚拟环境的python版本，如果为空将使用最新版本。
+      - 虚拟环境的python版本，如果为空将使用当前进程使用的python版本。
 
     * - file_name
       - ``str``, optional

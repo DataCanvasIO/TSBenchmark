@@ -90,7 +90,7 @@ Benchmark有两个实现：
 
     * - name
       - ``str``, required
-      - benchmark的名称，支持使用数字、大小写字母、下划线、中划线。
+      - benchmark的名称，可以使用数字、大小写字母、下划线、中划线组合。
 
     * - desc
       - ``str``, optional
@@ -100,7 +100,7 @@ Benchmark有两个实现：
       - ``str``, required
       - Benchmark的类型，可选 ``local`` 和 ``remote`` ，分别对应 ``LocalBenchmark`` 和 ``LocalBenchmark`` 的Benchmar实现。
 
-    * - benchmarks_working_dir
+    * - benchmarks_data_dir
       - ``str``, optional
       - 用于存放Benchmark运行产生的文件; 默认为 ``～/tsbenchmark-data-dir``，
 
@@ -115,7 +115,7 @@ Benchmark有两个实现：
       - 运行Benchmark的约束条件。
 
     * - batch_application_config
-      - `BatchApplicationConfig`_,  required
+      - `BatchApplicationConfig`_,  optional
       - 配置Hyperctl。
 
     * - tasks
@@ -124,9 +124,7 @@ Benchmark有两个实现：
 
     * - random_states
       - ``list[int]``,  optional
-      - Benchmark任务使用的随机数，默认为 ``[9527]`` 。
-
-        Benchmark运行时会让Player使用不同的随机数运行同一个任务，这样可以降低实验的随机性。
+      - Benchmark运行时会让Player使用不同的随机数运行同一个任务，这样可以降低实验的随机性，默认为 ``[9527]`` 。
 
 
 .. Note::
@@ -134,10 +132,10 @@ Benchmark有两个实现：
     当一个Benchmark重复运行时，之前运行结束（失败或者成功状态）的任务会被跳过不再运行。
     如需重新运行Benchmark中已经结束的任务，可以删除该任务的状态文件,任务的状态文件在：
 
-    - 任务成功的状态文件：``{benchmarks_working_dir}/{benchmark_name}/batch/{job_name}.succeed``
-    - 任务失败的状态文件：``{benchmarks_working_dir}/{benchmark_name}/batch/{job_name}.failed``
+    - 任务成功的状态文件：``{benchmarks_data_dir}/{benchmark_name}/batch/{job_name}.succeed``
+    - 任务失败的状态文件：``{benchmarks_data_dir}/{benchmark_name}/batch/{job_name}.failed``
 
-    若要实现一次Benchmark基于上一次Benchmark运行时跳过已经结束的任务， 需要确保这两次运行的Benchmark的 ``benchmarks_working_dir`` 和 ``name`` 属性一致。
+    若要实现一次Benchmark基于上一次Benchmark运行时跳过已经结束的任务， 需要确保这两次运行的Benchmark的 ``benchmarks_data_dir`` 和 ``name`` 属性一致。
 
 
 TaskConfig
@@ -157,7 +155,7 @@ TaskConfig
 
     * - filter
       - `TaskFilterConfig`_, optional
-      - 按数据集的大小筛选, 默认选择所有大小类型的数据集文件; 可选 ``small``, ``large``。
+      - 配置筛选任务的条件。
 
     * - source
       - ``str``, optional

@@ -8,8 +8,7 @@ $ pip install tsbenchmark
 以使用[prophet](https://github.com/facebook/prophet)训练为例定一个player，创建目录`prophet_player`，并在该目录中创建`player.yaml`文件，内容为:
 ```yaml
 env:
-  venv:
-    kind: conda
+  kind: conda
   requirements:
     kind: conda_yaml
     config:
@@ -27,6 +26,7 @@ channels:
   - conda-forge
 dependencies:
   - prophet
+  - pip
   - pip:
       - tsbenchmark
 ```

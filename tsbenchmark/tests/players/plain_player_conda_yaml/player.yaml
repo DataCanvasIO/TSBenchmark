@@ -1,7 +1,5 @@
 env:
-  venv:
-    kind: conda
+  kind: conda
   requirements:
     kind: conda_yaml
-    config:
-      file_name: env.yaml
+    file_name: env.yaml
