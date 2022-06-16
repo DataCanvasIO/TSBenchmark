@@ -250,6 +250,7 @@ class BenchmarkBaseOnHyperctl(Benchmark, metaclass=abc.ABCMeta):
 
         self._batch_app = self.create_batch_app(batch)
         self._batch_app.start()
+        logger.info("benchmark finished")
 
     def stop(self):
         self._batch_app.stop()

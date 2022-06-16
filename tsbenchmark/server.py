@@ -78,9 +78,11 @@ class TSTaskListHandler(BaseHandler):
 
 class BenchmarkBatchApplication(BatchApplication):
 
-    def __init__(self, benchmark, **kwargs):  # TODO
-        self.benchmark = benchmark
-        super(BenchmarkBatchApplication, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        if 'benchmark' not in kwargs:
+            raise ValueError("missing required param 'benchmark' ")
+        self.benchmark = kwargs.pop('benchmark')
+        super(BenchmarkBatchApplication, self).__init__(*args, **kwargs)
 
     def _create_web_app(self, server_host, server_port, batch):
         hyperctl_handlers = create_hyperctl_handlers(batch, self.job_scheduler)

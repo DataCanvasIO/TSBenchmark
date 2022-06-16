@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+import os
 import argparse
 from pathlib import Path
 
@@ -10,9 +11,10 @@ from tsbenchmark.reporter import load_compare_reporter
 logger = logging.getLogger(__name__)
 
 PWD_path = Path(__file__)
-import os
+
 
 src_dir = os.path.dirname(__file__)
+
 
 def main():
     """
@@ -22,11 +24,6 @@ def main():
         tsb --log-level=DEBUG run --config ./benchmark_local.yaml
         tsb compare ~/tsbenchmark-data/report/bechmark1 ~/tsbenchmark-data/report/bechmark2
     """
-    print("PWD_path")
-    print(PWD_path.as_posix())
-    print("src_dir")
-    print(src_dir)
-
 
     def setup_global_args(global_parser):
         # console output

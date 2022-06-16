@@ -146,14 +146,15 @@ def load_benchmark(config_file: str, benchmarks_data_dir=None):
         if not os.path.exists(report_dir):
             os.makedirs(report_dir, exist_ok=True)
 
-        # task_types = list(set(tsbenchmark.tasks.get_task_config(t).task for t in selected_task_ids))
+        task_types = list(set(t.task for t in task_configs))
+        # datasets_filter_tasks if datasets_filter_tasks is not None else []
         from tsbenchmark.callbacks import ReporterCallback
         benchmark_config = {
             'report.path': report_dir,
             'name': name,
             'desc': desc,
             'random_states': random_states,
-            'task_filter.tasks': datasets_filter_tasks
+            'task_filter.tasks': task_types
          }
         callbacks.append(ReporterCallback(benchmark_config=benchmark_config))
 

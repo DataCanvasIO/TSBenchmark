@@ -5,21 +5,21 @@
 $ pip install tsbenchmark
 ```
 
-以使用[prophet](https://github.com/facebook/prophet)训练为例子定一个player，创建目录`prophet_player`，并在该目录创建`player.yaml`文件:
+以使用[prophet](https://github.com/facebook/prophet)训练为例定一个player，创建目录`prophet_player`，并在该目录中创建`player.yaml`文件，内容为:
 ```yaml
 env:
   venv:
-    kind: conda  # 使用conda创建虚拟环境
+    kind: conda
   requirements:
-    kind: conda_yaml  # 使用的conda 的yaml文件定义虚拟环境
+    kind: conda_yaml
     config:
       file_name: env.yaml 
 
-tasks:  # 声明该player 仅支持单变量预测的任务
+tasks:
   - univariate-forecast
 ```
 
-在目录`prophet_player`中创建`env.yaml`文件，这个文件用来使用[conda](https://docs.conda.io/en/latest/miniconda.html)创建虚拟环境，在player运行时使用。
+接着在目录`prophet_player`中创建`env.yaml`文件，这个文件用来使用[conda](https://docs.conda.io/en/latest/miniconda.html)创建虚拟环境，在player运行时使用，文件内容为：
 ```yaml
 name: tsb_prophet_player
 channels:
@@ -31,7 +31,7 @@ dependencies:
       - tsbenchmark
 ```
 
-在目录`prophet_player`中创建`exec.py` 文件用来使用prophet训练任务：
+最后，在目录`prophet_player`中创建`exec.py` 文件用来使用prophet训练任务，文件内容为：
 ```python
 from prophet import Prophet
 
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     main()
 ```
 
-由于player的运行环境需要使用使用[conda](https://docs.conda.io)创建，请先安装conda到`/opt/miniconda3`。
+由于player的运行环境需要使用使用[conda](https://docs.conda.io)创建，请先安装conda到`/opt/miniconda3`，如安装到其他目录请配置`venv.conda.home` 为您的conda安装目录。
 
 然后在当前目录创建Benchmark配置文件`benchmark.yaml`:
 ```yaml
@@ -75,14 +75,12 @@ kind: local
 players:
   - ./prophet_player
 
-datasets:
+tasks:
   filter:
-    tasks:
-      - univariate-forecast
-    data_sizes:
-      - small
+    task_ids:
+      - '512754'
 
-random_states: [ 23163 ]
+random_states: [ 23161, 23162, 23163 ]
 
 constraints:
   task:
@@ -108,4 +106,4 @@ venv:
 $ tsb run --config ./benchmark.yaml
 ```
 
-运行结束后可以去`~/tsbenchmark-working-dir/benchmark_example/report` 目录查看生成的测试报告。
+运行结束后可以去`~/tsbenchmark-data-dir/benchmark_example/report` 目录查看生成的测试报告。
