@@ -7,7 +7,6 @@ import tsbenchmark.consts as consts
 from hypernets.utils import logging
 import pandas as pd
 import numpy as np
-import numpy as np
 import statsmodels.api as sm
 
 logging.set_level('DEBUG')
@@ -455,7 +454,7 @@ class cut_point_util:
 
         return train_data.shape, MAPE
 
-    def get_best_data_point(self, train_data, horizon):
+    def get_best_data_point(self, train_data, horizon, n=None):
         test_data = train_data[-horizon:]
         train_data = train_data[:-horizon]
         period = self.fft_infer_period(train_data)
@@ -469,7 +468,21 @@ class cut_point_util:
                 results = results.append({'shape': shape, 'point': -i, 'metric': mape},
                                          ignore_index=True)
             results.to_csv("results.csv", index=False)
-            return results[results['metric'] == results['metric'].min()]['point'].values[0]
+
+            if n is None:
+                # Get the point which will get the best metric.
+                # `results` is a negative integer array,
+                # each point in `results` is negative and player will use it like this:
+                #       df[point:]
+                return results[results['metric'] == results['metric'].min()]['point'].values[0]
+            else:
+                # Get the point from top n metric rows which will drop less data.
+                # `results` is a negative integer array,
+                # each point in `results` is negative and player will use it like this:
+                #       df[point:]
+                results = results.sort_values('metric').head(n)
+                return results[results['point'] == results['point'].min()]['point'].values[0]
+
         else:
             return None
 

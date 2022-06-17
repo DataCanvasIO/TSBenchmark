@@ -51,9 +51,10 @@ def create_benchmark_remote_cfg():
                         }
     return benchmark_config
 
+
 def create_paint_cfg():
     benchmark_config = {'report.path': r'D:\文档\0 DAT\3 Benchmark\benchmark-output',
-                        'name': 'benchmark_0531_small_03',
+                        'name': 'benchmark_cut_dl',
                         'desc': 'report_remote',
                         'random_states': [8086],
                         'task_filter.tasks': ['univariate-forecast']
@@ -184,7 +185,25 @@ class TestRemoteCustomPythonBenchmark:
     def teardown_class(self):
         self.lb.stop()
 
+
 def atest_paint():
     benchmark_config = create_paint_cfg()
     rc = ReporterCallback(benchmark_config=benchmark_config)
     rc.reporter.generate_report()
+
+
+def test_best_params_dl():
+    from tsbenchmark.reporter import BestParamAnalysis
+    file_list = [(HERE / "report" / "hyperts_dl_player.csv").as_posix()]
+    best_param_analysis = BestParamAnalysis(file_list).get_best_param()
+    analysis_txt = (HERE / "report" / "dl_analysis.txt").as_posix()
+    with open(analysis_txt, 'w') as file:
+        file.write(best_param_analysis)
+
+def test_best_params_stat():
+    from tsbenchmark.reporter import BestParamAnalysis
+    file_list = [(HERE / "report" / "hyperts_stat_player.csv").as_posix()]
+    best_param_analysis = BestParamAnalysis(file_list).get_best_param()
+    analysis_txt = (HERE / "report" / "stat_analysis.txt").as_posix()
+    with open(analysis_txt, 'w') as file:
+        file.write(best_param_analysis)

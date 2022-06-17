@@ -13,7 +13,6 @@ class BenchmarkCallback:
         pass
 
     def on_task_message(self, bm, bm_task, message: Dict):
-        # reward, reward_metric, hyperparams, elapsed
         pass
 
     def on_task_break(self, bm, bm_task, elapsed: float):

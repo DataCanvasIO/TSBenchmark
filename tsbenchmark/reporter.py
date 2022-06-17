@@ -260,12 +260,6 @@ class Analysis:
         logger.info('report generated: {}'.format(report_path))
         return df_report
 
-        # png_path = '{}{}report_{}_{}.png'.format(report_imgs_dir, os.sep, metric, stat_type)
-        # if title_text == None:
-        #     title_text = '{} {} {} '.format(metric.upper(), stat_type, 'scores')
-        # self.painter.paint_table(df_report, title_cols=columns, title_text=title_text, fontsize=6,
-        #                          result_path=png_path)
-
     def get_result_datas(self, result_file_list):
         results_datas = {}
         players = []
@@ -311,10 +305,10 @@ class Reporter():
         self.painter = Painter()
 
     def save_results(self, message, bm_task):
-        # todo missing_rate periods cv cv_folds run_times init_params ensemble run_kwargs industry frequency
+        # todo missing_rate periods cv cv_folds init_params ensemble run_kwargs industry frequency
         cols_data_tmp = ['task_id', 'round_no', 'player', 'dataset', 'shape', 'data_size', 'task', 'horizon',
                          'reward_metric', 'metrics', 'duration', 'random_state', 'y_predict', 'y_real', 'key_params',
-                         'best_params']
+                         'best_params', 'sub_result']
         data_df = pd.DataFrame(columns=cols_data_tmp)
         data_file = self.path_maintainer.data_file(bm_task)
 
@@ -337,7 +331,8 @@ class Reporter():
                 'y_predict': message['y_predict'],
                 'y_real': message['y_real'],
                 'key_params': message['key_params'],
-                'best_params': message['best_params']
+                'best_params': message['best_params'],
+                'sub_result': message['sub_result'],
                 }
 
         data_df = data_df.append(data, ignore_index=True)
@@ -355,10 +350,19 @@ class Reporter():
             report_dir = self.path_maintainer.report_dir(task_type)
             report_imgs_dir = self.path_maintainer.report_imgs_dir(task_type)
             data_results_file = file_util.get_filelist(task_dir, [])
-            self.generate_table_reports(data_results_file, report_dir, report_imgs_dir)
-            self.generate_boxline_reports(data_results_file, report_imgs_dir)
-            if task_type == consts.TASK_TYPE_UNIVARIATE:
-                self.generate_line_reports(data_results_file, report_imgs_dir)
+            # self.generate_table_reports(data_results_file, report_dir, report_imgs_dir)
+            # self.generate_boxline_reports(data_results_file, report_imgs_dir)
+            # if task_type == consts.TASK_TYPE_UNIVARIATE:
+            #     self.generate_line_reports(data_results_file, report_imgs_dir)
+            self.generate_hyperts_bestparam(data_results_file, report_dir)
+
+    def generate_hyperts_bestparam(self, result_file_list, report_dir):
+        for result_file in result_file_list:
+            if 'hyperts' in os.path.basename(result_file) and '.csv' in os.path.basename(result_file):
+                best_param_analysis = BestParamAnalysis([result_file]).get_best_param()
+                analysis_txt = os.path.join(report_dir, os.path.basename(result_file).replace(".csv", ".txt"))
+                with open(analysis_txt, 'w') as file:
+                    file.write(best_param_analysis)
 
     def generate_line_reports(self, result_file_list, report_imgs_dir):
         line_dir = file_util.get_dir_path(os.path.join(report_imgs_dir, 'line'))
@@ -388,6 +392,7 @@ class Reporter():
             labels = []
 
             plt.figure(figsize=(12, 5))
+            plt.title(dataset)
             total_points = len(y_real)
             if total_points > max_points:
                 y_real = y_real[::round(len(y_real) / max_points)]
@@ -473,6 +478,9 @@ class Reporter():
             self.calc_and_paint(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir,
                                 metric,
                                 'std')
+            self.calc_and_paint(results_datas, columns, frameworks_non_navie, report_dir, report_imgs_dir,
+                                metric,
+                                'min')
 
         # duration reports
         for stat_type in ['mean', 'std', 'max', 'min']:
@@ -544,3 +552,123 @@ class CompareReporter():
 def load_compare_reporter(config_file: str):
     config_dict = load_yaml(config_file)
     return CompareReporter(config_dict)
+
+
+class BestParamAnalysis(object):
+
+    def __init__(self, file_list, p_limit=None):
+        self.text_best_params = ""
+        self.file_list = file_list
+        if p_limit is not None:
+            self.p_limit = p_limit
+        else:
+            def p_limit_default(types):
+                base = 0.1
+                return base + (1 - base) * 2 / (types + 1)
+
+            self.p_limit = p_limit_default
+        self.probability = 0.5
+
+    def binom_tail(self, n, p, k):
+        from scipy.stats import binom
+        return binom.pmf(range(k, n + 1), n, p).sum() if k > p * n else binom.pmf(range(0, k + 1), n, p).sum()
+
+    def get_possible_count(self, n, k, threshold, arr):
+        impossible_list = [self.binom_tail(n, p, k) < threshold for p in arr]
+        possable_count = sum([0 if t else 1 for t in impossible_list])
+        return possable_count
+
+    def high_probability(self, n, k, types, threshold=0.05, step=0.001):
+        lowwer_possible_count = self.get_possible_count(n, k, threshold,
+                                                        np.arange(step, self.p_limit(types) + step, step))
+        higher_possible_count = self.get_possible_count(n, k, threshold, np.arange(self.p_limit(types), 1, step))
+        return lowwer_possible_count / (higher_possible_count + lowwer_possible_count) < self.probability
+
+    def appendln(self, str_append):
+        self.text_best_params = self.text_best_params + str(str_append) + '\r'
+
+    def get_best_param(self):
+
+        df = pd.read_csv(self.file_list[0])
+
+        if len(self.file_list) > 1:
+            for i in range(1, len(self.file_list)):
+                df_tmp = pd.read_csv(self.file_list[i])
+                df = pd.concat([df, df_tmp], 0, ignore_index=True)
+
+        df_split = pd.DataFrame(columns=['key', 'param', 'value', 'count'])
+
+        module_couter = {}
+
+        def add(counter: dict, key: str):
+            if key not in counter:
+                counter[key] = 0
+            counter[key] = counter[key] + 1
+            return counter
+
+        for i, row in df[['best_params']].iterrows():
+            row_dict = json.loads(row.values[0])['value']
+
+            for key in row_dict:
+                if key not in ['trial_no', 'succeeded', 'reward', 'elapsed', 'estimator_options.hp_or',
+                               'numeric_imputer_0.strategy', 'categorical_imputer_0.strategy',
+                               'numeric_scaler_optional_0.strategy']:
+                    # print(key.split('.')[0].replace("Module_", ""), key.split('.')[1], row_dict[key])
+                    if "Module_" in key:
+                        add(module_couter, key.split('.')[0])
+                        break
+
+        df_module = pd.DataFrame(columns=['key', 'count'])
+        for key in module_couter:
+            df_module = df_module.append({'key': key, 'count': module_couter[key]}, ignore_index=True)
+        types = df_module.shape[0]
+        N = df_module['count'].sum()
+        k = df_module['count'].max()
+        if self.high_probability(N, k, types):
+            self.appendln("============================================")
+            self.appendln("Best Module found :")
+            self.appendln("Best Module key : " + df_module[df_module['count'] == k]['key'].values[0])
+            self.appendln("Best Module runs : " + str(k))
+            self.appendln("Total runs : " + str(N))
+            self.appendln("Total Module types : " + str(types))
+            self.appendln("Modules : ")
+            self.appendln(df_module)
+            self.appendln("============================================")
+        else:
+            self.appendln("Didn't find best module. ")
+            self.appendln("Modules : ")
+            self.appendln(str(df_module))
+
+        for i, row in df[['best_params']].iterrows():
+            row_dict = json.loads(row.values[0])['value']
+
+            for key in row_dict:
+                if key not in ['trial_no', 'succeeded', 'reward', 'elapsed', 'estimator_options.hp_or']:
+                    row = {'key': key.split('.')[0], 'param': key.split('.')[1], 'value': row_dict[key], 'count': 1}
+                    df_split = df_split.append(row, ignore_index=True)
+
+        df_split['count'] = 1
+
+        for i, row_module in df_module.iterrows():
+            df_split_module = df_split[df_split['key'] == row_module['key']]
+
+            for param in set(df_split_module['param']):
+                df_split_param = df_split_module[df_split_module['param'] == param]
+                df_split_param['value'] = df_split_param['value'].astype(str)
+                param_counter = df_split_param.groupby('value').count()
+                types = param_counter.shape[0]
+                N = param_counter['count'].sum()
+                k = param_counter['count'].max()
+                if self.high_probability(N, k, types):
+                    self.appendln("============================================")
+                    self.appendln("Best param of " + row_module['key'] + " found :")
+                    self.appendln("Best param key : " + param)
+                    self.appendln("Best param value : " + str(
+                        param_counter[param_counter['count'] == k].index.values[0]))
+                    self.appendln("Best param runs : " + str(k))
+                    self.appendln("Total runs : " + str(N))
+                    self.appendln("Total param types : " + str(types))
+                    self.appendln("Params : ")
+                    self.appendln(str(param_counter))
+                    self.appendln("============================================")
+        return self.text_best_params

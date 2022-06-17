@@ -6,7 +6,7 @@ import pandas as pd
 from typing import Dict
 
 from tsbenchmark.tasks import TSTask
-from tsbenchmark.consts import DEFAULT_REPORT_METRICS, DEFAULT_GLOBAL_RANDOM_STATE, TASK_MODE_LOCAL
+from tsbenchmark.consts import DEFAULT_REPORT_METRICS, DEFAULT_GLOBAL_RANDOM_STATE, TASK_MODE_LOCAL, SUB_RESULT_MAX
 from tsbenchmark import tasks
 
 
@@ -114,7 +114,7 @@ def report_task(report_data: Dict, bm_task_id=None, api_server_uri=None):
     utils.post_request(report_url, json.dumps(request_dict))
 
 
-def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_params=''):
+def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_params='', sub_result=False):
     """Send report data.
 
     This interface used for send report data to benchmark server.
@@ -160,7 +160,8 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
         'y_real': task.get_test()[task.series_name].to_json(orient='records')[1:-1].replace('},{', '} {'),
         'metrics': task_metrics,
         'key_params': key_params,
-        'best_params': best_params
+        'best_params': best_params,
+        'sub_result': str(sub_result)
     }
 
     if not hasattr(task, TASK_MODE_LOCAL):
@@ -170,6 +171,19 @@ def send_report_data(task: TSTask, y_pred: pd.DataFrame, key_params='', best_par
         hyn_logging.set_level(hyn_logging.DEBUG)
         logger = hyn_logging.get_logger(__name__)
         logger.info("Successfully validation for local test mode.")
+
+    if sub_result:
+        if not hasattr(task, "sub_result_count"):
+            setattr(task, "sub_result_count", 1)
+        else:
+            task.sub_result_count = task.sub_result_count + 1
+            if task.sub_result_count >= SUB_RESULT_MAX:
+                logger.info(
+                    f"Exit with {task.sub_result_count} sub_result have been sended. The maximum counts of sub_result is {SUB_RESULT_MAX}.")
+                os._exit(0)
+    else:
+        logger.info(f"Exit with sub_result = {sub_result}, none sub_result support only 1s result.")
+        os._exit(0)
 
 
 def _get_api_server_api(api_server_uri=None):
