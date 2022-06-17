@@ -19,7 +19,7 @@ class TestLoadBenchmark:
         assert len(benchmark.random_states) == 5
         batch_app_init_kwargs = benchmark.batch_app_init_kwargs
 
-        assert batch_app_init_kwargs['scheduler_interval'] == 1
+        assert batch_app_init_kwargs['scheduler_interval'] == 1000
         assert batch_app_init_kwargs['scheduler_exit_on_finish'] == True
 
         assert batch_app_init_kwargs['server_port'] == 8060

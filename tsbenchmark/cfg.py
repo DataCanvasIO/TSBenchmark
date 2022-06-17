@@ -16,7 +16,6 @@ from tsbenchmark.consts import DEFAULT_BENCHMARK_DATA_DIR
 from tsbenchmark.players import Player, load_player
 from hypernets.utils import logging
 
-
 SRC_DIR = os.path.dirname(__file__)
 
 logger = logging.getLogger(__name__)

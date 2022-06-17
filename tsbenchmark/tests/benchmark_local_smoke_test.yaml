@@ -1,0 +1,20 @@
+name: 'benchmark_local_smoke_test'
+desc: 'benchmark_local_smoke_test'
+
+kind: local
+
+players:
+  - players/plain_player_requirements_txt
+  - players/prophet_player
+  - players/plain_player_custom_python
+
+tasks:
+  filter:
+    task_ids:
+      - '512754'
+
+random_states: [ 23163, 5318, 9527 ]
+
+venv:
+  conda:
+    home: /opt/miniconda3

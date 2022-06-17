@@ -78,7 +78,7 @@ def create_local_benchmark(batch_app_init_kwargs=None, conda_home=None, **kwargs
 
     if batch_app_init_kwargs is None:
         batch_app_init_kwargs = dict(scheduler_exit_on_finish=True,
-                                     scheduler_interval=1,
+                                     scheduler_interval=1000,
                                      server_port=8060)
     lb = LocalBenchmark(name='local-benchmark', conda_home=conda_home, batch_app_init_kwargs=batch_app_init_kwargs,
                         **init_kwargs)
@@ -91,7 +91,7 @@ def create_remote_benchmark(machines, server_host, **kwargs):
 
     batch_app_init_kwargs = dict(server_port=8060,
                                  server_host=server_host,
-                                 scheduler_interval=1,
+                                 scheduler_interval=1000,
                                  scheduler_exit_on_finish=True)
 
     lb = RemoteSSHBenchmark(name="remote-benchmark",

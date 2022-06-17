@@ -30,7 +30,7 @@ report:
 batch_application_config:
   server_port: 8060
   server_host: localhost
-  scheduler_interval: 1
+  scheduler_interval: 1000
   scheduler_exit_on_finish: True
 
 benchmarks_data_dir: /tmp/tsbenchmark-hyperctl
@@ -41,4 +41,4 @@ machines:
         username: hyperctl
         password: hyperctl
     environments:
-      TSB_CONDA_HOME: ~/miniconda3/
+      TSB_CONDA_HOME: /usr/local//miniconda3/

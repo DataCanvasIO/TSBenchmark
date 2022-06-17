@@ -146,10 +146,11 @@ def load_player(player_dir):
             env_name = env_dict.get('name', f'tbs_{player_name}')  # set default env name
             # requirements_config['py_version'] = str(requirements_config['py_version'])
             requirements_txt_file = requirements_dict.get('file_name', "env.yaml")
-            reqs_config = ReqsRequirementsTxtConfig(py_version=str(requirements_dict.get('py_version', sys.version)),
+            current_py_ver = f"{sys.version_info.major}.{sys.version_info.minor}"
+            reqs_config = ReqsRequirementsTxtConfig(py_version=str(requirements_dict.get('py_version', current_py_ver)),
                                                     file_name=requirements_txt_file)
         else:
-            raise Exception(f"Unsupported env manager {env_kind}")
+            raise Exception(f"Unsupported requirement kind '{env_kind}' ")
 
         mgr_config = CondaVenvMRGConfig(name=env_name)
 

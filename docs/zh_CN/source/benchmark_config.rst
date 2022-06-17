@@ -66,6 +66,10 @@ RemoteSSHBenchmark
         environments: # 配置远程SSH机器conda安装位置
           TSB_CONDA_HOME: /opt/miniconda3
 
+    batch_application_config:
+      server_port: 8060
+      server_host: 192.168.300.300  # 可以被远程机器访问的ip地址
+
 
 配置项参考
 ==========

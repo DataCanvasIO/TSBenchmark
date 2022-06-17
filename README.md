@@ -1,7 +1,7 @@
 # TSBenchmark
-[![Python Versions](https://img.shields.io/pypi/pyversions/hypergbm.svg)](https://pypi.org/project/hypergbm)
-[![Downloads](https://pepy.tech/badge/hypergbm)](https://pepy.tech/project/hypergbm)
-[![PyPI Version](https://img.shields.io/pypi/v/hypergbm.svg)](https://pypi.org/project/hypergbm)
+[![Python Versions](https://img.shields.io/pypi/pyversions/tsbenchmark.svg)](https://pypi.org/project/tsbenchmark)
+[![Downloads](https://pepy.tech/badge/tsbenchmark)](https://pepy.tech/project/tsbenchmark)
+[![PyPI Version](https://img.shields.io/pypi/v/tsbenchmark.svg)](https://pypi.org/project/tsbenchmark)
 
 [中文](README_zh_CN.md)
 
